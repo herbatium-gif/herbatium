@@ -7,7 +7,7 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#1f9d5a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Herbatium">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,87 +18,87 @@
 [hidden]{display:none!important}
 img{max-width:100%}
 :root{
-  --bg:#f2f4f8;
+  --bg:#faf6ee;
   --surface:#ffffff;
-  --surface-2:#e9ecf3;
-  --ink:#0e1320;
-  --ink-soft:#5b6478;
-  --line:#dde1ea;
-  --accent:#4f46e5;
-  --accent-2nd:#4338ca;
+  --surface-2:#f4efe2;
+  --ink:#231f17;
+  --ink-soft:#7a7263;
+  --line:#e9e0cd;
+  --accent:#1f9d5a;
+  --accent-2nd:#16803f;
   --accent-ink:#ffffff;
-  --accent-soft:#eceaff;
-  --accent-2:#0891b2;
-  --accent-2-soft:#e0f6fa;
-  --amber:#b45309;
-  --amber-soft:#fef3c7;
+  --accent-soft:#e2f6ea;
+  --accent-2:#f2994a;
+  --accent-2-soft:#fdead2;
+  --amber:#c2660c;
+  --amber-soft:#fdead2;
   --danger:#dc2626;
   --danger-soft:#fee2e2;
-  --ok:#059669;
-  --ok-soft:#d1fae5;
+  --ok:#1f9d5a;
+  --ok-soft:#e2f6ea;
   --radius:8px;
-  --shadow:0 1px 2px rgba(14,19,32,.05), 0 8px 24px -14px rgba(14,19,32,.22);
-  --sidebar-bg:#f7f8fc;
-  --sidebar-ink:#252b3d;
-  --sidebar-ink-soft:#6b7590;
-  --sidebar-line:#e4e7f0;
-  --sidebar-active-bg:#eceeff;
-  --sidebar-active-ink:#252b3d;
+  --shadow:0 1px 2px rgba(35,31,23,.05), 0 8px 24px -14px rgba(35,31,23,.22);
+  --sidebar-bg:#fbf7ee;
+  --sidebar-ink:#231f17;
+  --sidebar-ink-soft:#8a8271;
+  --sidebar-line:#e9e0cd;
+  --sidebar-active-bg:#e2f6ea;
+  --sidebar-active-ink:#16803f;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0a0d15;
-    --surface:#11141f;
-    --surface-2:#161a28;
-    --ink:#e7eaf3;
-    --ink-soft:#8891a6;
-    --line:#232838;
-    --accent:#6366f1;
-    --accent-2nd:#818cf8;
-    --accent-ink:#0a0d15;
-    --accent-soft:#1d1e3a;
-    --accent-2:#22d3ee;
-    --accent-2-soft:#0d2b35;
-    --amber:#f59e0b;
-    --amber-soft:#3a2a0f;
+    --bg:#15190f;
+    --surface:#1c2216;
+    --surface-2:#212a1a;
+    --ink:#f1ede4;
+    --ink-soft:#a8a190;
+    --line:#2c3423;
+    --accent:#34c17a;
+    --accent-2nd:#6ee7a8;
+    --accent-ink:#0e1a0f;
+    --accent-soft:#1c3524;
+    --accent-2:#ffab5e;
+    --accent-2-soft:#3a2a13;
+    --amber:#ffb020;
+    --amber-soft:#3a2b0d;
     --danger:#f87171;
     --danger-soft:#3a1518;
-    --ok:#34d399;
-    --ok-soft:#0e2f24;
+    --ok:#34c17a;
+    --ok-soft:#173327;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.65);
-    --sidebar-bg:#05070c;
-    --sidebar-ink:#c7cee0;
-    --sidebar-ink-soft:#5b6480;
-    --sidebar-line:#161b28;
-    --sidebar-active-bg:#141a2c;
+    --sidebar-bg:#0d120a;
+    --sidebar-ink:#d9e4d0;
+    --sidebar-ink-soft:#7f8f74;
+    --sidebar-line:#1e2618;
+    --sidebar-active-bg:#1c3524;
     --sidebar-active-ink:#ffffff;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0a0d15;
-  --surface:#11141f;
-  --surface-2:#161a28;
-  --ink:#e7eaf3;
-  --ink-soft:#8891a6;
-  --line:#232838;
-  --accent:#6366f1;
-  --accent-2nd:#818cf8;
-  --accent-ink:#0a0d15;
-  --accent-soft:#1d1e3a;
-  --accent-2:#22d3ee;
-  --accent-2-soft:#0d2b35;
-  --amber:#f59e0b;
-  --amber-soft:#3a2a0f;
+  --bg:#15190f;
+  --surface:#1c2216;
+  --surface-2:#212a1a;
+  --ink:#f1ede4;
+  --ink-soft:#a8a190;
+  --line:#2c3423;
+  --accent:#34c17a;
+  --accent-2nd:#6ee7a8;
+  --accent-ink:#0e1a0f;
+  --accent-soft:#1c3524;
+  --accent-2:#ffab5e;
+  --accent-2-soft:#3a2a13;
+  --amber:#ffb020;
+  --amber-soft:#3a2b0d;
   --danger:#f87171;
   --danger-soft:#3a1518;
-  --ok:#34d399;
-  --ok-soft:#0e2f24;
+  --ok:#34c17a;
+  --ok-soft:#173327;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.65);
-  --sidebar-bg:#05070c;
-  --sidebar-ink:#c7cee0;
-  --sidebar-ink-soft:#5b6480;
-  --sidebar-line:#161b28;
-  --sidebar-active-bg:#141a2c;
+  --sidebar-bg:#0d120a;
+  --sidebar-ink:#d9e4d0;
+  --sidebar-ink-soft:#7f8f74;
+  --sidebar-line:#1e2618;
+  --sidebar-active-bg:#1c3524;
   --sidebar-active-ink:#ffffff;
 }
 *{box-sizing:border-box}
@@ -302,27 +302,27 @@ tbody tr:hover{background:var(--surface-2)}
 
 /* ===== polish pass: ambient depth, glow, motion ===== */
 :root{
-  --glow:rgba(79,70,229,.16);
-  --glow-2:rgba(8,145,178,.14);
-  --mesh-1:rgba(79,70,229,.10);
-  --mesh-2:rgba(8,145,178,.09);
-  --mesh-3:rgba(129,140,248,.07);
+  --glow:rgba(31,157,90,.18);
+  --glow-2:rgba(242,153,74,.16);
+  --mesh-1:rgba(31,157,90,.12);
+  --mesh-2:rgba(242,153,74,.10);
+  --mesh-3:rgba(31,157,90,.06);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --glow:rgba(99,102,241,.30);
-    --glow-2:rgba(34,211,238,.22);
-    --mesh-1:rgba(99,102,241,.16);
-    --mesh-2:rgba(34,211,238,.12);
-    --mesh-3:rgba(129,140,248,.10);
+    --glow:rgba(52,193,122,.32);
+    --glow-2:rgba(255,171,94,.26);
+    --mesh-1:rgba(52,193,122,.18);
+    --mesh-2:rgba(255,171,94,.14);
+    --mesh-3:rgba(52,193,122,.10);
   }
 }
 :root[data-theme="dark"]{
-  --glow:rgba(99,102,241,.30);
-  --glow-2:rgba(34,211,238,.22);
-  --mesh-1:rgba(99,102,241,.16);
-  --mesh-2:rgba(34,211,238,.12);
-  --mesh-3:rgba(129,140,248,.10);
+  --glow:rgba(52,193,122,.32);
+  --glow-2:rgba(255,171,94,.26);
+  --mesh-1:rgba(52,193,122,.18);
+  --mesh-2:rgba(255,171,94,.14);
+  --mesh-3:rgba(52,193,122,.10);
 }
 
 *{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -537,6 +537,11 @@ const LEGISLATION = [
     url: "https://single-market-economy.ec.europa.eu/sectors/cosmetics/cosmetic-ingredient-database_en",
   },
   {
+    title: "Regulamentul (UE) 2023/1545 — lista extinsă de alergeni de parfum (82 substanțe)",
+    desc: "Extinde Anexa III de la 26 la 82 de alergeni de parfum de declarat pe etichetă (multe fiind uleiuri esențiale/extracte naturale). Termen: 31.07.2026 pentru produsele puse pe piață pentru prima dată, 31.07.2028 pentru cele deja pe piață. Verifică orice rețetă nouă contra listei complete înainte de lansare.",
+    url: "https://eur-lex.europa.eu/eli/reg/2023/1545/oj/eng",
+  },
+  {
     title: "Legea nr. 178/2000 privind produsele cosmetice (republicată)",
     desc: "Actul normativ românesc de completare a cadrului UE — sancțiuni, atribuții ale autorităților naționale de control pentru piața din România.",
     url: "https://lege5.ro/gratuit/gi3doobw/legea-nr-178-2000-privind-produsele-cosmetice",
@@ -606,8 +611,8 @@ const LABEL_I18N = {
     copyBtn: "Copiază lista INCI",
     copiedBtn: "Copiat ✓",
     allergenTitle: "Alergeni de declarat",
-    allergenIntro: "Conform Anexei III, acești alergeni de parfum trebuie menționați explicit (chiar dacă apar deja în lista INCI de mai sus, ca substanțe individuale):",
-    noAllergen: "Niciun alergen peste pragul de declarare obligatorie la compoziția curentă.",
+    allergenIntro: "Conform Anexei III (extinsă din 2023 la 82 de substanțe — Reg. (UE) 2023/1545), acești alergeni de parfum trebuie menționați explicit (chiar dacă apar deja în lista INCI de mai sus, ca substanțe individuale):",
+    noAllergen: "Niciun alergen din baza curatoriată peste pragul de declarare obligatorie la compoziția curentă — dar verifică și restul Anexei III (82 de substanțe), nu doar ingredientele marcate aici.",
     previewTitle: "Previzualizare etichetă",
     printBtn: "Printează / salvează PDF",
     leaveOn: "Produs leave-on",
@@ -1206,7 +1211,7 @@ function viewIngrediente(){
       ` : `<div class="empty">Selectează un ingredient</div>`}
     </div></div>
   </div>
-  <p class="hint" style="margin-top:16px">Informațiile de mai sus rezumă cerințe general cunoscute din Regulamentul (CE) 1223/2009 și anexele sale; nu înlocuiesc un Raport de Siguranță (CPSR) întocmit de un evaluator de siguranță autorizat, obligatoriu înainte de comercializare.</p>
+  <p class="hint" style="margin-top:16px">Informațiile de mai sus rezumă cerințe general cunoscute din Regulamentul (CE) 1223/2009 și anexele sale; nu înlocuiesc un Raport de Siguranță (CPSR) întocmit de un evaluator de siguranță autorizat, obligatoriu înainte de comercializare. <strong>Notă 2026:</strong> lista de alergeni de parfum de declarat pe etichetă (Anexa III) a fost extinsă de la 26 la 82 de substanțe (Reg. (UE) 2023/1545) — termen 31.07.2026 pt. produse noi, 31.07.2028 pt. cele deja pe piață. Marcajul „alergen" de mai sus e conservator, nu e o listă completă a celor 82.</p>
   `;
 }
 function renderCustomForm(){
@@ -1424,7 +1429,7 @@ function renderRestrictionChecks(r, totals){
     }
   });
   if (rows.length===0) return `<div class="hint">Niciun ingredient din rețetă nu are restricții specifice de concentrație în baza de date.</div>`;
-  return rows.join("") + `<p class="hint" style="margin-top:8px">Pragurile de alergeni (${ALERGEN_THRESHOLD_LEAVE_ON.toFixed(3)}% leave-on / ${ALERGEN_THRESHOLD_RINSE_OFF.toFixed(2)}% rinse-off) se aplică la conținutul real al substanței alergene, nu la ingredientul brut — pentru uleiuri esențiale, verifică fișa IFRA a furnizorului pentru compoziția exactă.</p>`;
+  return rows.join("") + `<p class="hint" style="margin-top:8px">Pragurile de alergeni (${ALERGEN_THRESHOLD_LEAVE_ON.toFixed(3)}% leave-on / ${ALERGEN_THRESHOLD_RINSE_OFF.toFixed(2)}% rinse-off) se aplică la conținutul real al substanței alergene, nu la ingredientul brut — pentru uleiuri esențiale, verifică fișa IFRA a furnizorului pentru compoziția exactă. Anexa III listează acum 82 de alergeni de declarat (extinsă în 2023) — ingredientele marcate mai sus sunt cele cunoscute din baza curatoriată, nu neapărat toate cele 82.</p>`;
 }
 
 /* ========================= TAB LEȘIE: CALCULATOR SAPONIFICARE ========================= */
