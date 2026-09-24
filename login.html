@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autentificare — Herbatium</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#1f9d5a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="authCard">
+  <h1>Autentificare</h1>
+  <div class="sub">Intră în contul tău Herbatium.</div>
+  <form id="loginForm">
+    <label for="email">Email</label>
+    <input type="email" id="email" required autocomplete="email">
+    <label for="password">Parolă</label>
+    <input type="password" id="password" required autocomplete="current-password">
+    <button class="btn" type="submit" id="submitBtn">Conectare</button>
+  </form>
+  <div class="err" id="errBox"></div>
+  <div class="foot">Nu ai cont încă? <a href="/register.html">Creează unul</a></div>
+</div>
+<script>
+const form = document.getElementById("loginForm");
+const errBox = document.getElementById("errBox");
+const submitBtn = document.getElementById("submitBtn");
+
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+  errBox.style.display = "none";
+  submitBtn.disabled = true; submitBtn.textContent = "Se conectează…";
+  try{
+    const res = await fetch("/api/auth/login", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+      }),
+    });
+    if (!res.ok){
+      const d = await res.json().catch(()=>({}));
+      errBox.textContent = d.error==="invalid_credentials" ? "Email sau parolă greșită." : "A apărut o eroare. Încearcă din nou.";
+      errBox.style.display = "block";
+      submitBtn.disabled = false; submitBtn.textContent = "Conectare";
+      return;
+    }
+    window.location.href = "/app.html";
+  }catch(e){
+    errBox.textContent = "Nu am putut contacta serverul.";
+    errBox.style.display = "block";
+    submitBtn.disabled = false; submitBtn.textContent = "Conectare";
+  }
+};
+</script>
+</body>
+</html>
