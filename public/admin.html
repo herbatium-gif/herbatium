@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administrare — Herbatium</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#4f46e5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .adminWrap{max-width:960px;margin:40px auto;padding:0 20px}
+  .adminHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .statsRow{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+  .statCard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;min-width:140px}
+  .statCard .num{font-size:28px;font-weight:700;color:#4f46e5}
+  .statCard .lbl{font-size:13px;color:#6b7280}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #f0f0f0;font-size:14px}
+  th{background:#f9fafb;font-weight:600;color:#374151}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .badge.active{background:#dcfce7;color:#166534}
+  .badge.none{background:#f3f4f6;color:#6b7280}
+  .badge.admin{background:#e0e7ff;color:#4338ca}
+  .backLink{font-size:14px}
+  .errBox{color:#b91c1c;padding:12px 0}
+</style>
+</head>
+<body>
+<div class="adminWrap">
+  <div class="adminHead">
+    <h1 style="margin:0">Panou de administrare</h1>
+    <a class="backLink" href="/app.html">← Înapoi la aplicație</a>
+  </div>
+  <div class="statsRow" id="statsRow"></div>
+  <div id="errBox" class="errBox" style="display:none"></div>
+  <table id="usersTable" style="display:none">
+    <thead>
+      <tr><th>Email</th><th>Creat</th><th>Abonament</th><th>Rol</th><th>Pagină publică</th></tr>
+    </thead>
+    <tbody id="usersBody"></tbody>
+  </table>
+</div>
+<script>
+function fmtDate(s){
+  if(!s) return "—";
+  const d = new Date(s);
+  return d.toLocaleDateString("ro-RO");
+}
+async function load(){
+  const errBox = document.getElementById("errBox");
+  try{
+    const [statsRes, usersRes] = await Promise.all([
+      fetch("/api/admin/stats", { credentials: "include" }),
+      fetch("/api/admin/users", { credentials: "include" }),
+    ]);
+    if (statsRes.status === 401 || usersRes.status === 401){
+      window.location.href = "/login.html";
+      return;
+    }
+    if (statsRes.status === 403 || usersRes.status === 403){
+      errBox.textContent = "Acest cont nu are acces la panoul de administrare.";
+      errBox.style.display = "block";
+      return;
+    }
+    if (!statsRes.ok || !usersRes.ok) throw new Error("server_error");
+
+    const stats = await statsRes.json();
+    const { users } = await usersRes.json();
+
+    document.getElementById("statsRow").innerHTML = `
+      <div class="statCard"><div class="num">${stats.total}</div><div class="lbl">Conturi totale</div></div>
+      <div class="statCard"><div class="num">${stats.active}</div><div class="lbl">Abonamente active</div></div>
+      <div class="statCard"><div class="num">${stats.teamMembers}</div><div class="lbl">Membri de echipă</div></div>
+      <div class="statCard"><div class="num">${stats.admins}</div><div class="lbl">Administratori</div></div>
+    `;
+
+    const body = document.getElementById("usersBody");
+    body.innerHTML = users.map(u => `
+      <tr>
+        <td>${u.email}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${u.businessName}</span>` : ""}</td>
+        <td>${fmtDate(u.createdAt)}</td>
+        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span></td>
+        <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? "membru echipă" : "client")}</td>
+        <td>${u.publicPageEnabled ? "da" : "—"}</td>
+      </tr>
+    `).join("");
+    document.getElementById("usersTable").style.display = "table";
+  }catch(e){
+    errBox.textContent = "Nu am putut încărca datele de administrare.";
+    errBox.style.display = "block";
+  }
+}
+load();
+</script>
+</body>
+</html>

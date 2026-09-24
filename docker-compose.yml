@@ -1,0 +1,51 @@
+# Rulare completă cu o singură comandă: "docker compose up -d --build"
+# Pornește aplicația Herbatium ȘI o bază de date PostgreSQL, deja legate
+# între ele — nu trebuie să instalezi Node sau Postgres pe calculator.
+# Migrările bazei de date se aplică automat la pornire (docker-entrypoint.sh).
+
+# Nume fix al proiectului — indiferent în ce folder e copiată aplicația
+# (relevant mai ales pentru instalatorul Windows), containerele și volumele
+# Docker au mereu același nume: herbatium-app-1, herbatium-db-1,
+# herbatium_pgdata, herbatium_uploads.
+name: herbatium
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-herbatium}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-herbatium}
+      POSTGRES_DB: ${POSTGRES_DB:-herbatium}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-herbatium}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Suprascrie orice DATABASE_URL din .env — în Docker, baza de date e
+      # containerul "db" de mai sus, nu un server extern.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-herbatium}:${POSTGRES_PASSWORD:-herbatium}@db:5432/${POSTGRES_DB:-herbatium}?schema=public
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # Pozele de produs încărcate de utilizatori — păstrate între restart-uri
+      # și rebuild-uri ale imaginii.
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

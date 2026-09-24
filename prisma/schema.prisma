@@ -1,0 +1,72 @@
+// Schema bază de date — PostgreSQL
+// Rulează: npx prisma migrate dev --name init   (după ce ai completat DATABASE_URL în .env)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+
+  // GDPR — consimțământ la înregistrare (art. 6, 7 GDPR)
+  termsVersion      String?   // versiunea Termenilor acceptată (vezi LEGAL_VERSION din .env)
+  termsAcceptedAt   DateTime? // data/ora acceptării — dovadă de consimțământ
+  marketingConsent  Boolean   @default(false) // bifă separată, nebifată implicit (art. 7 alin. (4))
+
+  // Stripe
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String    @default("none") // none | active | past_due | canceled
+  currentPeriodEnd     DateTime?
+
+  // Pagină publică de catalog (opțională — producătorul o activează explicit)
+  publicPageEnabled Boolean  @default(false)
+  slug              String?  @unique
+  businessName      String?
+  bio               String?
+  instagramUrl      String?
+  bresloUrl         String?
+  etsyUrl           String?
+  websiteUrl        String?
+  facebookUrl       String?
+  catalogTemplate   String?  @default("natural")
+
+  // Cont de echipă — un membru invitat de un cont principal ("owner") partajează
+  // aceleași date (UserData) și același abonament activ, fără cont de plată propriu.
+  teamOwnerId String?
+  teamOwner   User?   @relation("TeamMembers", fields: [teamOwnerId], references: [id], onDelete: SetNull)
+  teamMembers User[]  @relation("TeamMembers")
+
+  // Administrator platformă — cont separat de conturile clienților, creat automat
+  // din ADMIN_EMAIL/ADMIN_PASSWORD (.env), vezi src/seedAdmin.js. Nu depinde de
+  // Stripe (are mereu acces la aplicație) și poate vedea panoul /admin.html.
+  isAdmin Boolean @default(false)
+
+  data UserData?
+}
+
+model UserData {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recipes           Json     @default("[]")
+  batches           Json     @default("[]")
+  customIngredients Json     @default("[]")
+  products          Json     @default("[]")
+  ingredientPrices  Json     @default("{}")
+  stock             Json     @default("{}")
+  costState         Json     @default("{}")
+  sales             Json     @default("[]")
+  lyeState          Json     @default("{}")
+
+  updatedAt         DateTime @updatedAt
+}

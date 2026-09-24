@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cont nou — Herbatium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+.consentRow{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:13px;line-height:1.45;color:var(--ink-soft)}
+.consentRow input[type=checkbox]{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
+.consentRow a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="authCard">
+  <h1>Cont nou</h1>
+  <div class="sub">Creează-ți contul — apoi alegi abonamentul.</div>
+  <form id="registerForm">
+    <label for="email">Email</label>
+    <input type="email" id="email" required autocomplete="email">
+    <label for="password">Parolă (minim 8 caractere)</label>
+    <input type="password" id="password" required minlength="8" autocomplete="new-password">
+    <label class="consentRow" for="acceptTerms">
+      <input type="checkbox" id="acceptTerms" required>
+      <span>Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
+    </label>
+    <label class="consentRow" for="marketing">
+      <input type="checkbox" id="marketing">
+      <span>Vreau să primesc ocazional email-uri despre noutăți și oferte Herbatium (opțional, poți renunța oricând).</span>
+    </label>
+    <button class="btn" type="submit" id="submitBtn">Creează cont</button>
+  </form>
+  <div class="err" id="errBox"></div>
+  <div class="foot">Ai deja cont? <a href="/login.html">Conectează-te</a></div>
+</div>
+<script>
+const form = document.getElementById("registerForm");
+const errBox = document.getElementById("errBox");
+const submitBtn = document.getElementById("submitBtn");
+
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+  errBox.style.display = "none";
+  submitBtn.disabled = true; submitBtn.textContent = "Se creează…";
+  try{
+    const res = await fetch("/api/auth/register", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        acceptTerms: document.getElementById("acceptTerms").checked,
+        marketing: document.getElementById("marketing").checked,
+      }),
+    });
+    if (!res.ok){
+      const d = await res.json().catch(()=>({}));
+      const msgs = {
+        email_invalid: "Adresa de email nu pare validă.",
+        password_too_short: "Parola trebuie să aibă minim 8 caractere.",
+        email_taken: "Există deja un cont cu acest email — încearcă să te conectezi.",
+        terms_not_accepted: "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
+      };
+      errBox.textContent = msgs[d.error] || "A apărut o eroare. Încearcă din nou.";
+      errBox.style.display = "block";
+      submitBtn.disabled = false; submitBtn.textContent = "Creează cont";
+      return;
+    }
+    window.location.href = "/abonament.html";
+  }catch(e){
+    errBox.textContent = "Nu am putut contacta serverul.";
+    errBox.style.display = "block";
+    submitBtn.disabled = false; submitBtn.textContent = "Creează cont";
+  }
+};
+</script>
+</body>
+</html>
