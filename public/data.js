@@ -2,6 +2,12 @@
 // Sursă: Regulamentul (CE) 1223/2009, Anexele II/III/V/VI + cunoștințe general acceptate din cosmetică artizanală.
 // Concentrațiile "max" sunt limite legale UE cunoscute; unde nu există restricție explicită, e marcat null.
 // Acest fișier NU este un substitut pentru un dosar CPSR/CPNP întocmit de un evaluator de siguranță autorizat.
+// IMPORTANT (2026): Anexa III (alergeni de parfum de declarat pe etichetă) a fost extinsă de la 26 la
+// 82 de substanțe prin Regulamentul (UE) 2023/1545 — obligatoriu pt. produse puse pe piață pentru prima
+// dată din 31.07.2026, iar pt. produsele deja pe piață până la 31.07.2028. Câmpul `alergen:true` de mai
+// jos marchează conservator ingredientele deja cunoscute ca surse de alergeni — NU este o listă completă
+// și verificată a celor 82 de substanțe. Pentru orice rețetă/etichetă nouă, verifică formula finală
+// contra Anexei III curente (CosIng) sau cu un evaluator de siguranță CPNP.
 
 const INGREDIENTS = [
   // ===== ULEIURI VEGETALE / CARIER =====
@@ -51,7 +57,7 @@ const INGREDIENTS = [
   {id:"benzoat-sodiu", ro:"Benzoat de sodiu", inci:"Sodium Benzoate", cat:"Conservant", faza:"apa", functie:"Conservant", maxPct:0.5, alergen:false, nota:"Anexa V/1 — max 0.5% calculat ca acid benzoic"},
   {id:"acid-sorbic", ro:"Acid sorbic", inci:"Sorbic Acid", cat:"Conservant", faza:"apa", functie:"Conservant (antifungic)", maxPct:0.6, alergen:false, nota:"Anexa V/22 — max 0.6% (ca acid)"},
   {id:"sorbat-potasiu", ro:"Sorbat de potasiu", inci:"Potassium Sorbate", cat:"Conservant", faza:"apa", functie:"Conservant", maxPct:0.6, alergen:false, nota:"Anexa V/22 — max 0.6% calculat ca acid sorbic"},
-  {id:"alcool-benzilic", ro:"Alcool benzilic", inci:"Benzyl Alcohol", cat:"Conservant", faza:"apa", functie:"Conservant, solvent, parfumant", maxPct:1.0, alergen:true, nota:"Anexa V/34 — max 1%; e și pe lista celor 26+ alergeni de parfum, etichetare obligatorie >0.001% leave-on"},
+  {id:"alcool-benzilic", ro:"Alcool benzilic", inci:"Benzyl Alcohol", cat:"Conservant", faza:"apa", functie:"Conservant, solvent, parfumant", maxPct:1.0, alergen:true, nota:"Anexa V/34 — max 1%; e și pe lista celor 82 alergeni de parfum (Anexa III, extinsă prin Reg. (UE) 2023/1545), etichetare obligatorie >0.001% leave-on"},
   {id:"acid-dehidroacetic", ro:"Acid dehidroacetic", inci:"Dehydroacetic Acid", cat:"Conservant", faza:"apa", functie:"Conservant", maxPct:0.6, alergen:false, nota:"Anexa V/12 — max 0.6% (ca acid)"},
   {id:"acid-salicilic", ro:"Acid salicilic", inci:"Salicylic Acid", cat:"Conservant / exfoliant (BHA)", faza:"apa", functie:"Conservant sau activ exfoliant", maxPct:0.5, alergen:false, nota:"Prag afișat (0.5%) e limita ca CONSERVANT (Anexa V). Ca activ exfoliant/BHA (Anexa III), limita legală e mai mare — max 2% în majoritatea produselor, 3% în produse de clătire pentru păr — dar INTERZIS complet în loțiune de corp, zona ochilor, ruj și deodorant roll-on, indiferent de concentrație. INTERZIS în orice produs pentru copii sub 3 ani (cu excepții specifice pt. șampon). Verifică încadrarea exactă pe tipul tău de produs înainte de a depăși 0.5%."},
   {id:"ecogard", ro:"Conservant natural (ex. Leucidal / Geogard)", inci:"variază după produs — verifică fișa tehnică a furnizorului", cat:"Conservant natural/derivat", faza:"apa", functie:"Conservant", maxPct:null, alergen:false, nota:"INCI-ul exact diferă complet de la un produs comercial la altul — nu presupune, verifică fișa tehnică"},
