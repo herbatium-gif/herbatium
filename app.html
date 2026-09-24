@@ -1,0 +1,2966 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Herbatium</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Herbatium">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+:root{
+  --bg:#f2f4f8;
+  --surface:#ffffff;
+  --surface-2:#e9ecf3;
+  --ink:#0e1320;
+  --ink-soft:#5b6478;
+  --line:#dde1ea;
+  --accent:#4f46e5;
+  --accent-2nd:#4338ca;
+  --accent-ink:#ffffff;
+  --accent-soft:#eceaff;
+  --accent-2:#0891b2;
+  --accent-2-soft:#e0f6fa;
+  --amber:#b45309;
+  --amber-soft:#fef3c7;
+  --danger:#dc2626;
+  --danger-soft:#fee2e2;
+  --ok:#059669;
+  --ok-soft:#d1fae5;
+  --radius:8px;
+  --shadow:0 1px 2px rgba(14,19,32,.05), 0 8px 24px -14px rgba(14,19,32,.22);
+  --sidebar-bg:#f7f8fc;
+  --sidebar-ink:#252b3d;
+  --sidebar-ink-soft:#6b7590;
+  --sidebar-line:#e4e7f0;
+  --sidebar-active-bg:#eceeff;
+  --sidebar-active-ink:#252b3d;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0d15;
+    --surface:#11141f;
+    --surface-2:#161a28;
+    --ink:#e7eaf3;
+    --ink-soft:#8891a6;
+    --line:#232838;
+    --accent:#6366f1;
+    --accent-2nd:#818cf8;
+    --accent-ink:#0a0d15;
+    --accent-soft:#1d1e3a;
+    --accent-2:#22d3ee;
+    --accent-2-soft:#0d2b35;
+    --amber:#f59e0b;
+    --amber-soft:#3a2a0f;
+    --danger:#f87171;
+    --danger-soft:#3a1518;
+    --ok:#34d399;
+    --ok-soft:#0e2f24;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.65);
+    --sidebar-bg:#05070c;
+    --sidebar-ink:#c7cee0;
+    --sidebar-ink-soft:#5b6480;
+    --sidebar-line:#161b28;
+    --sidebar-active-bg:#141a2c;
+    --sidebar-active-ink:#ffffff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0d15;
+  --surface:#11141f;
+  --surface-2:#161a28;
+  --ink:#e7eaf3;
+  --ink-soft:#8891a6;
+  --line:#232838;
+  --accent:#6366f1;
+  --accent-2nd:#818cf8;
+  --accent-ink:#0a0d15;
+  --accent-soft:#1d1e3a;
+  --accent-2:#22d3ee;
+  --accent-2-soft:#0d2b35;
+  --amber:#f59e0b;
+  --amber-soft:#3a2a0f;
+  --danger:#f87171;
+  --danger-soft:#3a1518;
+  --ok:#34d399;
+  --ok-soft:#0e2f24;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.65);
+  --sidebar-bg:#05070c;
+  --sidebar-ink:#c7cee0;
+  --sidebar-ink-soft:#5b6480;
+  --sidebar-line:#161b28;
+  --sidebar-active-bg:#141a2c;
+  --sidebar-active-ink:#ffffff;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  padding-inline:0;
+}
+h1,h2,h3{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+.app{display:flex;min-height:100%;max-width:1440px;margin:0 auto}
+.sidebar{
+  width:228px;flex:none;padding:20px 12px;background:var(--sidebar-bg);
+  display:flex;flex-direction:column;gap:2px;min-height:100vh;
+}
+.brand{padding:6px 10px 18px;display:flex;flex-direction:column;gap:3px;border-bottom:1px solid var(--sidebar-line);margin-bottom:12px}
+.brand .mark{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--sidebar-ink);display:flex;align-items:center;gap:8px}
+.brand .mark::before{content:"";width:9px;height:9px;border-radius:3px;background:linear-gradient(135deg,var(--accent-2),var(--accent));flex:none;box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+.brand .sub{font-size:11px;color:var(--sidebar-ink-soft);padding-left:17px}
+.syncBadge{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sidebar-ink-soft);padding:10px 10px 2px;margin-top:auto;border-top:1px solid var(--sidebar-line)}
+.syncDot{width:6px;height:6px;border-radius:99px;background:var(--sidebar-ink-soft);flex:none}
+.syncDot.on{background:var(--accent-2);box-shadow:0 0 0 3px var(--accent-2-soft)}
+.syncDot.pending{background:var(--amber)}
+.navbtn{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:none;
+  background:transparent;color:var(--sidebar-ink-soft);text-align:left;font-size:13px;font-weight:500;
+  position:relative;
+}
+.navbtn .n{
+  width:20px;height:20px;border-radius:5px;background:var(--sidebar-line);color:var(--sidebar-ink-soft);
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-family:'IBM Plex Mono',monospace;flex:none;
+}
+.navbtn.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-ink);box-shadow:inset 2.5px 0 0 var(--accent-2)}
+.navbtn.active .n{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:#fff}
+.navbtn:hover:not(.active){background:var(--sidebar-line);color:var(--sidebar-ink)}
+
+.main{flex:1;min-width:0;padding:26px 30px 60px;background:var(--bg)}
+.topline{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.pageTitle{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.pageDesc{color:var(--ink-soft);font-size:13px;margin-top:6px;margin-bottom:22px;max-width:68ch}
+
+.mobiletabs{display:none}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:16px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+
+label{font-size:11.5px;color:var(--ink-soft);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{resize:vertical;min-height:60px}
+
+.btn{
+  padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:12.5px;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:linear-gradient(135deg,var(--accent-2) 0%,var(--accent) 100%);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--danger)}
+.btn.sm{padding:5px 9px;font-size:11.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:3px 8px;border-radius:5px;font-weight:600;background:var(--surface-2);color:var(--ink-soft);letter-spacing:.01em}
+.chip.amber{background:var(--amber-soft);color:var(--amber)}
+.chip.danger{background:var(--danger-soft);color:var(--danger)}
+.chip.accent{background:var(--accent-soft);color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+.twrap{overflow-x:auto;border-radius:var(--radius);overflow:hidden}
+
+.ingRow{cursor:pointer}
+.ingRow:hover{background:var(--surface-2)}
+.hint{color:var(--ink-soft);font-size:12px}
+.empty{color:var(--ink-soft);font-size:13px;padding:20px;text-align:center}
+
+.searchbar{position:relative}
+.searchbar input{padding-left:32px}
+.searchbar svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.5}
+
+.detailPanel{position:sticky;top:16px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--ink-soft)}
+.kv .v{text-align:right;max-width:60%;font-weight:500}
+
+.recipeItem{display:grid;grid-template-columns:1fr 90px 70px 34px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.recipeItem:last-child{border-bottom:none}
+.recipeItem .nm{font-weight:600;font-size:13px}
+.recipeItem .inci{font-size:11px;color:var(--ink-soft);font-style:italic}
+
+.barTrack{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:4px}
+.barFill{height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+.barFill.over{background:var(--danger)}
+
+.label-sheet{
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:18px;
+  font-family:'Plus Jakarta Sans',sans-serif;width:100%;max-width:380px;
+}
+:root[data-theme="dark"] .label-sheet, @media (prefers-color-scheme:dark){}
+.label-sheet .lname{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:2px}
+.label-sheet .ltag{font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+.label-sheet .linci{font-size:10.5px;line-height:1.55;margin-bottom:10px}
+.label-sheet .lwarn{font-size:10px;background:var(--amber-soft);color:var(--amber);padding:6px 8px;border-radius:5px;margin-bottom:8px}
+.label-sheet .lmeta{font-size:10px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px;display:flex;justify-content:space-between}
+.label-sheet .lqr{width:64px;margin-top:8px}
+.label-sheet .lqr svg{width:100%;height:auto;display:block}
+
+.statTile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px;position:relative;overflow:hidden}
+.statTile::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+.statTile .num{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}
+.statTile .lbl{font-size:10.5px;color:var(--ink-soft);margin-top:3px;text-transform:uppercase;letter-spacing:.03em}
+
+.journalItem{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.journalItem:last-child{border-bottom:none}
+
+.prodGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.prodCard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s ease,box-shadow .12s ease}
+.prodCard:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(14,19,32,.06), 0 16px 32px -16px rgba(14,19,32,.3)}
+.prodThumb{aspect-ratio:1/1;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.prodThumb img{width:100%;height:100%;object-fit:cover}
+.prodThumb .ph{color:var(--ink-soft);font-size:11px;text-align:center;padding:8px}
+.prodBody{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.prodName{font-weight:600;font-size:13px}
+.prodPrice{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent)}
+.photoStrip{display:flex;flex-wrap:wrap;gap:8px}
+.photoThumb{position:relative;width:78px;height:78px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.photoThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photoThumb .rm{position:absolute;top:2px;right:2px;background:rgba(10,13,21,.7);color:#fff;border:none;border-radius:99px;width:18px;height:18px;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center}
+.uploadTile{width:78px;height:78px;border-radius:7px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:20px;flex:none;background:var(--surface-2)}
+.uploadTile input{display:none}
+
+.select-recipe{max-width:280px}
+
+.recipeChips{display:flex;flex-wrap:wrap;gap:8px}
+.recipeChip{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:8px 13px;border-radius:var(--radius-sm,10px);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink);cursor:pointer;text-align:left;
+  transition:border-color .12s ease,background .12s ease,box-shadow .12s ease,transform .1s ease;
+}
+.recipeChip:hover{border-color:var(--accent-2);transform:translateY(-1px)}
+.recipeChip .rcName{font-size:12.5px;font-weight:700}
+.recipeChip .rcMeta{font-size:10.5px;color:var(--ink-soft)}
+.recipeChip.active{
+  background:linear-gradient(135deg, var(--accent-soft), var(--accent-2-soft));
+  border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), 0 8px 18px -10px var(--glow, rgba(79,70,229,.3));
+}
+.recipeChip.active .rcName{color:var(--accent)}
+
+@media (max-width:860px){
+  .app{flex-direction:column}
+  .sidebar{display:none}
+  .mobiletabs{
+    display:flex;gap:4px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--line);
+    position:sticky;top:env(safe-area-inset-top,0px);background:var(--sidebar-bg);z-index:5;
+  }
+  .mobiletabs button{
+    flex:none;padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-line);background:var(--sidebar-active-bg);
+    font-size:12px;color:var(--sidebar-ink-soft);font-weight:600;
+  }
+  .mobiletabs button.active{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:#fff;border-color:transparent}
+  .main{padding:18px 16px 50px}
+}
+
+.customForm{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px}
+.toggleLink{background:none;border:none;color:var(--accent);font-size:12.5px;font-weight:600;padding:0;text-decoration:underline;text-underline-offset:2px}
+
+.printOnlyBlock{display:none}
+.recipeSheet{background:#ffffff;color:#0e1320;border:1px solid var(--line);border-radius:8px;padding:20px;font-family:'Plus Jakarta Sans',sans-serif}
+.recipeSheet h2{font-size:20px;margin-bottom:2px}
+.recipeSheet table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12.5px}
+.recipeSheet th,.recipeSheet td{text-align:left;padding:5px 8px;border-bottom:1px solid #dde1ea}
+
+@media print{
+  body *{visibility:hidden}
+  #printArea, #printArea *{visibility:visible}
+  #printArea{position:absolute;top:0;left:0;width:100%;margin:0;padding:0;box-shadow:none;border:none}
+  #printArea.printOnlyBlock{display:block !important}
+  .label-sheet{max-width:100%;border:none;box-shadow:none}
+  .recipeSheet{border:none;box-shadow:none}
+}
+
+/* ===== polish pass: ambient depth, glow, motion ===== */
+:root{
+  --glow:rgba(79,70,229,.16);
+  --glow-2:rgba(8,145,178,.14);
+  --mesh-1:rgba(79,70,229,.10);
+  --mesh-2:rgba(8,145,178,.09);
+  --mesh-3:rgba(129,140,248,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --glow:rgba(99,102,241,.30);
+    --glow-2:rgba(34,211,238,.22);
+    --mesh-1:rgba(99,102,241,.16);
+    --mesh-2:rgba(34,211,238,.12);
+    --mesh-3:rgba(129,140,248,.10);
+  }
+}
+:root[data-theme="dark"]{
+  --glow:rgba(99,102,241,.30);
+  --glow-2:rgba(34,211,238,.22);
+  --mesh-1:rgba(99,102,241,.16);
+  --mesh-2:rgba(34,211,238,.12);
+  --mesh-3:rgba(129,140,248,.10);
+}
+
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-soft)}
+::selection{background:var(--accent);color:var(--accent-ink)}
+
+.main{
+  background-image:
+    radial-gradient(760px circle at 12% -8%, var(--mesh-1), transparent 55%),
+    radial-gradient(620px circle at 100% 0%, var(--mesh-2), transparent 50%),
+    radial-gradient(900px circle at 30% 120%, var(--mesh-3), transparent 55%);
+  background-attachment:fixed;
+}
+.sidebar{
+  background-image:radial-gradient(420px circle at 18px 0%, rgba(99,102,241,.22), transparent 60%);
+  background-repeat:no-repeat;
+  position:relative;
+}
+.sidebar::after{
+  content:"";position:absolute;top:0;right:0;bottom:0;width:1px;
+  background:linear-gradient(180deg, var(--sidebar-line), transparent 70%, var(--sidebar-line));
+}
+
+.brand .mark{
+  background:linear-gradient(90deg, var(--sidebar-ink) 0%, var(--accent-2) 45%, var(--accent) 65%, var(--sidebar-ink) 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:markShimmer 7s ease-in-out infinite;
+}
+@keyframes markShimmer{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@media (prefers-reduced-motion: reduce){.brand .mark{animation:none}}
+
+.card{transition:border-color .15s ease, box-shadow .18s ease, transform .15s ease}
+.card:hover{box-shadow:var(--shadow), 0 0 0 1px var(--line), 0 10px 30px -12px var(--glow)}
+
+.navbtn{transition:background .12s ease, color .12s ease, box-shadow .12s ease}
+.navbtn.active{box-shadow:inset 2.5px 0 0 var(--accent-2), 0 0 22px -6px var(--glow)}
+
+.btn.primary{box-shadow:0 1px 2px rgba(0,0,0,.08), 0 8px 20px -8px var(--glow);transition:filter .12s ease, box-shadow .12s ease, transform .1s ease}
+.btn.primary:hover{box-shadow:0 1px 2px rgba(0,0,0,.1), 0 10px 26px -8px var(--glow);transform:translateY(-1px)}
+.btn.primary:active{transform:translateY(0)}
+
+.statTile{transition:box-shadow .15s ease, transform .15s ease}
+.statTile:hover{box-shadow:var(--shadow), 0 0 24px -10px var(--glow);transform:translateY(-1px)}
+
+.syncDot.on{box-shadow:0 0 0 3px var(--accent-2-soft), 0 0 10px var(--glow-2)}
+
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+.prodCard:hover{box-shadow:0 1px 2px rgba(14,19,32,.06), 0 18px 36px -16px var(--glow)}
+
+.topbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.topbar .email{font-size:12.5px;color:var(--ink-soft);margin-right:auto}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center}
+body{background:var(--bg);color:var(--ink);margin:0}
+
+/* ===== v2 modern refresh: softer geometry, depth, richer stat cards ===== */
+:root{
+  --radius:14px;
+  --radius-lg:18px;
+  --radius-sm:10px;
+}
+.topbar{
+  backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);
+  background:color-mix(in srgb, var(--surface) 78%, transparent);
+  border-bottom:1px solid var(--line);
+}
+
+.pageTitle{
+  position:relative;padding-bottom:12px;font-size:22px;
+}
+.pageTitle::after{
+  content:"";position:absolute;left:0;bottom:0;width:38px;height:3px;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent-2),var(--accent));
+}
+.pageDesc{margin-top:16px}
+
+.card{border-radius:var(--radius-lg);border-color:color-mix(in srgb, var(--line) 80%, transparent)}
+.card > .pad > h3{
+  display:flex;align-items:center;gap:8px;letter-spacing:-.01em;
+}
+.card > .pad > h3::before{
+  content:"";width:7px;height:7px;border-radius:99px;flex:none;
+  background:linear-gradient(135deg,var(--accent-2),var(--accent));
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+.statTile{
+  border-radius:var(--radius-lg);
+  padding:16px 17px 15px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 5%, var(--surface)) 0%, var(--surface) 55%);
+  border-color:color-mix(in srgb, var(--line) 75%, transparent);
+  overflow:visible;
+}
+.statTile::before{height:3px;border-radius:99px 99px 0 0;opacity:.9}
+.statTile .num{
+  font-size:24px;
+  background:linear-gradient(90deg, var(--ink) 55%, var(--accent) 130%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.statTile .lbl{margin-top:5px;font-weight:700;letter-spacing:.04em}
+.statTile:hover{transform:translateY(-3px) scale(1.01)}
+
+.grid3,.grid2{gap:14px}
+
+.btn{border-radius:var(--radius-sm);letter-spacing:.01em}
+.btn.primary{
+  border-radius:999px;padding-inline:16px;
+  background:linear-gradient(135deg,var(--accent-2) 0%,var(--accent) 100%);
+}
+.btn.sm.primary{padding:6px 13px}
+.btn.ghost:hover{background:var(--surface-2)}
+
+.chip{border-radius:99px;padding:3px 9px}
+
+.navbtn{border-radius:var(--radius-sm);padding:9px 11px}
+.navbtn .n{border-radius:7px}
+.navbtn.active{box-shadow:none;background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--sidebar-active-bg)), var(--sidebar-active-bg))}
+.navbtn.active::before{
+  content:"";position:absolute;left:-12px;top:50%;translate:0 -50%;width:4px;height:16px;border-radius:99px;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));box-shadow:0 0 10px -1px var(--glow)
+}
+
+.twrap{border-radius:var(--radius-lg);border:1px solid color-mix(in srgb, var(--line) 75%, transparent)}
+table{border-radius:var(--radius-lg)}
+th{background:color-mix(in srgb, var(--surface-2) 85%, transparent);font-weight:800}
+tbody tr{transition:background .12s ease}
+
+.prodCard{border-radius:var(--radius-lg)}
+.prodCard:hover{transform:translateY(-4px)}
+
+.kv{transition:padding-left .12s ease}
+.kv:hover{padding-left:3px}
+
+::-webkit-scrollbar-thumb{border-radius:99px}
+
+@media (max-width:860px){
+  .pageTitle{font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar" hidden>
+  <span class="email" id="topbarEmail"></span>
+  <a class="btn sm ghost" id="adminLink" href="/admin.html" hidden>Administrare</a>
+  <button class="btn sm ghost" id="manageBillingBtn">Abonamentul meu</button>
+  <button class="btn sm ghost" id="logoutBtn">Deconectare</button>
+</div>
+
+<div class="app" id="appRoot" hidden>
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark">Herbatium</div>
+      <div class="sub">pentru cosmetică naturală</div>
+    </div>
+  </nav>
+  <div class="mobiletabs" id="mobiletabs"></div>
+  <main class="main" id="main"></main>
+</div>
+
+<div class="gate" id="loadingGate">
+  <div class="card pad" style="padding:24px">Se încarcă…</div>
+</div>
+
+<script src="data.js"></script>
+<script src="qrcode-lib.js"></script>
+<script src="xlsx.min.js"></script>
+<script>
+/* ========================= STATE ========================= */
+const TABS = [
+  {id:"dashboard", label:"Prezentare generală", n:"00"},
+  {id:"ingrediente", label:"Ingrediente", n:"01"},
+  {id:"reteta", label:"Rețetă", n:"02"},
+  {id:"lesie", label:"Calculator leșie", n:"03"},
+  {id:"eticheta", label:"Etichetă", n:"04"},
+  {id:"cost", label:"Cost", n:"05"},
+  {id:"jurnal", label:"Jurnal loturi", n:"06"},
+  {id:"produse", label:"Produse", n:"07"},
+  {id:"stoc", label:"Stoc", n:"08"},
+  {id:"rapoarte", label:"Rapoarte", n:"09"},
+  {id:"resurse", label:"Legislație & consultanți", n:"10"},
+  {id:"pagina-publica", label:"Pagina publică", n:"11"},
+  {id:"ajutor", label:"Ajutor", n:"12"},
+  {id:"cont", label:"Cont & confidențialitate", n:"13"},
+];
+
+/* ========================= LEGISLAȚIE & CONSULTANȚI CPNP =========================
+   Notă: datele de contact ale consultanților sunt culese de pe siturile publice ale
+   firmelor respective (verificat 2026-09) și se pot schimba — verifică direct înainte
+   de a contracta. Nu e o recomandare/aviz din partea aplicației, e doar un punct de
+   pornire pentru căutare; alege pe cine consideri potrivit după verificări proprii. */
+const LEGISLATION = [
+  {
+    title: "Regulamentul (CE) nr. 1223/2009 privind produsele cosmetice",
+    desc: "Actul legislativ central la nivel UE — reglementează compoziția, etichetarea, evaluarea de siguranță (CPSR), Persoana Responsabilă, notificarea CPNP și supravegherea pieței. Direct aplicabil în România, fără transpunere.",
+    url: "https://eur-lex.europa.eu/legal-content/RO/TXT/?uri=CELEX:32009R1223",
+  },
+  {
+    title: "Anexele II–VI ale Regulamentului 1223/2009",
+    desc: "Anexa II: substanțe interzise. Anexa III: substanțe cu restricție de concentrație/condiții de utilizare. Anexa IV: coloranți admiși. Anexa V: conservanți admiși. Anexa VI: filtre UV admise. Bază de date consultabilă oficial: CosIng.",
+    url: "https://single-market-economy.ec.europa.eu/sectors/cosmetics/cosmetic-ingredient-database_en",
+  },
+  {
+    title: "Regulamentul (UE) 2023/1545 — lista extinsă de alergeni de parfum (82 substanțe)",
+    desc: "Extinde Anexa III de la 26 la 82 de alergeni de parfum de declarat pe etichetă (multe fiind uleiuri esențiale/extracte naturale). Termen: 31.07.2026 pentru produsele puse pe piață pentru prima dată, 31.07.2028 pentru cele deja pe piață. Verifică orice rețetă nouă contra listei complete înainte de lansare.",
+    url: "https://eur-lex.europa.eu/eli/reg/2023/1545/oj/eng",
+  },
+  {
+    title: "Legea nr. 178/2000 privind produsele cosmetice (republicată)",
+    desc: "Actul normativ românesc de completare a cadrului UE — sancțiuni, atribuții ale autorităților naționale de control pentru piața din România.",
+    url: "https://lege5.ro/gratuit/gi3doobw/legea-nr-178-2000-privind-produsele-cosmetice",
+  },
+  {
+    title: "ANPC — Autoritatea Națională pentru Protecția Consumatorilor",
+    desc: "Autoritatea română de supraveghere a pieței pentru produsele cosmetice comercializate în România. Publică ghiduri și fișe de control utile pentru producători mici.",
+    url: "https://anpc.ro/produse-cosmetice/",
+  },
+];
+const CPNP_CONSULTANTS = [
+  {
+    name: "Andy Consulting SRL (cosmetics-consulting.ro)",
+    services: "Notificare CPNP, dosar CPSR/PIF, consultanță conformitate",
+    city: "Brașov",
+    phone: "0773 978 271 / 0751 659 578",
+    email: "office@cosmetics-consulting.ro",
+    url: "https://cosmetics-consulting.ro/cpnp/",
+  },
+  {
+    name: "Cosmetic Safety Lab (notificare-cosmetice.ro)",
+    services: "CPSR, notificare CPNP, verificare etichetă, analiză formulă, dosar tehnic (PIF)",
+    city: "Cluj-Napoca",
+    phone: "",
+    email: "contact@notificare-cosmetice.ro",
+    url: "https://notificare-cosmetice.ro/",
+  },
+  {
+    name: "Centrul Ekotox S.R.L. (ekotox.ro)",
+    services: "CPSR, PIF, text etichetă, notificare CPNP, consultanță legislație chimică",
+    city: "București",
+    phone: "+40 761 239 654",
+    email: "ekotox@ekotox.ro",
+    url: "https://ekotox.ro/despre-firma/noi-oferim/produse-cosmetice/",
+  },
+  {
+    name: "Veardi (veardi.ro)",
+    services: "CPSR, dosar produs, notificare CPNP, text etichetă, pre-evaluare formulă",
+    city: "—",
+    phone: "",
+    email: "",
+    url: "https://veardi.ro/contact",
+  },
+];
+
+let state = {
+  tab: "dashboard",
+  ingSearch: "",
+  ingSelected: INGREDIENTS[0].id,
+  recipes: [],
+  activeRecipeId: null,
+  batches: [],
+  showCustomForm: false,
+  editingProductId: null,
+  photoBusy: false,
+  labelLang: "ro",
+  reportFrom: "",
+  reportTo: "",
+  reportProduct: "",
+  teamInviteUrl: "",
+  teamInviteError: "",
+};
+
+const LABEL_I18N = {
+  ro: {
+    ingListTitle: "Listă INGREDIENTS (INCI)",
+    copyBtn: "Copiază lista INCI",
+    copiedBtn: "Copiat ✓",
+    allergenTitle: "Alergeni de declarat",
+    allergenIntro: "Conform Anexei III (extinsă din 2023 la 82 de substanțe — Reg. (UE) 2023/1545), acești alergeni de parfum trebuie menționați explicit (chiar dacă apar deja în lista INCI de mai sus, ca substanțe individuale):",
+    noAllergen: "Niciun alergen din baza curatoriată peste pragul de declarare obligatorie la compoziția curentă — dar verifică și restul Anexei III (82 de substanțe), nu doar ingredientele marcate aici.",
+    previewTitle: "Previzualizare etichetă",
+    printBtn: "Printează / salvează PDF",
+    leaveOn: "Produs leave-on",
+    rinseOff: "Produs rinse-off",
+    netWeight: "greutate netă",
+    ingredientsHeader: "INGREDIENTE:",
+    contains: "Conține:",
+    allergyWarn: "poate provoca reacții alergice.",
+    caution: "A nu se lăsa la îndemâna copiilor. A se păstra ferit de lumină și căldură directă. Doar pentru uz extern.",
+    lot: "Lot:",
+    exp: "Exp:",
+    legalTitle: "Ce mai trebuie pe etichetă legal",
+    legal: [
+      "Nume și adresă „Persoană Responsabilă” (UE)",
+      "Țara de origine (dacă fabricat în afara UE)",
+      "Greutate netă (g / ml)",
+      "Data durabilității minime sau PAO (perioadă după deschidere, simbol borcănel)",
+      "Precauții de utilizare specifice",
+      "Număr de lot / referință de fabricație",
+      "Funcția produsului (dacă nu reiese din denumire)",
+    ],
+  },
+  en: {
+    ingListTitle: "Ingredients list (INCI)",
+    copyBtn: "Copy INCI list",
+    copiedBtn: "Copied ✓",
+    allergenTitle: "Allergens to declare",
+    allergenIntro: "Under Annex III, these fragrance allergens must be stated explicitly (even though they already appear in the INCI list above as individual substances):",
+    noAllergen: "No allergen above the mandatory declaration threshold in the current formula.",
+    previewTitle: "Label preview",
+    printBtn: "Print / save as PDF",
+    leaveOn: "Leave-on product",
+    rinseOff: "Rinse-off product",
+    netWeight: "net weight",
+    ingredientsHeader: "INGREDIENTS:",
+    contains: "Contains:",
+    allergyWarn: "may cause allergic reactions.",
+    caution: "Keep out of reach of children. Store away from direct light and heat. External use only.",
+    lot: "Batch:",
+    exp: "Exp:",
+    legalTitle: "What else is legally required on the label",
+    legal: [
+      "Name and address of the EU \"Responsible Person\"",
+      "Country of origin (if manufactured outside the EU)",
+      "Net weight (g / ml)",
+      "Best-before date or PAO (period-after-opening, jar symbol)",
+      "Specific precautions for use",
+      "Batch number / manufacturing reference",
+      "Product function (if not obvious from the name)",
+    ],
+  },
+};
+
+let products = [];
+function persistProducts(){ scheduleApiSave(); }
+
+let customIngredients = [];
+function persistCustom(){ scheduleApiSave(); }
+function allIngredients(){ return [...INGREDIENTS, ...customIngredients]; }
+
+/* Bază de prețuri: ultimul preț introdus per ingredient devine implicit data viitoare. */
+let ingredientPrices = {};
+function persistPrices(){ scheduleApiSave(); }
+function defaultPrice(ingId){ return ingredientPrices[ingId] || 0; }
+function rememberPrice(ingId, price){
+  if (price>0){ ingredientPrices[ingId] = price; persistPrices(); }
+}
+
+/* Inventar materii prime: stoc curent (g) + furnizor/lot curent + prag minim, per ingredient. */
+let stock = {};
+function persistStock(){ scheduleApiSave(); }
+function stockOf(ingId){ return stock[ingId] || {qty:0, supplier:"", lot:"", minQty:0}; }
+
+/* Vânzări produse finite — alimentează raportul de profitabilitate. */
+let sales = [];
+function persistSales(){ scheduleApiSave(); }
+
+/* Setări calculator leșie (nu variază des — implicit 5% superfat, 38% apă din greutatea uleiurilor). */
+let lyeState = {type:"naoh", superfat:5, waterPct:38};
+function persistLye(){ scheduleApiSave(); }
+
+/* Pagina publică de catalog — stocată separat pe User (nu în UserData), via /api/profile. */
+let publicProfile = null; // null = neîncărcat încă
+let publicProfileLoading = false;
+function defaultPublicProfile(){
+  return {publicPageEnabled:false, slug:"", businessName:"", bio:"", instagramUrl:"", bresloUrl:"", etsyUrl:"", websiteUrl:"", facebookUrl:"", catalogTemplate:"natural"};
+}
+/* Modele vizuale pentru pagina publică — id-urile și culorile trebuie să rămână
+   sincronizate cu TEMPLATES din formulator-saas/src/routes/catalog.js. */
+const CATALOG_TEMPLATES = [
+  {id:"natural", label:"Cald Natural", swatches:["#faf6f0","#c1583a","#2b2420"]},
+  {id:"elegant", label:"Minimalist Alb-Negru", swatches:["#ffffff","#141414","#e4e4e4"]},
+  {id:"botanic", label:"Botanic Verde Închis", swatches:["#16241c","#c9a15a","#eef2ea"]},
+  {id:"pastel", label:"Pastel Modern", swatches:["#fdf3f7","#d97ba3","#3a2a35"]},
+];
+async function loadPublicProfile(){
+  if (publicProfileLoading) return;
+  publicProfileLoading = true;
+  try{
+    const res = await api("/profile");
+    publicProfile = res.ok ? await res.json() : defaultPublicProfile();
+  }catch(e){
+    publicProfile = defaultPublicProfile();
+  }
+  publicProfileLoading = false;
+  if (state.tab==="pagina-publica") renderMain();
+}
+async function savePublicProfile(patch){
+  publicProfile = {...publicProfile, ...patch};
+  try{
+    const res = await api("/profile", {method:"PUT", body: JSON.stringify(publicProfile)});
+    if (res.ok){
+      const d = await res.json();
+      if (d.slug) publicProfile.slug = d.slug;
+    }
+  }catch(e){}
+  renderMain();
+}
+function gatherPublicProfileDraft(){
+  const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
+  const p = publicProfile || defaultPublicProfile();
+  return {
+    businessName: document.getElementById("ppBusinessName") ? val("ppBusinessName") : (p.businessName||""),
+    bio: document.getElementById("ppBio") ? val("ppBio") : (p.bio||""),
+    instagramUrl: document.getElementById("ppInstagram") ? val("ppInstagram") : (p.instagramUrl||""),
+    bresloUrl: document.getElementById("ppBreslo") ? val("ppBreslo") : (p.bresloUrl||""),
+    etsyUrl: document.getElementById("ppEtsy") ? val("ppEtsy") : (p.etsyUrl||""),
+    websiteUrl: document.getElementById("ppWebsite") ? val("ppWebsite") : (p.websiteUrl||""),
+    facebookUrl: document.getElementById("ppFacebook") ? val("ppFacebook") : (p.facebookUrl||""),
+    catalogTemplate: (document.querySelector('input[name="ppTemplate"]:checked')||{}).value || p.catalogTemplate || "natural",
+  };
+}
+async function loadPreview(){
+  const frame = document.getElementById("ppPreviewFrame");
+  if (!frame) return;
+  try{
+    const res = await api("/profile/preview", {method:"POST", body: JSON.stringify(gatherPublicProfileDraft())});
+    if (res.ok){ const d = await res.json(); frame.srcdoc = d.html; }
+  }catch(e){}
+}
+
+function persistRecipes(){ scheduleApiSave(); }
+function persistBatches(){ scheduleApiSave(); }
+
+/* ---- Cont & sincronizare (server propriu, contul tău cu email/parolă + abonament) ---- */
+const cloud = { status:"local", saveTimer:null, email:"", isTeamMember:false, teamOwnerEmail:"", termsVersion:"", termsAcceptedAt:"", marketingConsent:false };
+
+async function api(path, opts){
+  return fetch("/api"+path, Object.assign({
+    headers: {"Content-Type":"application/json"},
+    credentials: "same-origin",
+  }, opts||{}));
+}
+
+async function boot(){
+  try{
+    const meRes = await api("/auth/me");
+    if (!meRes.ok){ window.location.href = "/login.html"; return; }
+    const me = await meRes.json();
+    if (!me.subscriptionActive){ window.location.href = "/abonament.html"; return; }
+    cloud.email = me.email;
+    cloud.isTeamMember = !!me.isTeamMember;
+    cloud.teamOwnerEmail = me.teamOwnerEmail || "";
+    cloud.termsVersion = me.termsVersion || "";
+    cloud.termsAcceptedAt = me.termsAcceptedAt || "";
+    cloud.marketingConsent = !!me.marketingConsent;
+
+    const dataRes = await api("/data");
+    if (dataRes.status === 402){ window.location.href = "/abonament.html"; return; }
+    if (!dataRes.ok) throw new Error("Nu am putut încărca datele contului.");
+    const d = await dataRes.json();
+    if (Array.isArray(d.recipes) && d.recipes.length) state.recipes = d.recipes;
+    if (Array.isArray(d.batches)) state.batches = d.batches;
+    if (Array.isArray(d.customIngredients)) customIngredients = d.customIngredients;
+    if (Array.isArray(d.products)) products = d.products;
+    if (d.ingredientPrices) ingredientPrices = d.ingredientPrices;
+    if (d.stock) stock = d.stock;
+    if (d.costState) costState = d.costState;
+    if (Array.isArray(d.sales)) sales = d.sales;
+    if (d.lyeState) lyeState = d.lyeState;
+
+    if (state.recipes.length === 0) state.recipes.push(sampleRecipe());
+    if (!state.activeRecipeId || !state.recipes.find(r=>r.id===state.activeRecipeId)){
+      state.activeRecipeId = state.recipes[0] ? state.recipes[0].id : null;
+    }
+
+    cloud.status = "on";
+    document.getElementById("topbarEmail").textContent = cloud.email;
+    if (me.isAdmin) document.getElementById("adminLink").hidden = false;
+    document.getElementById("manageBillingBtn").onclick = openBillingPortal;
+    document.getElementById("logoutBtn").onclick = doLogout;
+    document.getElementById("topbar").hidden = false;
+    document.getElementById("appRoot").hidden = false;
+    document.getElementById("loadingGate").hidden = true;
+    render();
+  }catch(e){
+    document.getElementById("loadingGate").innerHTML = '<div class="card pad" style="padding:24px">Nu am putut încărca aplicația. Reîncearcă reîmprospătând pagina.</div>';
+  }
+}
+
+function scheduleApiSave(){
+  cloud.status = "pending";
+  clearTimeout(cloud.saveTimer);
+  cloud.saveTimer = setTimeout(pushApiSave, 900);
+}
+async function pushApiSave(){
+  try{
+    const res = await api("/data", {
+      method: "PUT",
+      body: JSON.stringify({
+        recipes: state.recipes,
+        batches: state.batches,
+        customIngredients,
+        products,
+        ingredientPrices,
+        stock,
+        costState,
+        sales,
+        lyeState,
+      }),
+    });
+    cloud.status = res.ok ? "on" : "error";
+  }catch(e){
+    cloud.status = "error";
+  }
+  renderSidebar();
+}
+
+async function openBillingPortal(){
+  try{
+    const res = await api("/billing/portal", {method:"POST"});
+    const d = await res.json();
+    if (d.url) window.location.href = d.url;
+    else alert("Nu am putut deschide portalul de facturare.");
+  }catch(e){
+    alert("Nu am putut deschide portalul de facturare.");
+  }
+}
+async function doLogout(){
+  try{ await api("/auth/logout", {method:"POST"}); }catch(e){}
+  window.location.href = "/login.html";
+}
+
+/* ---- Poze produse: redimensionare + stocare pe server (contul tău) ---- */
+function resizeImageFile(file, maxDim){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = ()=>reject(new Error("Nu am putut citi fișierul."));
+    reader.onload = ()=>{
+      img.onerror = ()=>reject(new Error("Fișier imagine invalid."));
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if (w>maxDim || h>maxDim){
+          if (w>h){ h = Math.round(h*maxDim/w); w = maxDim; } else { w = Math.round(w*maxDim/h); h = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob=>{
+          if (!blob) return reject(new Error("Conversie eșuată."));
+          resolve(blob);
+        }, "image/jpeg", 0.85);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function addPhotoToProduct(productId, file){
+  const product = products.find(p=>p.id===productId);
+  if (!product) return;
+  state.photoBusy = true; renderMain();
+  try{
+    const resized = await resizeImageFile(file, 1000);
+    const fd = new FormData();
+    fd.append("photo", resized, "photo.jpg");
+    const res = await fetch("/api/photos", { method:"POST", credentials:"same-origin", body: fd });
+    if (!res.ok) throw new Error("Încărcare eșuată.");
+    const d = await res.json();
+    product.photos.push({id: d.id, url: d.url});
+    persistProducts();
+  }catch(e){
+    alert("Nu am putut adăuga poza: "+e.message);
+  }
+  state.photoBusy = false; renderMain();
+}
+function deletePhotoFile(url){
+  const filename = (url||"").split("/").pop();
+  if (!filename) return Promise.resolve();
+  return api("/photos/"+filename, {method:"DELETE"}).catch(()=>{});
+}
+function removePhotoFromProduct(productId, photoId){
+  const product = products.find(p=>p.id===productId);
+  if (!product) return;
+  const photo = product.photos.find(ph=>ph.id===photoId);
+  product.photos = product.photos.filter(ph=>ph.id!==photoId);
+  persistProducts(); renderMain();
+  if (photo) deletePhotoFile(photo.url);
+}
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+function sampleRecipe(){
+  return {
+    id: uid(),
+    name: "Balsam de buze — cătină",
+    type: "leave-on",
+    notes: "Rețetă exemplu — se poate edita sau șterge.",
+    items: [
+      {id:uid(), ingId:"ulei-cocos", grams:20, price:22},
+      {id:uid(), ingId:"unt-shea", grams:15, price:38},
+      {id:uid(), ingId:"ceara-albine", grams:12, price:45},
+      {id:uid(), ingId:"ulei-catina", grams:5, price:180},
+      {id:uid(), ingId:"vitamina-e", grams:1, price:210},
+      {id:uid(), ingId:"eo-portocale", grams:0.6, price:95},
+    ],
+  };
+}
+
+function findIng(id){ return allIngredients().find(i=>i.id===id); }
+function activeRecipe(){ return state.recipes.find(r=>r.id===state.activeRecipeId) || state.recipes[0]; }
+
+/* ========================= RENDER SHELL ========================= */
+function render(){
+  renderSidebar();
+  renderMobileTabs();
+  renderMain();
+}
+
+function renderSidebar(){
+  const nav = document.getElementById("sidebar");
+  nav.innerHTML = `<div class="brand"><div class="mark">Herbatium</div><div class="sub">pentru cosmetică naturală</div></div>` +
+    TABS.map(t=>`<button class="navbtn ${state.tab===t.id?'active':''}" data-tab="${t.id}"><span class="n">${t.n}</span>${t.label}</button>`).join("") +
+    syncBadgeHtml();
+  nav.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab; render();});
+}
+function syncBadgeHtml(){
+  if (cloud.status==="on") return `<div class="syncBadge"><span class="syncDot on"></span>Sincronizat în contul tău — vezi datele pe orice dispozitiv</div>`;
+  if (cloud.status==="pending") return `<div class="syncBadge"><span class="syncDot pending"></span>Se sincronizează…</div>`;
+  if (cloud.status==="error") return `<div class="syncBadge"><span class="syncDot"></span>Doar pe acest dispozitiv (sincronizarea nu a pornit)</div>`;
+  return `<div class="syncBadge"><span class="syncDot"></span>Doar pe acest dispozitiv</div>`;
+}
+function renderMobileTabs(){
+  const m = document.getElementById("mobiletabs");
+  m.innerHTML = TABS.map(t=>`<button class="${state.tab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`).join("");
+  m.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab; render();});
+}
+
+function renderMain(){
+  const main = document.getElementById("main");
+  if (state.tab==="dashboard") main.innerHTML = viewDashboard();
+  else if (state.tab==="ingrediente") main.innerHTML = viewIngrediente();
+  else if (state.tab==="reteta") main.innerHTML = viewReteta();
+  else if (state.tab==="lesie") main.innerHTML = viewLesie();
+  else if (state.tab==="eticheta") main.innerHTML = viewEticheta();
+  else if (state.tab==="cost") main.innerHTML = viewCost();
+  else if (state.tab==="jurnal") main.innerHTML = viewJurnal();
+  else if (state.tab==="produse") main.innerHTML = viewProduse();
+  else if (state.tab==="stoc") main.innerHTML = viewStoc();
+  else if (state.tab==="rapoarte") main.innerHTML = viewRapoarte();
+  else if (state.tab==="resurse") main.innerHTML = viewResurse();
+  else if (state.tab==="pagina-publica") main.innerHTML = viewPaginaPublica();
+  else if (state.tab==="ajutor") main.innerHTML = viewAjutor();
+  else if (state.tab==="cont") main.innerHTML = viewCont();
+  wireEvents();
+}
+
+/* ========================= TAB 0: PREZENTARE GENERALĂ ========================= */
+function viewDashboard(){
+  const stockValue = Object.keys(stock).reduce((s,id)=>{
+    const st = stock[id];
+    return s + (Number(st.qty||0)/1000) * (ingredientPrices[id]||0);
+  }, 0);
+  const outOfStock = allIngredients().filter(i => stock[i.id] && stock[i.id].qty===0 && ingredientPrices[i.id]);
+  const shortages = [];
+  state.recipes.forEach(r=>{
+    r.items.forEach(it=>{
+      const st = stockOf(it.ingId);
+      if (st.qty>0 && st.qty<it.grams){
+        const ing = findIng(it.ingId);
+        shortages.push({recipe:r.name, ing: ing?ing.ro:'?', needed:it.grams, have:st.qty});
+      }
+    });
+  });
+  const belowMin = Object.keys(stock)
+    .map(id=>({id, ing: findIng(id), st: stock[id]}))
+    .filter(x=>x.ing && x.st.minQty>0 && x.st.qty < x.st.minQty)
+    .sort((a,b)=> a.ing.ro.localeCompare(b.ing.ro));
+  const upcomingExpiry = state.batches
+    .filter(b=>b.shelfMonths)
+    .map(b=>({...b, expiry: addMonths(b.date, b.shelfMonths)}))
+    .filter(b=>b.expiry)
+    .filter(b=>{ const days = Math.round((new Date(b.expiry+"T00:00:00")-new Date(todayISO()+"T00:00:00"))/86400000); return days<=60; })
+    .sort((a,b)=> a.expiry.localeCompare(b.expiry));
+  const recentBatches = [...state.batches].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+
+  return `
+  <div class="topline"><h1 class="pageTitle">Prezentare generală</h1></div>
+  <p class="pageDesc">O privire rapidă asupra rețetelor, stocului și producției tale.</p>
+
+  <div class="grid3" style="margin-bottom:16px">
+    <div class="statTile"><div class="num">${state.recipes.length}</div><div class="lbl">rețete</div></div>
+    <div class="statTile"><div class="num">${state.batches.length}</div><div class="lbl">loturi produse</div></div>
+    <div class="statTile"><div class="num">${products.length}</div><div class="lbl">produse în catalog</div></div>
+    <div class="statTile"><div class="num">${stockValue.toFixed(0)} lei</div><div class="lbl">valoare estimată stoc</div></div>
+    <div class="statTile"><div class="num">${allIngredients().length}</div><div class="lbl">ingrediente în bază</div></div>
+    <div class="statTile"><div class="num">${shortages.length}</div><div class="lbl">atenționări stoc</div></div>
+  </div>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Atenționări stoc (față de rețete)</h3>
+      ${shortages.length===0 ? `<div class="hint">Niciun ingredient din rețetele tale nu depășește stocul curent — sau nu ai completat încă stocul (tab „Stoc”).</div>` :
+        shortages.map(s=>`<div class="kv"><span class="k">${escHtml(s.ing)} — ${escHtml(s.recipe)}</span><span class="v"><span class="chip danger">${fmt(s.have)}g / ${fmt(s.needed)}g necesare</span></span></div>`).join("")}
+    </div></div>
+
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Sub pragul minim de stoc</h3>
+      ${belowMin.length===0 ? `<div class="hint">Niciun ingredient sub pragul minim setat — sau nu ai setat încă praguri (tab „Stoc”, coloana „Prag minim”).</div>` :
+        belowMin.map(x=>`<div class="kv"><span class="k">${escHtml(x.ing.ro)}</span><span class="v"><span class="chip amber">${fmt(x.st.qty)}g / prag ${fmt(x.st.minQty)}g</span></span></div>`).join("")}
+    </div></div>
+  </div>
+
+  <div class="grid2" style="align-items:start;margin-top:16px">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Loturi care expiră curând</h3>
+      ${upcomingExpiry.length===0 ? `<div class="hint">Niciun lot cu expirare în următoarele 60 de zile.</div>` :
+        upcomingExpiry.map(b=>`<div class="kv"><span class="k">${escHtml(b.recipeName)} — ${escHtml(b.code)}</span><span class="v">${expiryChipHtml(b.expiry)}</span></div>`).join("")}
+    </div></div>
+
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Loturi recente</h3>
+      ${recentBatches.length===0 ? `<div class="hint">Niciun lot înregistrat încă — vezi tab-ul „Jurnal loturi”.</div>` :
+        recentBatches.map(b=>`<div class="kv"><span class="k">${b.date} — ${escHtml(b.recipeName)}</span><span class="v">${escHtml(b.code)}</span></div>`).join("")}
+    </div></div>
+  </div>
+
+  ${(!publicProfile || !publicProfile.publicPageEnabled) ? `
+  <div class="card" style="margin-top:16px;border-color:var(--accent)"><div class="pad stack">
+    <h3 style="font-size:14px">Promovează-ți produsele cu o pagină publică</h3>
+    <p class="hint">Poți genera automat o pagină publică simplă cu produsele tale (poze, prețuri), utilă de trimis clienților sau de pus în bio pe Instagram. Nu procesează plăți — trimite vizitatorii mai departe către canalul tău de vânzare. Apare și în directorul public de producători.</p>
+    <button class="btn sm primary" id="goToPublicPageBtn">Configurează pagina publică</button>
+  </div></div>` : ""}
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Echipă</h3>
+    ${cloud.isTeamMember ? `
+      <p class="hint">Ești membru al echipei contului <strong>${escHtml(cloud.teamOwnerEmail)}</strong> — vezi și lucrezi cu aceleași date (rețete, loturi, produse), fără abonament propriu.</p>
+    ` : `
+      <p class="hint">Invită un coleg/angajat — va vedea și va putea edita aceleași date (rețete, loturi, produse, stoc) ca tine, fără să plătească un abonament separat. Pagina publică de catalog rămâne editabilă doar de contul tău.</p>
+      <div class="row">
+        <input type="email" id="teamInviteEmail" placeholder="email@coleg.ro" style="max-width:240px">
+        <button class="btn sm primary" id="sendInviteBtn">Generează invitație</button>
+      </div>
+      ${state.teamInviteError ? `<p class="hint" style="color:var(--danger)">${escHtml(state.teamInviteError)}</p>` : ""}
+      ${state.teamInviteUrl ? `
+        <div class="kv"><span class="k">Link de invitație (valabil 7 zile)</span><span class="v"><a href="${escAttr(state.teamInviteUrl)}" target="_blank" rel="noopener">${escHtml(state.teamInviteUrl)}</a></span></div>
+        <button class="btn sm" id="copyInviteBtn">Copiază linkul</button>
+        <p class="hint">Trimite-i acest link colegului tău — își alege singur o parolă și primește acces direct.</p>
+      ` : ""}
+    `}
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Backup & restaurare</h3>
+    <p class="hint">Descarcă o copie completă a datelor tale (rețete, loturi, produse, stoc, prețuri, vânzări) ca fișier JSON — util ca plasă de siguranță, independent de sincronizarea contului.</p>
+    <div class="row">
+      <button class="btn sm" id="exportBackupBtn">Exportă backup (JSON)</button>
+      <label class="btn sm" style="margin:0">Importă backup<input type="file" id="importBackupInput" accept=".json,application/json" style="display:none"></label>
+    </div>
+  </div></div>
+  `;
+}
+
+/* ========================= TAB 7: STOC ========================= */
+function viewStoc(){
+  const q = state.ingSearch.trim().toLowerCase();
+  const withStock = allIngredients()
+    .map(i=>({ing:i, st:stockOf(i.id)}))
+    .filter(({ing})=> !q || ing.ro.toLowerCase().includes(q) || ing.inci.toLowerCase().includes(q))
+    .sort((a,b)=> (b.st.qty>0)-(a.st.qty>0) || a.ing.ro.localeCompare(b.ing.ro));
+  const totalValue = withStock.reduce((s,{ing,st})=> s + (Number(st.qty||0)/1000)*(ingredientPrices[ing.id]||0), 0);
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Stoc materii prime</h1>
+    <div class="row">
+      <button class="btn sm" id="exportStockCsvBtn">Exportă CSV</button>
+      <label class="btn sm" style="margin:0">Importă CSV<input type="file" id="importStockCsvInput" accept=".csv,text/csv" style="display:none"></label>
+    </div>
+  </div>
+  <p class="pageDesc">Inventarul curent, editabil direct din tabel. Valoare estimată totală: <strong>${totalValue.toFixed(2)} lei</strong>. Prețurile provin din baza de prețuri salvată (tab Cost / Ingrediente). Pragul minim declanșează o alertă pe „Prezentare generală” când stocul scade sub el.</p>
+
+  <div class="card"><div class="pad" style="padding-bottom:10px">
+    <div class="searchbar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="ingSearchInput" placeholder="Caută ingredient…" value="${escAttr(state.ingSearch)}">
+    </div>
+  </div>
+  <div class="twrap" style="max-height:600px;overflow-y:auto">
+    <table>
+      <thead><tr><th>Ingredient</th><th>Stoc (g)</th><th>Prag minim (g)</th><th>Preț/kg</th><th>Valoare</th><th>Furnizor</th><th>Lot</th></tr></thead>
+      <tbody>
+        ${withStock.map(({ing,st})=>{
+          const value = (Number(st.qty||0)/1000)*(ingredientPrices[ing.id]||0);
+          const low = st.minQty>0 && st.qty < st.minQty;
+          return `
+          <tr>
+            <td>${ing.ro}${ing.custom?' <span class="chip accent">personalizat</span>':''}${low?' <span class="chip danger">sub prag</span>':''}</td>
+            <td><input type="number" class="stockRowQty" data-ing="${ing.id}" value="${st.qty||0}" min="0" step="1" style="width:80px;padding:6px 8px"></td>
+            <td><input type="number" class="stockRowMin" data-ing="${ing.id}" value="${st.minQty||0}" min="0" step="1" style="width:80px;padding:6px 8px"></td>
+            <td class="mono">${(ingredientPrices[ing.id]||0).toFixed(2)}</td>
+            <td class="mono">${value.toFixed(2)} lei</td>
+            <td><input type="text" class="stockRowSupplier" data-ing="${ing.id}" value="${escAttr(st.supplier||'')}" style="width:110px;padding:6px 8px"></td>
+            <td><input type="text" class="stockRowLot" data-ing="${ing.id}" value="${escAttr(st.lot||'')}" style="width:110px;padding:6px 8px"></td>
+          </tr>`;
+        }).join("") || `<tr><td colspan="7" class="empty">Niciun rezultat.</td></tr>`}
+      </tbody>
+    </table>
+  </div></div>
+  `;
+}
+
+/* ========================= TAB 1: INGREDIENTE ========================= */
+function viewIngrediente(){
+  const q = state.ingSearch.trim().toLowerCase();
+  const all = allIngredients();
+  const list = all.filter(i=>!q || i.ro.toLowerCase().includes(q) || i.inci.toLowerCase().includes(q) || i.cat.toLowerCase().includes(q));
+  const sel = findIng(state.ingSelected) || list[0] || all[0];
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Bază de ingrediente</h1>
+    <div class="row">
+      <button class="btn sm" id="exportIngTemplateBtn">Exportă șablon (Excel)</button>
+      <label class="btn sm primary" style="margin:0">Importă ingrediente<input type="file" id="importIngInput" accept=".xlsx,.xls,.csv" style="display:none"></label>
+    </div>
+  </div>
+  <p class="pageDesc">Nume uzual → denumire INCI, funcție și restricții legale UE (Reg. 1223/2009), pentru cele mai folosite ingrediente în cosmetica naturală artizanală. ${INGREDIENTS.length} intrări din baza curatoriată${customIngredients.length?` + ${customIngredients.length} personalizate`:""}. Poți adăuga mai multe ingrediente deodată dintr-un fișier Excel (.xlsx) sau CSV — exportă mai întâi șablonul, completează rândurile, apoi importă-l; ingredientele care există deja (după INCI sau nume) sunt ignorate automat, nu se dublează.</p>
+  <div class="grid2" style="grid-template-columns:1.3fr .9fr;align-items:start">
+    <div class="card">
+      <div class="pad" style="padding-bottom:10px">
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="ingSearchInput" placeholder="Caută după nume, INCI sau categorie…" value="${escAttr(state.ingSearch)}">
+        </div>
+      </div>
+      <div class="twrap" style="max-height:560px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Ingredient</th><th>Categorie</th><th>Restricție</th></tr></thead>
+          <tbody>
+            ${list.map(i=>`
+              <tr class="ingRow" data-ing="${i.id}" style="${sel.id===i.id?'background:var(--accent-soft)':''}">
+                <td><div style="font-weight:500">${i.ro}${i.custom?' <span class="chip accent" style="margin-left:4px">personalizat</span>':''}</div><div class="hint" style="font-style:italic">${i.inci}</div></td>
+                <td><span class="chip">${i.cat}</span></td>
+                <td>${restrictionChip(i)}</td>
+              </tr>`).join("") || `<tr><td colspan="3" class="empty">Niciun rezultat pentru „${escHtml(state.ingSearch)}”.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+      <div class="pad" style="padding-top:6px">
+        <button class="toggleLink" id="toggleCustomForm">${state.showCustomForm? "Anulează" : "+ Adaugă un ingredient care lipsește din listă"}</button>
+        ${state.showCustomForm? renderCustomForm() : ""}
+      </div>
+    </div>
+    <div class="card detailPanel"><div class="pad stack">
+      ${sel ? `
+        <div>
+          <h2 style="font-size:18px">${sel.ro}</h2>
+          <div class="hint" style="font-style:italic;margin-top:2px">${sel.inci}</div>
+        </div>
+        <div class="row">${restrictionChip(sel)}<span class="chip">${sel.faza==='ulei'?'fază ulei':sel.faza==='apa'?'fază apoasă':sel.faza==='pulbere'?'pulbere':'tehnic'}</span>${sel.alergen?'<span class="chip amber">alergen parfum</span>':''}${sel.custom?'<span class="chip accent">personalizat</span>':''}</div>
+        <div class="kv"><span class="k">Categorie</span><span class="v">${sel.cat}</span></div>
+        <div class="kv"><span class="k">Funcție</span><span class="v">${sel.functie}</span></div>
+        <div class="kv"><span class="k">Concentrație max.</span><span class="v">${sel.maxPct!=null? sel.maxPct+'%' : 'fără limită specifică'}</span></div>
+        ${sel.nota ? `<div style="font-size:12.5px;background:var(--surface-2);border-radius:8px;padding:10px;color:var(--ink-soft)">${sel.nota}</div>` : ""}
+        <button class="btn primary sm" id="addToRecipeBtn">+ Adaugă în rețeta activă</button>
+        ${sel.custom? `<button class="btn sm ghost danger" id="deleteCustomBtn">Șterge ingredientul personalizat</button>` : ""}
+
+        <div class="customForm stack" style="margin-top:4px">
+          <h3 style="font-size:13px">Stoc & furnizor</h3>
+          ${(()=>{ const st = stockOf(sel.id); return `
+          <div class="grid2">
+            <div><label>Stoc curent (g)</label><input type="number" id="stockQty" min="0" step="1" value="${st.qty||0}"></div>
+            <div><label>Preț implicit (lei/kg)</label><input type="number" id="stockPrice" min="0" step="0.5" value="${defaultPrice(sel.id)||''}"></div>
+          </div>
+          <div class="grid2">
+            <div><label>Furnizor</label><input type="text" id="stockSupplier" value="${escAttr(st.supplier||'')}" placeholder="ex. Naturala SRL"></div>
+            <div><label>Lot furnizor curent</label><input type="text" id="stockLot" value="${escAttr(st.lot||'')}" placeholder="ex. LOT-2026-08"></div>
+          </div>
+          <div><label>Prag minim stoc (g) — alertă pe dashboard sub acest nivel</label><input type="number" id="stockMinQty" min="0" step="1" value="${st.minQty||0}"></div>
+          <button class="btn sm" id="saveStockBtn">Salvează stoc & furnizor</button>
+          `;})()}
+        </div>
+      ` : `<div class="empty">Selectează un ingredient</div>`}
+    </div></div>
+  </div>
+  <p class="hint" style="margin-top:16px">Informațiile de mai sus rezumă cerințe general cunoscute din Regulamentul (CE) 1223/2009 și anexele sale; nu înlocuiesc un Raport de Siguranță (CPSR) întocmit de un evaluator de siguranță autorizat, obligatoriu înainte de comercializare. <strong>Notă 2026:</strong> lista de alergeni de parfum de declarat pe etichetă (Anexa III) a fost extinsă de la 26 la 82 de substanțe (Reg. (UE) 2023/1545) — termen 31.07.2026 pt. produse noi, 31.07.2028 pt. cele deja pe piață. Marcajul „alergen" de mai sus e conservator, nu e o listă completă a celor 82.</p>
+  `;
+}
+function renderCustomForm(){
+  return `
+  <div class="customForm stack">
+    <div class="grid2">
+      <div><label>Nume (uzual)</label><input type="text" id="cfRo" placeholder="ex. Ulei de nucă"></div>
+      <div><label>Denumire INCI</label><input type="text" id="cfInci" placeholder="ex. Juglans Regia Seed Oil"></div>
+    </div>
+    <div class="grid3">
+      <div><label>Categorie</label><input type="text" id="cfCat" placeholder="ex. Ulei vegetal"></div>
+      <div><label>Fază</label>
+        <select id="cfFaza">
+          <option value="ulei">ulei</option>
+          <option value="apa">apoasă</option>
+          <option value="pulbere">pulbere</option>
+          <option value="tehnic">tehnic</option>
+        </select>
+      </div>
+      <div><label>Concentrație max. (%)</label><input type="number" id="cfMaxPct" placeholder="lasă gol dacă nu știi" step="0.1" min="0"></div>
+    </div>
+    <div><label>Funcție</label><input type="text" id="cfFunctie" placeholder="ex. Emolient"></div>
+    <div class="row"><label style="margin:0"><input type="checkbox" id="cfAlergen" style="width:auto;margin-right:6px">Conține alergeni de parfum (Anexa III)</label></div>
+    <div><label>Notă / sursă (opțional)</label><textarea id="cfNota" placeholder="ex. verificat pe fișa tehnică a furnizorului X"></textarea></div>
+    <button class="btn primary sm" id="saveCustomBtn">Salvează ingredient</button>
+    <p class="hint">Ingredientele personalizate sunt introduse de tine și nu sunt verificate față de CosIng — responsabilitatea acurateței INCI/restricțiilor rămâne a ta (sau a evaluatorului de siguranță).</p>
+  </div>`;
+}
+function restrictionChip(i){
+  if (i.maxPct!=null) return `<span class="chip amber">max ${i.maxPct}%</span>`;
+  if (i.alergen) return `<span class="chip amber">alergen declarabil</span>`;
+  return `<span class="chip">fără restricție</span>`;
+}
+
+/* ========================= TAB 2: REȚETĂ ========================= */
+function viewReteta(){
+  const r = activeRecipe();
+  const totals = computeTotals(r);
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Formulator rețetă</h1>
+    <div class="row">
+      <button class="btn sm primary" id="newRecipeBtn">+ Rețetă nouă</button>
+      <button class="btn sm" id="cloneRecipeBtn">Clonează</button>
+      <button class="btn sm" id="printRecipeBtn">Printează / PDF</button>
+      <button class="btn sm" id="exportRecipeCsvBtn">Exportă CSV</button>
+      <button class="btn sm danger ghost" id="delRecipeBtn">Șterge</button>
+    </div>
+  </div>
+  <p class="pageDesc">Adaugă ingrediente în grame — ordinea INCI (descrescător după masă) și verificarea restricțiilor se calculează automat.</p>
+
+  <div class="card recipeLibrary"><div class="pad">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h3 style="font-size:13px">Rețetele tale salvate (${state.recipes.length})</h3>
+      <span class="hint">apasă pe una ca s-o încarci în formular</span>
+    </div>
+    <div class="recipeChips" id="recipeChips">
+      ${state.recipes.map(rc=>`
+        <button type="button" class="recipeChip ${rc.id===r.id?'active':''}" data-rid="${rc.id}">
+          <span class="rcName">${escHtml(rc.name||"(fără nume)")}</span>
+          <span class="rcMeta">${rc.items.length} ingr. · ${rc.type==='rinse-off'?'rinse-off':'leave-on'}</span>
+        </button>
+      `).join("")}
+    </div>
+  </div></div>
+
+  <div class="grid2" style="grid-template-columns:1.1fr .8fr;align-items:start;margin-top:16px">
+    <div class="stack">
+      <div class="card"><div class="pad stack">
+        <div class="grid2">
+          <div><label>Nume rețetă</label><input type="text" id="recipeName" value="${escAttr(r.name)}"></div>
+          <div><label>Tip produs</label>
+            <select id="recipeType">
+              <option value="leave-on" ${r.type==='leave-on'?'selected':''}>Leave-on (nu se clătește)</option>
+              <option value="rinse-off" ${r.type==='rinse-off'?'selected':''}>Rinse-off (se clătește)</option>
+            </select>
+          </div>
+        </div>
+        <div><label>Notițe</label><textarea id="recipeNotes">${escHtml(r.notes||"")}</textarea></div>
+      </div></div>
+
+      <div class="card"><div class="pad">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="font-size:14px">Ingrediente (${r.items.length})</h3>
+          <span class="hint">sortate descrescător după gramaj</span>
+        </div>
+        ${r.items.length===0 ? `<div class="empty">Nicio componentă încă — adaugă din tab-ul „Ingrediente” sau din lista de mai jos.</div>` : sortedItems(r).map(it=>renderRecipeItem(it, totals)).join("")}
+        <div class="row" style="margin-top:14px">
+          <select id="quickAddSelect" style="max-width:260px">
+            ${allIngredients().map(i=>`<option value="${i.id}">${i.ro}${i.custom?' (personalizat)':''}</option>`).join("")}
+          </select>
+          <input type="number" id="quickAddGrams" placeholder="grame" style="max-width:90px" min="0" step="0.1" value="10">
+          <button class="btn sm primary" id="quickAddBtn">+ Adaugă</button>
+        </div>
+        <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">
+          <span class="hint" style="margin-right:auto">Sau adaugă mai multe ingrediente deodată dintr-un fișier:</span>
+          <button class="btn sm" id="exportRecipeItemTemplateBtn">Exportă șablon (Excel)</button>
+          <label class="btn sm" style="margin:0">Importă din Excel/CSV<input type="file" id="importRecipeItemsInput" accept=".xlsx,.xls,.csv" style="display:none"></label>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stack">
+      <div class="card"><div class="pad stack">
+        <h3 style="font-size:14px">Sumar formulă</h3>
+        <div class="grid3">
+          <div class="statTile"><div class="num">${fmt(totals.total)}g</div><div class="lbl">masă totală</div></div>
+          <div class="statTile"><div class="num">${totals.apaFree ? "DA" : "NU"}</div><div class="lbl">fără fază apoasă</div></div>
+          <div class="statTile"><div class="num">${totals.flags}</div><div class="lbl">atenționări</div></div>
+        </div>
+        ${totals.apaFree ? `<div class="hint">Formulă anhidră (fără apă) — de regulă nu necesită conservant de spectru larg, risc microbian redus. Verifică totuși dacă ai adăugat extracte/geluri apoase.</div>`
+          : `<div class="hint">Formulă cu fază apoasă — necesită conservant conform (fenoxietanol, acid sorbic/benzoic etc.) în concentrație eficientă, validat printr-un test de provocare (challenge test).</div>`}
+      </div></div>
+
+      <div class="card"><div class="pad stack">
+        <h3 style="font-size:14px">Scalează rețeta</h3>
+        <div class="hint">Păstrează proporțiile, dar recalculează gramajele pentru un lot mai mare sau mai mic.</div>
+        <div class="row">
+          <input type="number" id="scaleTarget" placeholder="ex. 500" min="0" step="0.1" style="max-width:110px">
+          <span class="hint">g total (acum: ${fmt(totals.total)}g)</span>
+        </div>
+        <div class="row">
+          <input type="number" id="scaleUnits" placeholder="nr. bucăți" min="1" step="1" style="max-width:100px">
+          <span class="hint">×</span>
+          <input type="number" id="scaleUnitWeight" placeholder="g / bucată" min="0" step="0.1" style="max-width:100px">
+        </div>
+        <button class="btn sm primary" id="scaleBtn">Aplică scalarea</button>
+      </div></div>
+
+      <div class="card"><div class="pad stack">
+        <h3 style="font-size:14px">Verificare restricții UE</h3>
+        ${renderRestrictionChecks(r, totals)}
+      </div></div>
+    </div>
+  </div>
+
+  <div id="printArea" class="printOnlyBlock">${renderRecipeSheet(r, totals)}</div>
+  `;
+}
+function renderRecipeSheet(r, totals){
+  const rows = sortedItems(r).map(it=>{
+    const ing = findIng(it.ingId);
+    const pct = totals.total>0 ? (it.grams/totals.total*100) : 0;
+    return {ing, it, pct};
+  });
+  const totalCost = r.items.reduce((s,it)=> s + (it.grams/1000)*Number(it.price||defaultPrice(it.ingId)||0), 0);
+  return `
+  <div class="recipeSheet">
+    <h2>${escHtml(r.name)}</h2>
+    <div class="hint">${r.type==='leave-on'?'Produs leave-on':'Produs rinse-off'} · masă totală ${fmt(totals.total)}g · generat ${todayISO()}</div>
+    <table>
+      <thead><tr><th>Ingredient</th><th>INCI</th><th>g</th><th>%</th></tr></thead>
+      <tbody>
+        ${rows.map(({ing,it,pct})=>`<tr><td>${ing?ing.ro:'?'}</td><td><i>${ing?ing.inci:''}</i></td><td>${fmt(it.grams)}</td><td>${pct.toFixed(2)}%</td></tr>`).join("")}
+      </tbody>
+    </table>
+    <div class="hint">Cost estimat materie primă: ${totalCost.toFixed(2)} lei (la prețurile salvate curent)</div>
+    ${r.notes ? `<div class="hint" style="margin-top:8px"><strong>Notițe:</strong> ${escHtml(r.notes)}</div>` : ""}
+  </div>`;
+}
+function renderRecipeItem(it, totals){
+  const ing = findIng(it.ingId);
+  const pct = totals.total>0 ? (it.grams/totals.total*100) : 0;
+  const over = ing && ing.maxPct!=null && pct > ing.maxPct;
+  const st = ing ? stockOf(ing.id) : null;
+  const lowStock = st && st.qty>0 && st.qty < it.grams;
+  return `
+  <div class="recipeItem" data-item="${it.id}">
+    <div>
+      <div class="nm">${ing?ing.ro:'Ingredient necunoscut'}</div>
+      <div class="inci">${ing?ing.inci:''}</div>
+      <div class="barTrack"><div class="barFill ${over?'over':''}" style="width:${Math.min(100,pct*3)}%"></div></div>
+      ${lowStock ? `<div class="chip danger" style="margin-top:4px">stoc insuficient: ${fmt(st.qty)}g din ${fmt(it.grams)}g necesare</div>` : ""}
+    </div>
+    <div class="mono" style="text-align:right;font-size:12.5px">${pct.toFixed(2)}%</div>
+    <input type="number" class="itemGrams" data-item="${it.id}" value="${it.grams}" min="0" step="0.1" style="padding:6px 8px">
+    <button class="btn sm ghost danger itemRemove" data-item="${it.id}" title="Elimină">✕</button>
+  </div>`;
+}
+function sortedItems(r){
+  return [...r.items].sort((a,b)=>b.grams-a.grams);
+}
+function computeTotals(r){
+  const total = r.items.reduce((s,it)=>s+Number(it.grams||0),0);
+  let flags = 0;
+  let apaFree = true;
+  r.items.forEach(it=>{
+    const ing = findIng(it.ingId);
+    if (!ing) return;
+    if (ing.faza==='apa') apaFree = false;
+    const pct = total>0 ? it.grams/total*100 : 0;
+    if (ing.maxPct!=null && pct>ing.maxPct) flags++;
+    if (ing.alergen){
+      const threshold = r.type==='rinse-off' ? ALERGEN_THRESHOLD_RINSE_OFF : ALERGEN_THRESHOLD_LEAVE_ON;
+      if (pct > threshold) flags++;
+    }
+  });
+  return {total, flags, apaFree};
+}
+function renderRestrictionChecks(r, totals){
+  const rows = [];
+  r.items.forEach(it=>{
+    const ing = findIng(it.ingId);
+    if (!ing) return;
+    const pct = totals.total>0 ? it.grams/totals.total*100 : 0;
+    if (ing.maxPct!=null){
+      const over = pct > ing.maxPct;
+      rows.push(`<div class="kv"><span class="k">${ing.ro}</span><span class="v"><span class="chip ${over?'danger':'accent'}">${pct.toFixed(2)}% / max ${ing.maxPct}% ${over?'— DEPĂȘIT':'OK'}</span></span></div>`);
+    }
+    if (ing.alergen){
+      const threshold = r.type==='rinse-off' ? ALERGEN_THRESHOLD_RINSE_OFF : ALERGEN_THRESHOLD_LEAVE_ON;
+      const over = pct > threshold;
+      rows.push(`<div class="kv"><span class="k">${ing.ro} — alergeni</span><span class="v"><span class="chip ${over?'amber':''}">${over? 'de declarat pe etichetă' : 'sub pragul de declarare'}</span></span></div>`);
+    }
+  });
+  if (rows.length===0) return `<div class="hint">Niciun ingredient din rețetă nu are restricții specifice de concentrație în baza de date.</div>`;
+  return rows.join("") + `<p class="hint" style="margin-top:8px">Pragurile de alergeni (${ALERGEN_THRESHOLD_LEAVE_ON.toFixed(3)}% leave-on / ${ALERGEN_THRESHOLD_RINSE_OFF.toFixed(2)}% rinse-off) se aplică la conținutul real al substanței alergene, nu la ingredientul brut — pentru uleiuri esențiale, verifică fișa IFRA a furnizorului pentru compoziția exactă. Anexa III listează acum 82 de alergeni de declarat (extinsă în 2023) — ingredientele marcate mai sus sunt cele cunoscute din baza curatoriată, nu neapărat toate cele 82.</p>`;
+}
+
+/* ========================= TAB LEȘIE: CALCULATOR SAPONIFICARE ========================= */
+function lyeCalc(r){
+  const rows = r.items.map(it=>{
+    const ing = findIng(it.ingId);
+    const sap = ing ? SAP_NAOH[ing.id] : null;
+    return {it, ing, sap};
+  }).filter(x=>x.ing && x.ing.faza==="ulei");
+  const known = rows.filter(x=>x.sap!=null);
+  const unknown = rows.filter(x=>x.sap==null);
+  const oilsTotal = rows.reduce((s,x)=>s+Number(x.it.grams||0),0);
+  const isKOH = lyeState.type==="koh";
+  const factor = isKOH ? SAP_KOH_FACTOR : 1;
+  const superfat = Number(lyeState.superfat||0)/100;
+  const waterPct = Number(lyeState.waterPct||0)/100;
+  let lyeTotal = 0;
+  const detail = known.map(x=>{
+    const pureLye = x.it.grams * x.sap * factor;
+    const afterSuperfat = pureLye * (1-superfat);
+    lyeTotal += afterSuperfat;
+    return {...x, lyeGrams: afterSuperfat};
+  });
+  const waterTotal = oilsTotal * waterPct;
+  const batchTotal = oilsTotal + lyeTotal + waterTotal;
+  return {detail, unknown, oilsTotal, lyeTotal, waterTotal, batchTotal, isKOH};
+}
+function viewLesie(){
+  const r = activeRecipe();
+  const calc = lyeCalc(r);
+  return `
+  <div class="topline"><h1 class="pageTitle">Calculator leșie (saponificare)</h1></div>
+  <p class="pageDesc">Pentru săpun cold-process, calculează automat cantitatea de leșie (NaOH sau KOH) necesară pentru uleiurile/unturile din rețeta activă <strong>${escHtml(r.name)}</strong>, pe baza valorilor de saponificare (SAP) din baza de date. Valorile SAP sunt de referință generală — pentru precizie, verifică fișa tehnică a furnizorului tău de uleiuri.</p>
+
+  <div class="grid2" style="grid-template-columns:.8fr 1.1fr;align-items:start">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Parametri</h3>
+      <div><label>Tip leșie</label>
+        <select id="lyeType">
+          <option value="naoh" ${lyeState.type==='naoh'?'selected':''}>NaOH (sodă caustică) — săpun solid</option>
+          <option value="koh" ${lyeState.type==='koh'?'selected':''}>KOH (potasă caustică) — săpun lichid/moale</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div><label>Superfat / discount leșie (%)</label><input type="number" id="lyeSuperfat" min="0" max="30" step="0.5" value="${lyeState.superfat}"></div>
+        <div><label>Apă (% din greutatea uleiurilor)</label><input type="number" id="lyeWaterPct" min="0" max="100" step="1" value="${lyeState.waterPct}"></div>
+      </div>
+      <p class="hint">Superfat = procent de uleiuri lăsate nesaponificate, pentru un săpun mai blând (5-8% e uzual). Apa e exprimată ca procent din greutatea totală a uleiurilor (o concentrație de leșie tipică — 33-40% — corespunde la 38% apă/ulei implicit).</p>
+    </div></div>
+
+    <div class="stack">
+      <div class="card"><div class="pad stack">
+        <h3 style="font-size:14px">Rezultat pentru un lot din rețeta activă</h3>
+        <div class="grid3">
+          <div class="statTile"><div class="num">${fmt(calc.oilsTotal)}g</div><div class="lbl">uleiuri/unturi</div></div>
+          <div class="statTile"><div class="num">${fmt(calc.lyeTotal)}g</div><div class="lbl">${calc.isKOH?'KOH':'NaOH'} necesar</div></div>
+          <div class="statTile"><div class="num">${fmt(calc.waterTotal)}g</div><div class="lbl">apă</div></div>
+        </div>
+        <div class="kv" style="border-top:1px solid var(--line);padding-top:10px;margin-top:2px"><span class="k" style="font-weight:600;color:var(--ink)">Greutate totală săpun brut</span><span class="v mono" style="font-weight:600;font-size:15px;color:var(--accent)">${fmt(calc.batchTotal)}g</span></div>
+      </div></div>
+
+      <div class="card"><div class="pad">
+        <h3 style="font-size:14px;margin-bottom:8px">Detaliu per ulei</h3>
+        ${calc.detail.length===0 ? `<div class="empty">Rețeta nu conține uleiuri/unturi cu valoare SAP cunoscută.</div>` : `
+        <div class="twrap"><table>
+          <thead><tr><th>Ulei/unt</th><th>Grame</th><th>SAP NaOH</th><th>${calc.isKOH?'KOH':'NaOH'} necesar</th></tr></thead>
+          <tbody>
+            ${calc.detail.map(x=>`<tr><td>${x.ing.ro}</td><td class="mono">${fmt(x.it.grams)}g</td><td class="mono">${x.sap}</td><td class="mono">${fmt(x.lyeGrams)}g</td></tr>`).join("")}
+          </tbody>
+        </table></div>`}
+        ${calc.unknown.length ? `<p class="hint" style="margin-top:10px">Fără valoare SAP în bază, excluse din calcul: ${calc.unknown.map(x=>x.ing.ro).join(", ")}. Dacă rețeta ta depinde de aceste uleiuri, calculează manual leșia lor (caută „SAP value” pe fișa tehnică a furnizorului) și adaugă la rezultatul de mai sus.</p>` : ""}
+      </div></div>
+      <p class="hint">Sodiul/potasiul caustic sunt substanțe corozive — folosește echipament de protecție (ochelari, mănuși), adaugă leșia în apă (niciodată invers) și lucrează într-o zonă ventilată.</p>
+    </div>
+  </div>
+  `;
+}
+
+/* ========================= TAB 3: ETICHETĂ ========================= */
+function viewEticheta(){
+  const r = activeRecipe();
+  const totals = computeTotals(r);
+  const L = LABEL_I18N[state.labelLang] || LABEL_I18N.ro;
+  const inciList = sortedItems(r).map(it=>{
+    const ing = findIng(it.ingId);
+    return ing ? ing.inci : "?";
+  });
+  const allergenNotes = sortedItems(r).filter(it=>{
+    const ing = findIng(it.ingId);
+    if (!ing || !ing.alergen) return false;
+    const pct = totals.total>0? it.grams/totals.total*100:0;
+    const threshold = r.type==='rinse-off' ? ALERGEN_THRESHOLD_RINSE_OFF : ALERGEN_THRESHOLD_LEAVE_ON;
+    return pct>threshold;
+  }).map(it=>findIng(it.ingId).inci);
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Etichetă & listă INCI</h1>
+    <div class="row" role="group" aria-label="Limba etichetei">
+      <button class="btn sm ${state.labelLang==='ro'?'primary':'ghost'}" data-lang="ro">RO</button>
+      <button class="btn sm ${state.labelLang==='en'?'primary':'ghost'}" data-lang="en">EN</button>
+    </div>
+  </div>
+  <p class="pageDesc">Eticheta se generează pentru rețeta aleasă mai jos. Lista INCI e generată automat, ordonată descrescător după masă (cerință legală pentru ingredientele peste 1%). Ingredientele (INCI) sunt aceleași în orice limbă — comută RO/EN pentru restul textului etichetei (avertismente, greutate, lot), util dacă exporți produsul.</p>
+
+  <div class="card" style="margin-bottom:16px"><div class="pad">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h3 style="font-size:13px">Alege produsul / rețeta pentru care generezi eticheta</h3>
+    </div>
+    <div class="recipeChips" id="labelRecipeChips">
+      ${state.recipes.map(rc=>`
+        <button type="button" class="recipeChip ${rc.id===r.id?'active':''}" data-rid="${rc.id}">
+          <span class="rcName">${escHtml(rc.name||"(fără nume)")}</span>
+          <span class="rcMeta">${rc.items.length} ingr. · ${rc.type==='rinse-off'?'rinse-off':'leave-on'}</span>
+        </button>
+      `).join("")}
+    </div>
+  </div></div>
+
+  <div class="grid2" style="grid-template-columns:1fr .8fr;align-items:start">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">${L.ingListTitle}</h3>
+      <div class="mono" style="font-size:12.5px;line-height:1.7;background:var(--surface-2);padding:12px;border-radius:8px">${inciList.join(", ")}</div>
+      <button class="btn sm" id="copyInciBtn">${L.copyBtn}</button>
+
+      ${allergenNotes.length ? `
+      <h3 style="font-size:14px;margin-top:6px">${L.allergenTitle}</h3>
+      <div class="hint">${L.allergenIntro}</div>
+      <div class="row">${allergenNotes.map(a=>`<span class="chip amber">${a}</span>`).join("")}</div>
+      ` : `<div class="hint">${L.noAllergen}</div>`}
+    </div></div>
+
+    <div class="stack">
+      <div class="card"><div class="pad">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="font-size:14px">${L.previewTitle}</h3>
+          <button class="btn sm" id="printLabelBtn">${L.printBtn}</button>
+        </div>
+        <div id="printArea">
+        <div class="label-sheet">
+          <div class="lname">${escHtml(r.name)}</div>
+          <div class="ltag">${r.type==='leave-on'?L.leaveOn:L.rinseOff} · ${L.netWeight} ___ g</div>
+          <div class="linci"><strong>${L.ingredientsHeader}</strong> ${inciList.join(", ")}</div>
+          ${allergenNotes.length? `<div class="lwarn">${L.contains} ${allergenNotes.join(", ")} — ${L.allergyWarn}</div>`:""}
+          <div class="lwarn" style="background:var(--surface-2);color:var(--ink-soft)">${L.caution}</div>
+          <div class="lmeta"><span>${L.lot} ______ </span><span>${L.exp} __ / ____</span></div>
+          ${r.qrOnLabel && r.qrUrl ? `<div class="lqr">${makeQrSvg(r.qrUrl)}</div>` : ""}
+        </div>
+        </div>
+      </div></div>
+      <div class="card"><div class="pad stack">
+        <h3 style="font-size:14px">Cod QR pe etichetă</h3>
+        <p class="hint">Un cod QR pe etichetă duce clientul direct spre pagina ta publică sau magazinul online — util de scanat cu telefonul. Se generează local, fără niciun serviciu extern.</p>
+        <div><label>Link (ex. pagina ta publică, Instagram, Breslo, Etsy)</label><input type="text" id="qrUrl" value="${escAttr(r.qrUrl||"")}" placeholder="https://..."></div>
+        <div class="row"><label style="margin:0"><input type="checkbox" id="qrOnLabel" style="width:auto;margin-right:6px" ${r.qrOnLabel?"checked":""}>Include pe eticheta printabilă</label></div>
+        ${r.qrUrl ? `<div style="width:110px">${makeQrSvg(r.qrUrl)}</div>` : `<p class="hint">Introdu un link ca să vezi previzualizarea codului QR — ${publicProfile && publicProfile.slug ? `poți folosi <button type="button" class="toggleLink" id="useCatalogLinkBtn">link-ul paginii tale publice</button>` : `linkul paginii tale publice (dacă o activezi din tab-ul „Pagina publică")`}.</p>`}
+      </div></div>
+      <div class="card"><div class="pad">
+        <h3 style="font-size:14px;margin-bottom:8px">${L.legalTitle}</h3>
+        <ul class="hint" style="margin:0;padding-left:18px;line-height:1.8">
+          ${L.legal.map(item=>`<li>${item}</li>`).join("")}
+        </ul>
+      </div></div>
+    </div>
+  </div>
+  `;
+}
+
+/* ========================= TAB 4: COST ========================= */
+function viewCost(){
+  const r = activeRecipe();
+  const rows = sortedItems(r).map(it=>{
+    const ing = findIng(it.ingId);
+    const cost = (it.grams/1000) * Number(it.price||0);
+    return {it, ing, cost};
+  });
+  const totalCost = rows.reduce((s,x)=>s+x.cost,0);
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Cost & preț</h1>
+    <button class="btn sm ghost" id="fillDefaultPricesBtn">Completează din prețuri salvate</button>
+  </div>
+  <p class="pageDesc">Costul și prețul sugerat se calculează pentru produsul ales mai jos. Introdu prețul pe kg pentru fiecare ingredient — costul lotului se recalculează automat. Fiecare preț introdus se reține automat ca implicit pentru acel ingredient, în orice rețetă îl folosești data viitoare.</p>
+
+  <div class="card" style="margin-bottom:16px"><div class="pad">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h3 style="font-size:13px">Alege produsul / rețeta pentru care calculezi costul</h3>
+    </div>
+    <div class="recipeChips" id="costRecipeChips">
+      ${state.recipes.map(rc=>`
+        <button type="button" class="recipeChip ${rc.id===r.id?'active':''}" data-rid="${rc.id}">
+          <span class="rcName">${escHtml(rc.name||"(fără nume)")}</span>
+          <span class="rcMeta">${rc.items.length} ingr. · ${rc.type==='rinse-off'?'rinse-off':'leave-on'}</span>
+        </button>
+      `).join("")}
+    </div>
+  </div></div>
+
+  <div class="grid2" style="grid-template-columns:1.2fr .8fr;align-items:start">
+    <div class="card"><div class="pad">
+      <div class="twrap">
+        <table>
+          <thead><tr><th>Ingredient</th><th>Grame</th><th>Preț / kg (lei)</th><th>Cost</th></tr></thead>
+          <tbody>
+            ${rows.map(({it,ing,cost})=>`
+              <tr>
+                <td>${ing?ing.ro:'?'}</td>
+                <td class="mono">${fmt(it.grams)}g</td>
+                <td><input type="number" class="itemPrice mono" data-item="${it.id}" value="${it.price||0}" min="0" step="0.5" style="width:90px;padding:6px 8px"></td>
+                <td class="mono">${cost.toFixed(2)} lei</td>
+              </tr>`).join("") || `<tr><td colspan="4" class="empty">Rețeta nu are ingrediente.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+
+    <div class="stack">
+      <div class="card"><div class="pad stack">
+        <div class="statTile"><div class="num">${totalCost.toFixed(2)} lei</div><div class="lbl">cost total materie primă / lot</div></div>
+        <div class="grid2">
+          <div><label>Nr. unități din acest lot</label><input type="number" id="costUnits" min="1" step="1" value="${costState.units}"></div>
+          <div><label>Marjă țintă (%)</label><input type="number" id="costMargin" min="0" step="5" value="${costState.margin}"></div>
+        </div>
+        <div class="kv"><span class="k">Cost materie primă / unitate</span><span class="v mono">${(totalCost/Math.max(1,costState.units)).toFixed(2)} lei</span></div>
+        <div class="kv"><span class="k">+ ambalaj &amp; etichetă (estimat)</span><span class="v"><input type="number" id="costPackaging" min="0" step="0.5" value="${costState.packaging}" style="width:80px;padding:4px 6px"></span></div>
+        <div class="kv"><span class="k">Cost total / unitate</span><span class="v mono">${unitCostTotal(totalCost).toFixed(2)} lei</span></div>
+        <div class="kv" style="border-top:1px solid var(--line);padding-top:10px;margin-top:2px"><span class="k" style="font-weight:600;color:var(--ink)">Preț de vânzare sugerat</span><span class="v mono" style="font-weight:600;font-size:15px;color:var(--accent)">${suggestedPrice(totalCost).toFixed(2)} lei</span></div>
+        <div class="hint">Preț sugerat = (cost materie primă + ambalaj) / unitate, majorat cu marja țintă. Nu include manoperă, CPNP/dosar de siguranță, TVA sau costuri fixe (chirie, utilități) — adaugă-le separat pentru o marjă reală.</div>
+      </div></div>
+    </div>
+  </div>
+  `;
+}
+let costState = {units:10, margin:120, packaging:4};
+function unitCostTotal(totalCost){
+  return (totalCost/Math.max(1,costState.units)) + Number(costState.packaging||0);
+}
+function suggestedPrice(totalCost){
+  return unitCostTotal(totalCost) * (1 + Number(costState.margin||0)/100);
+}
+
+/* ========================= TAB 5: JURNAL LOTURI ========================= */
+function viewJurnal(){
+  const sorted = [...state.batches].sort((a,b)=> b.date.localeCompare(a.date));
+  return `
+  <div class="topline"><h1 class="pageTitle">Jurnal de loturi</h1></div>
+  <p class="pageDesc">Ține evidența fiecărui lot fabricat — utilă pentru trasabilitate (cerință a dosarului de siguranță) și pentru reclamații.</p>
+
+  <div class="grid2" style="grid-template-columns:.9fr 1.1fr;align-items:start">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Lot nou</h3>
+      <div><label>Rețetă</label>
+        <select id="batchRecipe">
+          ${state.recipes.map(rc=>`<option value="${rc.id}">${escHtml(rc.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="grid2">
+        <div><label>Cod lot</label><input type="text" id="batchCode" placeholder="ex. 2026-09-A1" value="${suggestLotCode()}"></div>
+        <div><label>Data</label><input type="text" id="batchDate" value="${todayISO()}"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Cantitate produsă (g/ml sau bucăți)</label><input type="text" id="batchQty" placeholder="ex. 480 g / 24 buc"></div>
+        <div><label>Valabilitate (luni)</label><input type="number" id="batchShelfMonths" min="0" step="1" placeholder="ex. 12"></div>
+      </div>
+      <div><label>Observații</label><textarea id="batchNotes" placeholder="lot de test, ajustări de rețetă, sursă ingrediente etc."></textarea></div>
+      <div class="row"><label style="margin:0"><input type="checkbox" id="batchDeductStock" style="width:auto;margin-right:6px" checked>Scade automat din stocul de materii prime</label></div>
+      <div><label>Cantitate materie primă folosită / planificată (g)</label><input type="number" id="batchStockGrams" min="0" step="0.1" placeholder="ex. 480"></div>
+      <div><label>Cantitate obținută efectiv (g) — după turnare/uscare, opțional</label><input type="number" id="batchYieldQty" min="0" step="0.1" placeholder="ex. 462"></div>
+      <p class="hint">„Materie primă folosită” se scade din stoc (dacă bifezi) proporțional cu rețeta, și se reține furnizorul/lotul curent pentru trasabilitate. Dacă completezi și „cantitate obținută efectiv”, aplicația calculează randamentul lotului (obținut / materie primă folosită).</p>
+      <button class="btn primary" id="addBatchBtn">Salvează lot</button>
+    </div></div>
+
+    <div class="card"><div class="pad">
+      <h3 style="font-size:14px;margin-bottom:8px">Istoric (${state.batches.length})</h3>
+      ${sorted.length===0 ? `<div class="empty">Niciun lot înregistrat încă.</div>` : sorted.map(b=>{
+        const expiry = b.shelfMonths ? addMonths(b.date, b.shelfMonths) : null;
+        const expiryChip = expiryChipHtml(expiry);
+        return `
+        <div class="journalItem">
+          <div>
+            <div style="font-weight:500">${escHtml(b.recipeName)} <span class="chip" style="margin-left:6px">${escHtml(b.code)}</span></div>
+            <div class="hint">${b.date} · ${escHtml(b.qty||'—')}</div>
+            ${expiry ? `<div style="margin-top:4px">${expiryChip}</div>` : ""}
+            ${yieldChipHtml(b) ? `<div style="margin-top:4px">${yieldChipHtml(b)}</div>` : ""}
+            ${b.notes? `<div class="hint" style="margin-top:3px">${escHtml(b.notes)}</div>`:""}
+            ${b.rawMaterialLots && b.rawMaterialLots.length ? `
+              <details style="margin-top:6px">
+                <summary class="hint" style="cursor:pointer">Trasabilitate materii prime (${b.rawMaterialLots.length})</summary>
+                <div style="margin-top:4px">
+                  ${b.rawMaterialLots.map(rm=>`<div class="hint">• ${escHtml(rm.ing)} — ${fmt(rm.usedGrams)}g${rm.supplier?` · furnizor: ${escHtml(rm.supplier)}`:''}${rm.lot?` · lot: ${escHtml(rm.lot)}`:''}</div>`).join("")}
+                </div>
+              </details>
+            ` : ""}
+            ${(()=>{ const used = products.filter(p=>Array.isArray(p.batchIds)&&p.batchIds.includes(b.id)); return used.length ? `<div class="hint" style="margin-top:4px">Folosit în produsul finit: ${used.map(p=>escHtml(p.name||"(fără nume)")).join(", ")}</div>` : ""; })()}
+          </div>
+          <button class="btn sm ghost danger batchRemove" data-batch="${b.id}">✕</button>
+        </div>
+      `;}).join("")}
+    </div></div>
+  </div>
+  `;
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function suggestLotCode(){
+  const n = state.batches.length+1;
+  return todayISO()+"-"+String(n).padStart(2,"0");
+}
+function addMonths(dateISO, months){
+  const d = new Date(dateISO+"T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  d.setMonth(d.getMonth()+Number(months));
+  return d.toISOString().slice(0,10);
+}
+function expiryChipHtml(expiryISO){
+  if (!expiryISO) return "";
+  const days = Math.round((new Date(expiryISO+"T00:00:00") - new Date(todayISO()+"T00:00:00"))/86400000);
+  let cls = "chip accent", label = "Expiră: "+expiryISO;
+  if (days<0){ cls = "chip danger"; label = "Expirat: "+expiryISO; }
+  else if (days<=60){ cls = "chip amber"; label = "Expiră curând: "+expiryISO; }
+  return `<span class="${cls}">${label}</span>`;
+}
+function yieldChipHtml(b){
+  if (!b.plannedQty || !b.yieldQty) return "";
+  const pct = (b.yieldQty/b.plannedQty*100);
+  const cls = pct>=95 ? "chip accent" : pct>=85 ? "chip amber" : "chip danger";
+  return `<span class="${cls}">Randament: ${pct.toFixed(1)}% (${fmt(b.yieldQty)}g din ${fmt(b.plannedQty)}g)</span>`;
+}
+
+/* ========================= TAB 6: PRODUSE ========================= */
+function viewProduse(){
+  const editing = state.editingProductId ? products.find(p=>p.id===state.editingProductId) : null;
+
+  if (editing) return viewProductEditor(editing);
+
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">Produse</h1>
+    <button class="btn primary sm" id="newProductBtn">+ Produs nou</button>
+  </div>
+  <p class="pageDesc">Catalogul produselor tale finite — cu poze, preț și legătura către rețeta din care sunt făcute.</p>
+  ${products.length===0 ? `<div class="card"><div class="empty">Niciun produs încă — apasă „+ Produs nou" ca să adaugi primul, cu poze.</div></div>` : `
+  <div class="prodGrid">
+    ${products.map(p=>{
+      const recipe = state.recipes.find(r=>r.id===p.recipeId);
+      const cover = p.photos[0];
+      return `
+      <div class="prodCard" data-product="${p.id}">
+        <div class="prodThumb">${cover ? `<img src="${escAttr(cover.url)}" alt="${escAttr(p.name)}">` : `<div class="ph">fără poză încă</div>`}</div>
+        <div class="prodBody">
+          <div class="prodName">${escHtml(p.name)||"(fără nume)"}</div>
+          ${p.price ? `<div class="prodPrice">${Number(p.price).toFixed(2)} lei</div>` : ""}
+          <div class="hint">stoc: ${Number(p.stockQty||0)} buc.</div>
+          ${recipe? `<div class="hint">din: ${escHtml(recipe.name)}</div>` : ""}
+          ${(p.batchIds||[]).length ? `<div class="hint">loturi: ${p.batchIds.length}</div>` : ""}
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`}
+  `;
+}
+function viewProductEditor(p){
+  return `
+  <div class="topline">
+    <h1 class="pageTitle">${p.name? escHtml(p.name) : "Produs nou"}</h1>
+    <div class="row">
+      <button class="btn sm ghost" id="backToProducts">← Înapoi la produse</button>
+      <button class="btn sm ghost danger" id="deleteProductBtn">Șterge produsul</button>
+    </div>
+  </div>
+  <div class="grid2" style="grid-template-columns:.9fr 1.1fr;align-items:start">
+    <div class="card"><div class="pad stack">
+      <h3 style="font-size:14px">Poze produs</h3>
+      <div class="photoStrip">
+        ${p.photos.map(ph=>`
+          <div class="photoThumb">
+            <img src="${escAttr(ph.url)}">
+            <button class="rm" data-rmphoto="${ph.id}" title="Șterge poza">✕</button>
+          </div>`).join("")}
+        <label class="uploadTile" title="Adaugă poză">
+          ${state.photoBusy? "…" : "+"}
+          <input type="file" accept="image/*" id="photoInput" ${state.photoBusy?"disabled":""}>
+        </label>
+      </div>
+      <p class="hint">Pozele se redimensionează automat (max. 1000px) înainte de salvare, ca să nu ocupe spațiu inutil. Se salvează în contul tău (vizibile pe orice dispozitiv).</p>
+    </div></div>
+
+    <div class="card"><div class="pad stack">
+      <div><label>Nume produs</label><input type="text" id="pName" value="${escAttr(p.name)}" placeholder="ex. Balsam de buze — cătină, 15ml"></div>
+      <div class="grid2">
+        <div><label>Preț de vânzare (lei)</label><input type="number" id="pPrice" min="0" step="0.5" value="${p.price||''}"></div>
+        <div><label>Rețeta folosită</label>
+          <select id="pRecipe">
+            <option value="">— fără legătură —</option>
+            ${state.recipes.map(r=>`<option value="${r.id}" ${p.recipeId===r.id?'selected':''}>${escHtml(r.name)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div><label>Stoc produs finit (bucăți)</label><input type="number" id="pStockQty" min="0" step="1" value="${p.stockQty||0}"></div>
+        <div><label>Cost estimat / bucată (lei)</label><input type="number" id="pCostPerUnit" min="0" step="0.1" value="${p.costPerUnit||''}" placeholder="din tab Cost"></div>
+      </div>
+      <div><label>Descriere / notițe</label><textarea id="pNotes" placeholder="ingrediente cheie, ambalaj, unde se vinde…">${escHtml(p.notes||"")}</textarea></div>
+      <div class="row"><label style="margin:0"><input type="checkbox" id="pPublicVisible" style="width:auto;margin-right:6px" ${p.publicVisible?"checked":""}>Vizibil pe pagina publică</label></div>
+      <p class="hint">Dacă ai activat pagina publică de catalog (tab „Pagina publică”), acest produs apare acolo doar dacă bifezi aici. <button type="button" class="toggleLink" id="goToPublicPageBtn">Configurează pagina publică →</button></p>
+    </div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Trasabilitate — loturi folosite</h3>
+    <p class="hint">Bifează din ce lot(uri) fabricate provine acest produs finit — util pentru trasabilitate reală, în caz de reclamație sau retragere.</p>
+    ${state.batches.length===0 ? `<p class="hint">Niciun lot înregistrat încă — adaugă unul din tab-ul „Jurnal loturi".</p>` : `
+    <div style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px">
+      ${[...state.batches].sort((a,b)=>b.date.localeCompare(a.date)).map(b=>`
+        <label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer">
+          <input type="checkbox" class="pBatchLink" data-batch="${b.id}" style="width:auto;margin:0" ${(p.batchIds||[]).includes(b.id)?"checked":""}>
+          <span style="font-size:13px">${escHtml(b.recipeName)} <span class="hint">— lot ${escHtml(b.code)} · ${b.date}</span></span>
+        </label>`).join("")}
+    </div>`}
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Înregistrează o vânzare</h3>
+    <div class="grid3">
+      <div><label>Bucăți vândute</label><input type="number" id="saleQty" min="1" step="1" value="1"></div>
+      <div><label>Preț / bucată (lei)</label><input type="number" id="salePrice" min="0" step="0.5" value="${p.price||0}"></div>
+      <div><label>Cost / bucată (lei)</label><input type="number" id="saleCost" min="0" step="0.1" value="${p.costPerUnit||0}"></div>
+    </div>
+    <button class="btn primary sm" id="registerSaleBtn">Înregistrează vânzarea (scade din stoc)</button>
+    <p class="hint">Scade cantitatea din stocul produsului finit și adaugă intrarea la tab-ul „Rapoarte”, pentru calculul veniturilor/profitului.</p>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="font-size:14px">Fișă tehnică produs</h3>
+      <button class="btn sm" id="printProductSheetBtn">Printează / PDF</button>
+    </div>
+    <p class="hint">Un document mai complet decât eticheta — compoziție INCI integrală, loturi folosite, condiții de păstrare. Util de dat unui magazin/distribuitor sau la un control ANPC.</p>
+  </div></div>
+
+  <div id="printArea" class="printOnlyBlock">${renderProductTechSheet(p)}</div>
+  `;
+}
+function renderProductTechSheet(p){
+  const r = state.recipes.find(x=>x.id===p.recipeId);
+  const totals = r ? computeTotals(r) : null;
+  const inciList = r ? sortedItems(r).map(it=>{ const ing=findIng(it.ingId); return ing?ing.inci:"?"; }) : [];
+  const usedBatches = (p.batchIds||[]).map(id=>state.batches.find(b=>b.id===id)).filter(Boolean);
+  return `
+  <div class="recipeSheet">
+    <h2>${escHtml(p.name||"(fără nume)")}</h2>
+    <div class="hint">Fișă tehnică produs · generată ${todayISO()}</div>
+    ${p.notes ? `<p style="font-size:12.5px">${escHtml(p.notes)}</p>` : ""}
+    <table>
+      <tbody>
+        <tr><td>Rețeta folosită</td><td>${r?escHtml(r.name):"— fără legătură —"}</td></tr>
+        <tr><td>Greutate netă</td><td>___ g / ml${totals?` (masă lot rețetă: ${fmt(totals.total)}g)`:""}</td></tr>
+        <tr><td>Preț de vânzare</td><td>${p.price?Number(p.price).toFixed(2)+" lei":"—"}</td></tr>
+        <tr><td>Loturi de fabricație folosite</td><td>${usedBatches.length? usedBatches.map(b=>escHtml(b.code)+" ("+b.date+")").join(", ") : "—"}</td></tr>
+        <tr><td>Condiții de păstrare</td><td>A se păstra la loc uscat și răcoros, ferit de lumina directă a soarelui.</td></tr>
+        <tr><td>Data fabricației</td><td>______ / lot ______</td></tr>
+      </tbody>
+    </table>
+    ${inciList.length ? `<h2 style="font-size:15px;margin-top:14px">Compoziție INCI completă (ordonată descrescător după masă)</h2><div class="hint" style="line-height:1.6">${inciList.join(", ")}</div>` : `<p class="hint">Niciun ingredient — leagă produsul de o rețetă (câmpul „Rețeta folosită") ca să apară compoziția aici.</p>`}
+  </div>`;
+}
+
+/* ========================= TAB RAPOARTE: PROFITABILITATE ========================= */
+function daysAgoISO(n){
+  const d = new Date();
+  d.setDate(d.getDate()-n);
+  return d.toISOString().slice(0,10);
+}
+function viewRapoarte(){
+  const from = state.reportFrom || daysAgoISO(30);
+  const to = state.reportTo || todayISO();
+  const inRange = sales.filter(s=> s.date>=from && s.date<=to);
+
+  // opțiuni de produs disponibile în perioada aleasă (după id, cu fallback pe nume)
+  const productOptions = [];
+  const seenKey = new Set();
+  inRange.forEach(s=>{
+    const key = s.productId||s.productName;
+    if (!seenKey.has(key)){ seenKey.add(key); productOptions.push({key, name:s.productName||"(fără nume)"}); }
+  });
+  productOptions.sort((a,b)=> a.name.localeCompare(b.name));
+
+  const productFilter = state.reportProduct || "";
+  const filtered = productFilter ? inRange.filter(s=> (s.productId||s.productName)===productFilter) : inRange;
+
+  const revenue = filtered.reduce((s,x)=>s+Number(x.total||0),0);
+  const cost = filtered.reduce((s,x)=>s+Number(x.totalCost||0),0);
+  const profit = revenue-cost;
+  const byProduct = {};
+  filtered.forEach(s=>{
+    const key = s.productId||s.productName;
+    if (!byProduct[key]) byProduct[key] = {name:s.productName, qty:0, revenue:0, cost:0};
+    byProduct[key].qty += Number(s.qty||0);
+    byProduct[key].revenue += Number(s.total||0);
+    byProduct[key].cost += Number(s.totalCost||0);
+  });
+  const rows = Object.values(byProduct).sort((a,b)=>b.revenue-a.revenue);
+
+  return `
+  <div class="topline"><h1 class="pageTitle">Rapoarte de profitabilitate</h1></div>
+  <p class="pageDesc">Calculat din vânzările înregistrate în tab-ul „Produse” (buton „Înregistrează vânzarea”). Costul e cel introdus manual la fiecare vânzare (implicit din câmpul „Cost estimat / bucată” al produsului).</p>
+
+  <div class="card"><div class="pad">
+    <div class="row">
+      <div><label>De la</label><input type="text" id="reportFrom" value="${from}" placeholder="AAAA-LL-ZZ" style="max-width:130px"></div>
+      <div><label>Până la</label><input type="text" id="reportTo" value="${to}" placeholder="AAAA-LL-ZZ" style="max-width:130px"></div>
+      <div><label>Produs</label>
+        <select id="reportProduct" style="max-width:220px">
+          <option value="">Toate produsele</option>
+          ${productOptions.map(p=>`<option value="${escAttr(p.key)}" ${p.key===productFilter?'selected':''}>${escHtml(p.name)}</option>`).join("")}
+        </select>
+      </div>
+      ${productFilter ? `<button class="btn sm ghost" id="clearReportProductBtn" style="align-self:flex-end">Șterge filtrul de produs</button>` : ""}
+    </div>
+  </div></div>
+
+  <div class="grid3" style="margin:16px 0">
+    <div class="statTile"><div class="num">${revenue.toFixed(0)} lei</div><div class="lbl">venituri${productFilter?' (produs filtrat)':''}</div></div>
+    <div class="statTile"><div class="num">${cost.toFixed(0)} lei</div><div class="lbl">cost estimat</div></div>
+    <div class="statTile"><div class="num">${profit.toFixed(0)} lei</div><div class="lbl">profit estimat</div></div>
+  </div>
+
+  <div class="card"><div class="pad">
+    <h3 style="font-size:14px;margin-bottom:8px">Pe produs (${filtered.length} vânzări în perioadă${productFilter?', filtrat':''})</h3>
+    ${rows.length===0 ? `<div class="empty">Nicio vânzare înregistrată în această perioadă${productFilter?' pentru produsul ales':''}.</div>` : `
+    <div class="twrap"><table>
+      <thead><tr><th>Produs</th><th>Buc. vândute</th><th>Venit</th><th>Cost</th><th>Profit</th></tr></thead>
+      <tbody>
+        ${rows.map(x=>`<tr><td>${escHtml(x.name)}</td><td class="mono">${x.qty}</td><td class="mono">${x.revenue.toFixed(2)} lei</td><td class="mono">${x.cost.toFixed(2)} lei</td><td class="mono">${(x.revenue-x.cost).toFixed(2)} lei</td></tr>`).join("")}
+      </tbody>
+    </table></div>`}
+  </div></div>
+  `;
+}
+
+/* ========================= TAB RESURSE: LEGISLAȚIE & CONSULTANȚI ========================= */
+function viewResurse(){
+  return `
+  <div class="topline"><h1 class="pageTitle">Legislație & consultanți CPNP</h1></div>
+  <p class="pageDesc">Punct de plecare pentru documentare și pentru găsirea unui evaluator de siguranță/consultant care să întocmească dosarul CPSR și să facă notificarea CPNP — pași obligatorii înainte de comercializare, pe care această aplicație nu îi înlocuiește.</p>
+
+  <div class="card"><div class="pad stack">
+    <h3 style="font-size:14px">Legislație în vigoare</h3>
+    ${LEGISLATION.map(l=>`
+      <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px">
+        <div style="font-weight:500">${escHtml(l.title)}</div>
+        <div class="hint">${escHtml(l.desc)}</div>
+        <a href="${escAttr(l.url)}" target="_blank" rel="noopener" class="hint" style="text-decoration:underline">${escHtml(l.url)}</a>
+      </div>`).join(`<div style="border-top:1px dashed var(--line);margin:4px 0"></div>`)}
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Consultanți / evaluatori de siguranță CPNP (România)</h3>
+    <div style="background:var(--amber-soft);color:var(--amber);border-radius:8px;padding:10px 12px;font-size:12.5px;font-weight:500;line-height:1.5">
+      ⚠ Listă informativă, nu o recomandare a aplicației. Firmele de mai jos au fost identificate din surse publice (siturile proprii) — <u>verifică direct, cu fiecare firmă, prețul și acreditarea evaluatorului de siguranță înainte de a contracta</u>. Datele de contact se pot schimba.
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Firmă</th><th>Servicii</th><th>Oraș</th><th>Contact</th></tr></thead>
+      <tbody>
+        ${CPNP_CONSULTANTS.map(c=>`
+          <tr>
+            <td><a href="${escAttr(c.url)}" target="_blank" rel="noopener">${escHtml(c.name)}</a></td>
+            <td class="hint">${escHtml(c.services)}</td>
+            <td>${escHtml(c.city)}</td>
+            <td class="hint">${c.phone?escHtml(c.phone)+"<br>":""}${c.email?`<a href="mailto:${escAttr(c.email)}">${escHtml(c.email)}</a>`:""}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table></div>
+    <p class="hint">Lista nu e exhaustivă — există și alți evaluatori de siguranță acreditați în România și în UE (un evaluator dintr-un alt stat membru poate întocmi CPSR pentru un produs comercializat în România).</p>
+  </div></div>
+  `;
+}
+
+/* ========================= TAB PAGINA PUBLICĂ ========================= */
+function viewPaginaPublica(){
+  if (publicProfile===null){
+    loadPublicProfile();
+    return `<div class="topline"><h1 class="pageTitle">Pagina publică</h1></div><div class="empty">Se încarcă…</div>`;
+  }
+  const p = publicProfile;
+  const publicUrl = p.slug ? (window.location.origin + "/catalog/" + p.slug) : "";
+  const visibleCount = products.filter(x=>x.publicVisible).length;
+  return `
+  <div class="topline"><h1 class="pageTitle">Pagina publică</h1></div>
+  <p class="pageDesc">O pagină simplă, publică (fără cont necesar să o vadă), cu produsele tale — util de trimis clienților sau de pus în bio pe Instagram. Nu procesează comenzi sau plăți: fiecare vizitator e trimis mai departe către canalul tău de vânzare (Instagram, magazinul tău de pe Breslo/Etsy, site propriu).</p>
+
+  <div class="card"><div class="pad stack">
+    <div class="row" style="justify-content:space-between">
+      <label style="margin:0"><input type="checkbox" id="ppEnabled" style="width:auto;margin-right:6px" ${p.publicPageEnabled?"checked":""}>Activează pagina publică</label>
+    </div>
+    ${p.publicPageEnabled && publicUrl ? `
+      <div class="kv"><span class="k">Link public</span><span class="v"><a href="${escAttr(publicUrl)}" target="_blank" rel="noopener">${escHtml(publicUrl)}</a></span></div>
+      <p class="hint">${visibleCount} produs${visibleCount===1?"":"e"} vizibile momentan (bifează „Vizibil pe pagina publică” din fiecare fișă de produs, în tab-ul „Produse”).</p>
+    ` : `<p class="hint">Activeaz-o și completează câmpurile de mai jos ca să obții un link de trimis clienților.</p>`}
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Model vizual</h3>
+    <p class="hint">Alege stilul paginii publice — culori, fonturi. Se aplică imediat.</p>
+    <div class="row" style="flex-wrap:wrap;gap:10px">
+      ${CATALOG_TEMPLATES.map(t=>`
+        <label style="display:flex;align-items:center;gap:8px;border:1px solid ${p.catalogTemplate===t.id?"var(--accent)":"var(--line)"};background:${p.catalogTemplate===t.id?"var(--accent-soft)":"transparent"};border-radius:10px;padding:8px 12px;cursor:pointer">
+          <input type="radio" name="ppTemplate" value="${t.id}" style="width:auto;margin:0" ${p.catalogTemplate===t.id?"checked":""}>
+          <span style="display:flex">
+            ${t.swatches.map(c=>`<span style="width:14px;height:14px;border-radius:50%;background:${c};border:1px solid var(--line);margin-left:-4px;display:inline-block"></span>`).join("")}
+          </span>
+          <span style="font-size:13px">${t.label}</span>
+        </label>
+      `).join("")}
+    </div>
+    ${p.slug ? `<p class="hint">Vezi cum arată: <a href="${escAttr(window.location.origin + "/catalog/" + p.slug)}" target="_blank" rel="noopener">${escHtml(window.location.origin + "/catalog/" + p.slug)}</a></p>` : `<p class="hint">Modelul devine vizibil imediat ce activezi pagina și salvezi mai jos.</p>`}
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="font-size:14px">Previzualizare</h3>
+      <button class="btn sm ghost" id="refreshPreviewBtn">↻ Actualizează previzualizarea</button>
+    </div>
+    <p class="hint">Randată cu datele curente din formular (chiar dacă nu ai salvat încă) și cu produsele tale reale bifate „vizibil public".</p>
+    <iframe id="ppPreviewFrame" style="width:100%;height:480px;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Detalii afișate pe pagină</h3>
+    <div><label>Nume afacere / brand</label><input type="text" id="ppBusinessName" value="${escAttr(p.businessName)}" placeholder="ex. Cătina de Argeș"></div>
+    <div><label>Descriere scurtă</label><textarea id="ppBio" placeholder="cine ești, ce faci, din ce zonă">${escHtml(p.bio)}</textarea></div>
+    <div class="grid2">
+      <div><label>Instagram</label><input type="text" id="ppInstagram" value="${escAttr(p.instagramUrl)}" placeholder="https://instagram.com/..."></div>
+      <div><label>Magazin Breslo</label><input type="text" id="ppBreslo" value="${escAttr(p.bresloUrl)}" placeholder="https://breslo.ro/..."></div>
+    </div>
+    <div class="grid2">
+      <div><label>Magazin Etsy</label><input type="text" id="ppEtsy" value="${escAttr(p.etsyUrl)}" placeholder="https://etsy.com/shop/..."></div>
+      <div><label>Site propriu</label><input type="text" id="ppWebsite" value="${escAttr(p.websiteUrl)}" placeholder="https://..."></div>
+    </div>
+    <div><label>Facebook</label><input type="text" id="ppFacebook" value="${escAttr(p.facebookUrl)}" placeholder="https://facebook.com/..."></div>
+    <button class="btn primary sm" id="savePublicProfileBtn">Salvează</button>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad">
+    <h3 style="font-size:14px;margin-bottom:6px">Director producători</h3>
+    <p class="hint">Pagina ta apare automat în <a href="/catalog" target="_blank" rel="noopener">directorul public de producători</a> cât timp „Activează pagina publică” e bifat — un mic canal suplimentar de descoperire, în plus față de Instagram/Breslo/Etsy.</p>
+  </div></div>
+  `;
+}
+
+/* ========================= TAB: AJUTOR ========================= */
+function viewAjutor(){
+  const faq = [
+    ["Cum salvez o rețetă?", "Deschide tabul „Rețetă”, adaugă ingredientele cu cantitatea dorită (în grame) și rețeta se salvează automat pe măsură ce lucrezi — nu există un buton separat de „Salvare”."],
+    ["Cum fac o etichetă pentru un produs?", "Mergi la tabul „Etichetă”, alege rețeta produsului și aplicația generează automat lista INCI și alergenii. Poți printa sau salva ca PDF direct din pagina de previzualizare."],
+    ["Ce înseamnă avertizarea de stoc?", "Aplicația compară ce ai în „Stoc” cu ce cere rețeta sau pragul minim pe care l-ai stabilit la fiecare ingredient, și te anunță în „Prezentare generală” când ceva e insuficient sau pe terminate."],
+    ["Cum înregistrez un lot fabricat?", "În tabul „Jurnal loturi”, adaugă un lot nou, alege rețeta folosită și cantitatea — stocul de materii prime scade automat, iar data de expirare se calculează singură."],
+    ["Cum știu ce produse au folosit un anumit lot?", "Deschide lotul respectiv din „Jurnal loturi” — la final apare lista produselor finite care au folosit acel lot (dacă ai bifat legătura din tabul „Produse”)."],
+    ["Cum activez pagina mea publică?", "În tabul „Pagina publică”, completează numele afacerii și linkurile către canalele tale de vânzare (Instagram, Breslo, Etsy, site propriu), alege un model vizual și bifează „Activează pagina publică”. Doar produsele bifate „Vizibil pe pagina publică” din tabul „Produse” vor apărea acolo."],
+    ["Cum invit un coleg în cont?", "Din cardul „Echipă” (pagina principală după logare), generezi un link de invitație și îl trimiți colegului. El își face propria parolă și vede aceleași date ca tine, fără să aibă nevoie de abonament propriu. Doar tu, ca titular de cont, poți edita pagina publică."],
+    ["Cum instalez aplicația pe telefon?", "Deschide aplicația din browserul telefonului (Chrome sau Safari) și alege „Adaugă pe ecranul principal” din meniul browserului. Va apărea ca o aplicație obișnuită, cu aceleași date, sincronizate automat."],
+    ["Ce fac dacă greșesc ceva?", "Poți edita sau șterge orice rețetă, lot, produs sau înregistrare din stoc oricând, din pagina respectivă. Nimic nu e permanent."],
+    ["Îmi pot pierde datele?", "Datele tale sunt păstrate în contul tău și le regăsești pe orice dispozitiv pe care te loghezi. Din „Prezentare generală” poți face oricând și un export de siguranță (backup) suplimentar."],
+    ["Aplicația înlocuiește un consultant de siguranță (CPNP)?", "Nu. Te ajută să ai rețeta și eticheta organizate corect, dar dosarul oficial de siguranță al unui produs cosmetic trebuie întocmit de un evaluator autorizat — vezi tabul „Legislație & consultanți” pentru un punct de plecare."],
+  ];
+  return `
+  <div class="topline"><h1 class="pageTitle">Ajutor</h1></div>
+  <p class="pageDesc">Un ghid rapid pentru fiecare parte a aplicației. Dacă ești la început, citește pe rând secțiunile de mai jos — fiecare corespunde unui tab din meniu.</p>
+
+  <div class="card"><div class="pad stack">
+    <h3 style="font-size:14px">Pe scurt, ce faci în fiecare tab</h3>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Prezentare generală</div><div class="hint">Vezi dintr-o privire ce trebuie să știi: stocuri pe terminate, loturi care expiră curând, și de aici faci backup-ul datelor tale.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Ingrediente</div><div class="hint">Cauți și vezi detalii despre ingrediente (nume INCI, la ce sunt bune, restricții), și ții evidența stocului fiecăruia.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Rețetă</div><div class="hint">Construiești formula unui produs, cu procente calculate automat. Poți scala rețeta la o cantitate diferită sau o poți clona pentru a testa o variantă nouă.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Calculator leșie</div><div class="hint">Doar pentru săpun făcut manual (cold-process): calculează cât NaOH/KOH ai nevoie pentru uleiurile alese.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Etichetă</div><div class="hint">Generează automat eticheta gata de printat, cu lista INCI corectă, alergenii și, dacă vrei, un cod QR spre pagina ta de prezentare sau magazin.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Cost</div><div class="hint">Vezi cât te costă o rețetă și primești un preț de vânzare sugerat, pe baza unei marje pe care o alegi tu.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Jurnal loturi</div><div class="hint">Notezi fiecare fabricație — cantitate, dată — și aplicația ține evidența expirării și scade automat din stoc.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Produse</div><div class="hint">Catalogul produselor tale finite, cu poză, preț și stoc propriu. De aici înregistrezi și vânzările.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Stoc</div><div class="hint">Lista completă a materiilor prime pe care le ai, editabilă direct în tabel.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Rapoarte</div><div class="hint">Vezi cât ai vândut și cât ai câștigat, pe perioada pe care o alegi.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Legislație & consultanți</div><div class="hint">Informații despre regulile UE pentru cosmetice și o listă de firme care pot întocmi dosarul oficial de siguranță al unui produs.</div></div>
+    <div class="kv" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-weight:500">Pagina publică</div><div class="hint">O pagină simplă cu produsele tale, pe care o poți trimite oricui — vizitatorii ajung mai departe la magazinul tău real (Instagram, Breslo, Etsy sau site propriu).</div></div>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Întrebări frecvente</h3>
+    ${faq.map(([q,a])=>`
+      <details style="border-top:1px dashed var(--line);padding-top:10px;margin-top:10px">
+        <summary style="cursor:pointer;font-weight:500">${escHtml(q)}</summary>
+        <p class="hint" style="margin-top:6px">${escHtml(a)}</p>
+      </details>`).join("")}
+  </div></div>
+  `;
+}
+
+function viewCont(){
+  const dataStr = cloud.termsAcceptedAt ? new Date(cloud.termsAcceptedAt).toLocaleString("ro-RO") : "—";
+  return `
+  <div class="topline"><h1 class="pageTitle">Cont &amp; confidențialitate</h1></div>
+  <p class="pageDesc">Datele contului tău, consimțământul acordat, și drepturile pe care le ai conform GDPR — acces la propriile date, portabilitate și ștergere.</p>
+
+  <div class="card"><div class="pad stack">
+    <h3 style="font-size:14px">Contul tău</h3>
+    <div class="kv"><div>Email</div><div style="font-weight:500">${escHtml(cloud.email)}</div></div>
+    ${cloud.isTeamMember
+      ? `<div class="kv"><div>Tip cont</div><div style="font-weight:500">Membru de echipă (date partajate cu ${escHtml(cloud.teamOwnerEmail||"contul principal")})</div></div>`
+      : `<div class="kv"><div>Tip cont</div><div style="font-weight:500">Cont principal</div></div>`}
+    <div class="kv"><div>Termeni acceptați</div><div style="font-weight:500">Versiunea ${escHtml(cloud.termsVersion||"—")}, la ${escHtml(dataStr)}</div></div>
+    <a class="hint" href="/legal/termeni" target="_blank" rel="noopener">Citește Termenii și condițiile</a>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Comunicări de marketing</h3>
+    <p class="hint">Ocazional trimitem noutăți și oferte Herbatium prin email — complet opțional, fără legătură cu funcționarea aplicației.</p>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+      <input type="checkbox" id="marketingToggle" ${cloud.marketingConsent?"checked":""} style="width:16px;height:16px;accent-color:var(--accent)">
+      Vreau să primesc email-uri despre noutăți și oferte
+    </label>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Documente legale</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <a class="btn sm ghost" href="/legal/termeni" target="_blank" rel="noopener">Termeni și condiții</a>
+      <a class="btn sm ghost" href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>
+      <a class="btn sm ghost" href="/legal/cookies" target="_blank" rel="noopener">Politica de cookie-uri</a>
+      <a class="btn sm ghost" href="/legal/dpa" target="_blank" rel="noopener">Acord de prelucrare a datelor (DPA)</a>
+    </div>
+  </div></div>
+
+  <div class="card" style="margin-top:16px"><div class="pad stack">
+    <h3 style="font-size:14px">Accesul și portabilitatea datelor tale (art. 15 și 20 GDPR)</h3>
+    <p class="hint">Descarcă un fișier JSON cu toate datele contului tău — rețete, loturi, produse, stoc, vânzări și informațiile de cont.</p>
+    <button class="btn sm" id="exportAccountBtn" style="align-self:flex-start">Descarcă datele contului (JSON)</button>
+  </div></div>
+
+  <div class="card" style="margin-top:16px;border-color:#e5484d55"><div class="pad stack">
+    <h3 style="font-size:14px;color:#e5484d">Ștergerea contului (art. 17 GDPR)</h3>
+    <p class="hint">Șterge definitiv contul tău și toate datele asociate (rețete, loturi, produse, stoc, poze). Acțiunea nu poate fi anulată.</p>
+    ${cloud.isTeamMember ? "" : `<p class="hint">Dacă ai membri de echipă activi, scoate-i mai întâi din echipă (din „Prezentare generală” → Echipă) — altfel ștergerea contului principal e blocată.</p>`}
+    <div id="deleteAccountBox">
+      <button class="btn sm" id="showDeleteBtn" style="align-self:flex-start;background:#e5484d;border-color:#e5484d">Șterge contul definitiv</button>
+    </div>
+  </div></div>
+  `;
+}
+
+/* ========================= EVENTS ========================= */
+function wireEvents(){
+  // Dashboard
+  const exportBackupBtn = document.getElementById("exportBackupBtn");
+  if (exportBackupBtn) exportBackupBtn.onclick = exportBackup;
+  const sendInviteBtn = document.getElementById("sendInviteBtn");
+  if (sendInviteBtn) sendInviteBtn.onclick = async ()=>{
+    const email = (document.getElementById("teamInviteEmail").value||"").trim();
+    state.teamInviteError = ""; state.teamInviteUrl = "";
+    if (!email){ state.teamInviteError = "Introdu un email."; renderMain(); return; }
+    sendInviteBtn.disabled = true;
+    try{
+      const res = await api("/auth/invite", {method:"POST", body: JSON.stringify({email})});
+      const d = await res.json().catch(()=>({}));
+      if (res.ok){ state.teamInviteUrl = d.inviteUrl; }
+      else{
+        const msgs = {email_invalid:"Adresa de email nu pare validă.", email_taken:"Există deja un cont cu acest email.", already_a_member:"Un membru de echipă nu poate invita alți membri."};
+        state.teamInviteError = msgs[d.error] || "Nu am putut genera invitația.";
+      }
+    }catch(e){ state.teamInviteError = "Nu am putut contacta serverul."; }
+    renderMain();
+  };
+  const copyInviteBtn = document.getElementById("copyInviteBtn");
+  if (copyInviteBtn) copyInviteBtn.onclick = ()=>{
+    try{ navigator.clipboard.writeText(state.teamInviteUrl); copyInviteBtn.textContent = "Copiat ✓"; setTimeout(()=>{ copyInviteBtn.textContent = "Copiază linkul"; },1500); }catch(e){}
+  };
+  const importBackupInput = document.getElementById("importBackupInput");
+  if (importBackupInput) importBackupInput.onchange = e=>{
+    const file = e.target.files[0];
+    if (file) importBackup(file);
+    importBackupInput.value = "";
+  };
+
+  // Ingrediente
+  const ingSearchInput = document.getElementById("ingSearchInput");
+  if (ingSearchInput){
+    ingSearchInput.oninput = e=>{ state.ingSearch = e.target.value; renderMain(); ingSearchInput.focus(); ingSearchInput.setSelectionRange(ingSearchInput.value.length, ingSearchInput.value.length); };
+  }
+
+  // Stoc (tabel inline)
+  document.querySelectorAll(".stockRowQty").forEach(inp=>{
+    inp.oninput = e=>{
+      const id = inp.dataset.ing;
+      stock[id] = {...stockOf(id), qty: Number(e.target.value||0)};
+      persistStock(); renderMain();
+    };
+  });
+  document.querySelectorAll(".stockRowSupplier").forEach(inp=>{
+    inp.onchange = e=>{
+      const id = inp.dataset.ing;
+      stock[id] = {...stockOf(id), supplier: e.target.value.trim()};
+      persistStock();
+    };
+  });
+  document.querySelectorAll(".stockRowLot").forEach(inp=>{
+    inp.onchange = e=>{
+      const id = inp.dataset.ing;
+      stock[id] = {...stockOf(id), lot: e.target.value.trim()};
+      persistStock();
+    };
+  });
+  document.querySelectorAll(".stockRowMin").forEach(inp=>{
+    inp.onchange = e=>{
+      const id = inp.dataset.ing;
+      stock[id] = {...stockOf(id), minQty: Number(e.target.value||0)};
+      persistStock(); renderMain();
+    };
+  });
+  const exportStockCsvBtn = document.getElementById("exportStockCsvBtn");
+  if (exportStockCsvBtn) exportStockCsvBtn.onclick = ()=>{
+    const rows = [["id","nume","inci","stoc_g","prag_minim_g","pret_lei_kg","furnizor","lot"]];
+    allIngredients().forEach(ing=>{
+      const st = stockOf(ing.id);
+      rows.push([ing.id, ing.ro, ing.inci, st.qty||0, st.minQty||0, ingredientPrices[ing.id]||0, st.supplier||"", st.lot||""]);
+    });
+    downloadText("stoc-formulator-natural.csv", toCSV(rows), "text/csv");
+  };
+  const importStockCsvInput = document.getElementById("importStockCsvInput");
+  if (importStockCsvInput) importStockCsvInput.onchange = e=>{
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const rows = parseCSV(String(reader.result));
+        if (rows.length<2){ alert("Fișierul CSV pare gol."); return; }
+        const header = rows[0].map(h=>h.trim().toLowerCase());
+        const idx = name=>header.indexOf(name);
+        let updated = 0, skipped = 0;
+        for (let i=1;i<rows.length;i++){
+          const row = rows[i];
+          if (row.length<2) continue;
+          const id = idx("id")>=0 ? row[idx("id")] : null;
+          const nume = idx("nume")>=0 ? row[idx("nume")] : null;
+          let ing = id ? findIng(id) : null;
+          if (!ing && nume) ing = allIngredients().find(i2=>i2.ro.toLowerCase()===nume.trim().toLowerCase());
+          if (!ing){ skipped++; continue; }
+          const cur = stockOf(ing.id);
+          stock[ing.id] = {
+            qty: idx("stoc_g")>=0 ? Number(row[idx("stoc_g")]||0) : cur.qty,
+            minQty: idx("prag_minim_g")>=0 ? Number(row[idx("prag_minim_g")]||0) : cur.minQty,
+            supplier: idx("furnizor")>=0 ? row[idx("furnizor")] : cur.supplier,
+            lot: idx("lot")>=0 ? row[idx("lot")] : cur.lot,
+          };
+          if (idx("pret_lei_kg")>=0){
+            const price = Number(row[idx("pret_lei_kg")]||0);
+            if (price>0) ingredientPrices[ing.id] = price;
+          }
+          updated++;
+        }
+        persistStock(); persistPrices(); renderMain();
+        alert(`Import finalizat: ${updated} ingrediente actualizate, ${skipped} rânduri nepotrivite.`);
+      }catch(err){
+        alert("Nu am putut citi fișierul CSV: "+err.message);
+      }
+    };
+    reader.readAsText(file);
+    importStockCsvInput.value = "";
+  };
+  document.querySelectorAll(".ingRow").forEach(row=>{
+    row.onclick = ()=>{ state.ingSelected = row.dataset.ing; renderMain(); };
+  });
+  const addToRecipeBtn = document.getElementById("addToRecipeBtn");
+  if (addToRecipeBtn) addToRecipeBtn.onclick = ()=>{
+    const r = activeRecipe();
+    r.items.push({id:uid(), ingId: state.ingSelected, grams:5, price: defaultPrice(state.ingSelected)});
+    persistRecipes(); state.tab="reteta"; render();
+  };
+  const deleteCustomBtn = document.getElementById("deleteCustomBtn");
+  if (deleteCustomBtn) deleteCustomBtn.onclick = ()=>{
+    customIngredients = customIngredients.filter(i=>i.id!==state.ingSelected);
+    persistCustom();
+    state.ingSelected = (allIngredients()[0]||{}).id;
+    renderMain();
+  };
+  const saveStockBtn = document.getElementById("saveStockBtn");
+  if (saveStockBtn) saveStockBtn.onclick = ()=>{
+    const id = state.ingSelected;
+    stock[id] = {
+      qty: Number(document.getElementById("stockQty").value||0),
+      supplier: document.getElementById("stockSupplier").value.trim(),
+      lot: document.getElementById("stockLot").value.trim(),
+      minQty: Number(document.getElementById("stockMinQty").value||0),
+    };
+    persistStock();
+    const price = Number(document.getElementById("stockPrice").value||0);
+    if (price>0) rememberPrice(id, price);
+    saveStockBtn.textContent = "Salvat ✓";
+    setTimeout(()=>{ if(saveStockBtn) saveStockBtn.textContent = "Salvează stoc & furnizor"; }, 1200);
+  };
+  const exportIngTemplateBtn = document.getElementById("exportIngTemplateBtn");
+  if (exportIngTemplateBtn) exportIngTemplateBtn.onclick = exportIngredientTemplate;
+  const importIngInput = document.getElementById("importIngInput");
+  if (importIngInput) importIngInput.onchange = e=>{
+    const file = e.target.files[0];
+    if (!file) return;
+    readImportFile(file, importIngredientRows);
+    importIngInput.value = "";
+  };
+  const toggleCustomForm = document.getElementById("toggleCustomForm");
+  if (toggleCustomForm) toggleCustomForm.onclick = ()=>{ state.showCustomForm = !state.showCustomForm; renderMain(); };
+  const saveCustomBtn = document.getElementById("saveCustomBtn");
+  if (saveCustomBtn) saveCustomBtn.onclick = ()=>{
+    const ro = document.getElementById("cfRo").value.trim();
+    const inci = document.getElementById("cfInci").value.trim();
+    if (!ro || !inci){ alert("Completează cel puțin numele și denumirea INCI."); return; }
+    const maxPctRaw = document.getElementById("cfMaxPct").value;
+    const newIng = {
+      id: "custom-"+uid(),
+      ro, inci,
+      cat: document.getElementById("cfCat").value.trim() || "Ingredient personalizat",
+      faza: document.getElementById("cfFaza").value,
+      functie: document.getElementById("cfFunctie").value.trim() || "—",
+      maxPct: maxPctRaw!=="" ? Number(maxPctRaw) : null,
+      alergen: document.getElementById("cfAlergen").checked,
+      nota: document.getElementById("cfNota").value.trim(),
+      custom: true,
+    };
+    customIngredients.push(newIng); persistCustom();
+    state.ingSelected = newIng.id; state.showCustomForm = false; state.ingSearch = "";
+    renderMain();
+  };
+
+  // Rețetă
+  document.querySelectorAll(".recipeChip").forEach(chip=>{
+    chip.onclick = ()=>{ state.activeRecipeId = chip.dataset.rid; renderMain(); };
+  });
+  const exportRecipeItemTemplateBtn = document.getElementById("exportRecipeItemTemplateBtn");
+  if (exportRecipeItemTemplateBtn) exportRecipeItemTemplateBtn.onclick = exportRecipeItemTemplate;
+  const importRecipeItemsInput = document.getElementById("importRecipeItemsInput");
+  if (importRecipeItemsInput) importRecipeItemsInput.onchange = e=>{
+    const file = e.target.files[0];
+    if (!file) return;
+    readImportFile(file, importRecipeItemRows);
+    importRecipeItemsInput.value = "";
+  };
+  const newRecipeBtn = document.getElementById("newRecipeBtn");
+  if (newRecipeBtn) newRecipeBtn.onclick = ()=>{
+    const nr = {id:uid(), name:"Rețetă nouă", type:"leave-on", notes:"", items:[]};
+    state.recipes.push(nr); state.activeRecipeId = nr.id; persistRecipes(); render();
+  };
+  const cloneRecipeBtn = document.getElementById("cloneRecipeBtn");
+  if (cloneRecipeBtn) cloneRecipeBtn.onclick = ()=>{
+    const r = activeRecipe();
+    const clone = {
+      id: uid(),
+      name: r.name + " (v2)",
+      type: r.type,
+      notes: r.notes,
+      items: r.items.map(it=>({...it, id: uid()})),
+    };
+    state.recipes.push(clone); state.activeRecipeId = clone.id; persistRecipes(); render();
+  };
+  const printRecipeBtn = document.getElementById("printRecipeBtn");
+  if (printRecipeBtn) printRecipeBtn.onclick = ()=>{ window.print(); };
+  const exportRecipeCsvBtn = document.getElementById("exportRecipeCsvBtn");
+  if (exportRecipeCsvBtn) exportRecipeCsvBtn.onclick = ()=>{
+    const r = activeRecipe();
+    const totals = computeTotals(r);
+    const rows = [["ingredient","inci","grame","procent","pret_lei_kg"]];
+    sortedItems(r).forEach(it=>{
+      const ing = findIng(it.ingId);
+      const pct = totals.total>0 ? (it.grams/totals.total*100) : 0;
+      rows.push([ing?ing.ro:"?", ing?ing.inci:"", it.grams, pct.toFixed(2), it.price||defaultPrice(it.ingId)||0]);
+    });
+    downloadText(`reteta-${(r.name||"reteta").replace(/[^a-z0-9]+/gi,"-")}.csv`, toCSV(rows), "text/csv");
+  };
+  const delRecipeBtn = document.getElementById("delRecipeBtn");
+  if (delRecipeBtn) delRecipeBtn.onclick = ()=>{
+    if (state.recipes.length<=1) return;
+    state.recipes = state.recipes.filter(r=>r.id!==state.activeRecipeId);
+    state.activeRecipeId = state.recipes[0].id; persistRecipes(); render();
+  };
+  const recipeName = document.getElementById("recipeName");
+  if (recipeName) recipeName.oninput = e=>{ activeRecipe().name = e.target.value; persistRecipes(); renderSidebar(); };
+  const recipeType = document.getElementById("recipeType");
+  if (recipeType) recipeType.onchange = e=>{ activeRecipe().type = e.target.value; persistRecipes(); renderMain(); };
+  const recipeNotes = document.getElementById("recipeNotes");
+  if (recipeNotes) recipeNotes.oninput = e=>{ activeRecipe().notes = e.target.value; persistRecipes(); };
+
+  document.querySelectorAll(".itemGrams").forEach(inp=>{
+    inp.oninput = e=>{
+      const it = activeRecipe().items.find(x=>x.id===inp.dataset.item);
+      if (it){ it.grams = Number(e.target.value||0); persistRecipes(); renderMain(); }
+    };
+  });
+  document.querySelectorAll(".itemRemove").forEach(btn=>{
+    btn.onclick = ()=>{
+      const r = activeRecipe();
+      r.items = r.items.filter(x=>x.id!==btn.dataset.item);
+      persistRecipes(); renderMain();
+    };
+  });
+  const quickAddBtn = document.getElementById("quickAddBtn");
+  if (quickAddBtn) quickAddBtn.onclick = ()=>{
+    const ingId = document.getElementById("quickAddSelect").value;
+    const grams = Number(document.getElementById("quickAddGrams").value||0);
+    if (grams<=0) return;
+    activeRecipe().items.push({id:uid(), ingId, grams, price: defaultPrice(ingId)});
+    persistRecipes(); renderMain();
+  };
+  const scaleBtn = document.getElementById("scaleBtn");
+  if (scaleBtn) scaleBtn.onclick = ()=>{
+    const r = activeRecipe();
+    const currentTotal = r.items.reduce((s,it)=>s+Number(it.grams||0),0);
+    if (currentTotal<=0 || r.items.length===0){ alert("Adaugă mai întâi ingrediente în rețetă."); return; }
+    let target = Number(document.getElementById("scaleTarget").value||0);
+    const units = Number(document.getElementById("scaleUnits").value||0);
+    const unitWeight = Number(document.getElementById("scaleUnitWeight").value||0);
+    if (units>0 && unitWeight>0) target = units*unitWeight;
+    if (!target || target<=0){ alert("Introdu o greutate țintă (g total, sau bucăți × g/bucată)."); return; }
+    const factor = target/currentTotal;
+    r.items.forEach(it=>{ it.grams = Math.round(it.grams*factor*100)/100; });
+    persistRecipes(); renderMain();
+  };
+
+  // Leșie
+  const lyeType = document.getElementById("lyeType");
+  if (lyeType) lyeType.onchange = e=>{ lyeState.type = e.target.value; persistLye(); renderMain(); };
+  const lyeSuperfat = document.getElementById("lyeSuperfat");
+  if (lyeSuperfat) lyeSuperfat.oninput = e=>{ lyeState.superfat = Number(e.target.value||0); persistLye(); renderMain(); };
+  const lyeWaterPct = document.getElementById("lyeWaterPct");
+  if (lyeWaterPct) lyeWaterPct.oninput = e=>{ lyeState.waterPct = Number(e.target.value||0); persistLye(); renderMain(); };
+
+  // Etichetă (selecția rețetei e legată generic mai sus, prin ".recipeChip")
+  document.querySelectorAll("[data-lang]").forEach(btn=>{
+    btn.onclick = ()=>{ state.labelLang = btn.dataset.lang; renderMain(); };
+  });
+  const printLabelBtn = document.getElementById("printLabelBtn");
+  if (printLabelBtn) printLabelBtn.onclick = ()=>{ window.print(); };
+  const copyInciBtn = document.getElementById("copyInciBtn");
+  if (copyInciBtn) copyInciBtn.onclick = ()=>{
+    const r = activeRecipe();
+    const L = LABEL_I18N[state.labelLang] || LABEL_I18N.ro;
+    const list = sortedItems(r).map(it=>{ const ing=findIng(it.ingId); return ing?ing.inci:"?"; }).join(", ");
+    try{
+      navigator.clipboard.writeText(list);
+      copyInciBtn.textContent = L.copiedBtn;
+      setTimeout(()=>{ copyInciBtn.textContent = L.copyBtn; },1500);
+    }catch(e){}
+  };
+  const qrUrl = document.getElementById("qrUrl");
+  if (qrUrl) qrUrl.onchange = e=>{ const r=activeRecipe(); if(r){ r.qrUrl=e.target.value.trim(); persistRecipes(); renderMain(); } };
+  const qrOnLabel = document.getElementById("qrOnLabel");
+  if (qrOnLabel) qrOnLabel.onchange = e=>{ const r=activeRecipe(); if(r){ r.qrOnLabel=e.target.checked; persistRecipes(); renderMain(); } };
+  const useCatalogLinkBtn = document.getElementById("useCatalogLinkBtn");
+  if (useCatalogLinkBtn) useCatalogLinkBtn.onclick = ()=>{
+    const r=activeRecipe();
+    if (r && publicProfile && publicProfile.slug){ r.qrUrl = window.location.origin + "/catalog/" + publicProfile.slug; persistRecipes(); renderMain(); }
+  };
+
+  // Cost
+  document.querySelectorAll(".itemPrice").forEach(inp=>{
+    inp.oninput = e=>{
+      const it = activeRecipe().items.find(x=>x.id===inp.dataset.item);
+      if (it){
+        it.price = Number(e.target.value||0);
+        rememberPrice(it.ingId, it.price);
+        persistRecipes(); renderMain();
+      }
+    };
+  });
+  const fillDefaultPricesBtn = document.getElementById("fillDefaultPricesBtn");
+  if (fillDefaultPricesBtn) fillDefaultPricesBtn.onclick = ()=>{
+    const r = activeRecipe();
+    r.items.forEach(it=>{ if (!it.price) it.price = defaultPrice(it.ingId); });
+    persistRecipes(); renderMain();
+  };
+  ["costUnits","costMargin","costPackaging"].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.oninput = e=>{
+      const key = id==="costUnits"?"units":id==="costMargin"?"margin":"packaging";
+      costState[key] = Number(e.target.value||0);
+      scheduleApiSave();
+      renderMain();
+    };
+  });
+
+  // Jurnal
+  const addBatchBtn = document.getElementById("addBatchBtn");
+  if (addBatchBtn) addBatchBtn.onclick = ()=>{
+    const recipeId = document.getElementById("batchRecipe").value;
+    const recipe = state.recipes.find(r=>r.id===recipeId);
+    const b = {
+      id: uid(),
+      recipeId,
+      recipeName: recipe?recipe.name:"—",
+      code: document.getElementById("batchCode").value || suggestLotCode(),
+      date: document.getElementById("batchDate").value || todayISO(),
+      qty: document.getElementById("batchQty").value,
+      shelfMonths: Number(document.getElementById("batchShelfMonths").value||0) || null,
+      notes: document.getElementById("batchNotes").value,
+      rawMaterialLots: [],
+      plannedQty: Number(document.getElementById("batchStockGrams").value||0) || null,
+      yieldQty: Number(document.getElementById("batchYieldQty").value||0) || null,
+    };
+
+    const deduct = document.getElementById("batchDeductStock").checked;
+    const stockGrams = Number(document.getElementById("batchStockGrams").value||0);
+    if (deduct && recipe && stockGrams>0){
+      const recipeTotal = recipe.items.reduce((s,it)=>s+Number(it.grams||0),0);
+      if (recipeTotal>0){
+        const ratio = stockGrams/recipeTotal;
+        recipe.items.forEach(it=>{
+          const ing = findIng(it.ingId);
+          const used = Math.round(it.grams*ratio*100)/100;
+          const st = stockOf(it.ingId);
+          b.rawMaterialLots.push({ing: ing?ing.ro:'?', supplier: st.supplier, lot: st.lot, usedGrams: used});
+          stock[it.ingId] = {...st, qty: Math.max(0, Math.round((st.qty-used)*100)/100)};
+        });
+        persistStock();
+      }
+    }
+
+    state.batches.push(b); persistBatches(); renderMain();
+  };
+  document.querySelectorAll(".batchRemove").forEach(btn=>{
+    btn.onclick = ()=>{
+      state.batches = state.batches.filter(b=>b.id!==btn.dataset.batch);
+      persistBatches(); renderMain();
+    };
+  });
+
+  // Produse
+  const newProductBtn = document.getElementById("newProductBtn");
+  if (newProductBtn) newProductBtn.onclick = ()=>{
+    const np = {id:uid(), name:"", price:"", recipeId:"", notes:"", photos:[], stockQty:0, costPerUnit:"", publicVisible:false, batchIds:[]};
+    products.push(np); persistProducts();
+    state.editingProductId = np.id; renderMain();
+  };
+  document.querySelectorAll("[data-product]").forEach(card=>{
+    card.onclick = ()=>{ state.editingProductId = card.dataset.product; renderMain(); };
+  });
+  const backToProducts = document.getElementById("backToProducts");
+  if (backToProducts) backToProducts.onclick = ()=>{ state.editingProductId = null; renderMain(); };
+  const deleteProductBtn = document.getElementById("deleteProductBtn");
+  if (deleteProductBtn) deleteProductBtn.onclick = ()=>{
+    const p = products.find(x=>x.id===state.editingProductId);
+    products = products.filter(x=>x.id!==state.editingProductId);
+    persistProducts();
+    state.editingProductId = null; renderMain();
+    if (p) p.photos.forEach(ph=> deletePhotoFile(ph.url));
+  };
+  const pName = document.getElementById("pName");
+  if (pName) pName.oninput = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.name=e.target.value; persistProducts(); } };
+  const pPrice = document.getElementById("pPrice");
+  if (pPrice) pPrice.oninput = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.price=e.target.value; persistProducts(); } };
+  const pRecipe = document.getElementById("pRecipe");
+  if (pRecipe) pRecipe.onchange = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.recipeId=e.target.value; persistProducts(); } };
+  const pNotes = document.getElementById("pNotes");
+  if (pNotes) pNotes.oninput = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.notes=e.target.value; persistProducts(); } };
+  const pStockQty = document.getElementById("pStockQty");
+  if (pStockQty) pStockQty.oninput = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.stockQty=Number(e.target.value||0); persistProducts(); } };
+  const pCostPerUnit = document.getElementById("pCostPerUnit");
+  if (pCostPerUnit) pCostPerUnit.oninput = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.costPerUnit=e.target.value; persistProducts(); } };
+  document.querySelectorAll(".pBatchLink").forEach(cb=>{
+    cb.onchange = e=>{
+      const p = products.find(x=>x.id===state.editingProductId);
+      if (!p) return;
+      p.batchIds = p.batchIds || [];
+      const bid = e.target.dataset.batch;
+      if (e.target.checked){ if (!p.batchIds.includes(bid)) p.batchIds.push(bid); }
+      else { p.batchIds = p.batchIds.filter(id=>id!==bid); }
+      persistProducts();
+    };
+  });
+  const registerSaleBtn = document.getElementById("registerSaleBtn");
+  if (registerSaleBtn) registerSaleBtn.onclick = ()=>{
+    const p = products.find(x=>x.id===state.editingProductId);
+    if (!p) return;
+    const qty = Number(document.getElementById("saleQty").value||0);
+    const unitPrice = Number(document.getElementById("salePrice").value||0);
+    const unitCost = Number(document.getElementById("saleCost").value||0);
+    if (qty<=0){ alert("Introdu o cantitate vândută mai mare ca 0."); return; }
+    p.stockQty = Math.max(0, Number(p.stockQty||0) - qty);
+    sales.push({
+      id: uid(), productId: p.id, productName: p.name||"(fără nume)",
+      qty, unitPrice, unitCost, total: qty*unitPrice, totalCost: qty*unitCost,
+      date: todayISO(),
+    });
+    persistProducts(); persistSales(); renderMain();
+  };
+  const printProductSheetBtn = document.getElementById("printProductSheetBtn");
+  if (printProductSheetBtn) printProductSheetBtn.onclick = ()=>{ window.print(); };
+  const photoInput = document.getElementById("photoInput");
+  if (photoInput) photoInput.onchange = e=>{
+    const file = e.target.files[0];
+    if (file) addPhotoToProduct(state.editingProductId, file);
+  };
+  document.querySelectorAll("[data-rmphoto]").forEach(btn=>{
+    btn.onclick = ()=>{ removePhotoFromProduct(state.editingProductId, btn.dataset.rmphoto); };
+  });
+
+  // Rapoarte
+  const reportFrom = document.getElementById("reportFrom");
+  if (reportFrom) reportFrom.onchange = e=>{ state.reportFrom = e.target.value.trim(); renderMain(); };
+  const reportTo = document.getElementById("reportTo");
+  if (reportTo) reportTo.onchange = e=>{ state.reportTo = e.target.value.trim(); renderMain(); };
+  const reportProduct = document.getElementById("reportProduct");
+  if (reportProduct) reportProduct.onchange = e=>{ state.reportProduct = e.target.value; renderMain(); };
+  const clearReportProductBtn = document.getElementById("clearReportProductBtn");
+  if (clearReportProductBtn) clearReportProductBtn.onclick = ()=>{ state.reportProduct = ""; renderMain(); };
+
+  // Pagina publică
+  const savePublicProfileBtn = document.getElementById("savePublicProfileBtn");
+  if (savePublicProfileBtn) savePublicProfileBtn.onclick = ()=>{
+    savePublicProfile({
+      publicPageEnabled: document.getElementById("ppEnabled").checked,
+      businessName: document.getElementById("ppBusinessName").value.trim(),
+      bio: document.getElementById("ppBio").value.trim(),
+      instagramUrl: document.getElementById("ppInstagram").value.trim(),
+      bresloUrl: document.getElementById("ppBreslo").value.trim(),
+      etsyUrl: document.getElementById("ppEtsy").value.trim(),
+      websiteUrl: document.getElementById("ppWebsite").value.trim(),
+      facebookUrl: document.getElementById("ppFacebook").value.trim(),
+      catalogTemplate: (document.querySelector('input[name="ppTemplate"]:checked')||{}).value || "natural",
+    });
+  };
+  document.querySelectorAll('input[name="ppTemplate"]').forEach(el=>{
+    el.onchange = e=>{ savePublicProfile({catalogTemplate: e.target.value}); };
+  });
+  const refreshPreviewBtn = document.getElementById("refreshPreviewBtn");
+  if (refreshPreviewBtn) refreshPreviewBtn.onclick = loadPreview;
+  if (document.getElementById("ppPreviewFrame")) loadPreview();
+  const goToPublicPageBtn = document.getElementById("goToPublicPageBtn");
+  if (goToPublicPageBtn) goToPublicPageBtn.onclick = ()=>{ state.tab="pagina-publica"; renderMain(); };
+  const pPublicVisible = document.getElementById("pPublicVisible");
+  if (pPublicVisible) pPublicVisible.onchange = e=>{ const p=products.find(x=>x.id===state.editingProductId); if(p){ p.publicVisible=e.target.checked; persistProducts(); } };
+
+  // Cont & confidențialitate (GDPR)
+  const marketingToggle = document.getElementById("marketingToggle");
+  if (marketingToggle) marketingToggle.onchange = async e=>{
+    const marketing = e.target.checked;
+    try{
+      const res = await api("/account/marketing", {method:"PATCH", body: JSON.stringify({marketing})});
+      if (res.ok) cloud.marketingConsent = marketing;
+      else e.target.checked = !marketing;
+    }catch(err){ e.target.checked = !marketing; }
+  };
+  const exportAccountBtn = document.getElementById("exportAccountBtn");
+  if (exportAccountBtn) exportAccountBtn.onclick = ()=>{ window.location.href = "/api/account/export"; };
+  const showDeleteBtn = document.getElementById("showDeleteBtn");
+  if (showDeleteBtn) showDeleteBtn.onclick = ()=>{
+    const box = document.getElementById("deleteAccountBox");
+    box.innerHTML = `
+      <div class="stack" style="gap:8px">
+        <label for="deletePassword" class="hint">Confirmă parola contului</label>
+        <input type="password" id="deletePassword" autocomplete="current-password" style="max-width:280px">
+        <div class="err" id="deleteAccountErr" style="display:none"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn sm" id="confirmDeleteBtn" style="background:#e5484d;border-color:#e5484d">Confirmă ștergerea definitivă</button>
+          <button class="btn sm ghost" id="cancelDeleteBtn">Renunță</button>
+        </div>
+      </div>`;
+    document.getElementById("cancelDeleteBtn").onclick = ()=>{ renderMain(); };
+    document.getElementById("confirmDeleteBtn").onclick = async ()=>{
+      const password = document.getElementById("deletePassword").value;
+      const errBox = document.getElementById("deleteAccountErr");
+      errBox.style.display = "none";
+      if (!password){ errBox.textContent = "Introdu parola contului."; errBox.style.display="block"; return; }
+      if (!confirm("Sigur vrei să ștergi definitiv contul și toate datele asociate? Acțiunea nu poate fi anulată.")) return;
+      try{
+        const res = await api("/account", {method:"DELETE", body: JSON.stringify({password})});
+        const d = await res.json().catch(()=>({}));
+        if (res.ok){ window.location.href = "/login.html"; return; }
+        const msgs = {
+          password_required: "Introdu parola contului.",
+          wrong_password: "Parola e greșită.",
+          team_members_exist: "Ai membri de echipă activi — scoate-i din echipă înainte de a șterge contul principal" + (d.membri&&d.membri.length ? " ("+d.membri.join(", ")+")." : "."),
+        };
+        errBox.textContent = msgs[d.error] || "Nu am putut șterge contul. Încearcă din nou.";
+        errBox.style.display = "block";
+      }catch(err){
+        errBox.textContent = "Nu am putut contacta serverul.";
+        errBox.style.display = "block";
+      }
+    };
+  };
+}
+
+/* ========================= UTIL ========================= */
+function fmt(n){ return (Math.round(n*100)/100).toString(); }
+function escHtml(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function escAttr(s){ return escHtml(s).replace(/"/g,"&quot;"); }
+
+/* Cod QR — generat local (fără server extern), cu librăria inline "qrcode-lib.js". */
+function makeQrSvg(text){
+  if (!text || typeof qrcode!=="function") return "";
+  try{
+    const qr = qrcode(0, "M");
+    qr.addData(String(text));
+    qr.make();
+    return qr.createSvgTag({cellSize:4, margin:2, scalable:true});
+  }catch(e){
+    return "";
+  }
+}
+
+function downloadText(filename, content, mime){
+  const blob = new Blob([content], {type: mime||"text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function csvField(v){
+  const s = v==null ? "" : String(v);
+  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function toCSV(rows){
+  return rows.map(row=>row.map(csvField).join(",")).join("\r\n");
+}
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+      } else { field += c; }
+    } else {
+      if (c === '"'){ inQuotes = true; }
+      else if (c === ','){ row.push(field); field = ""; }
+      else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === '\r'){ /* ignore, \n handles line breaks */ }
+      else { field += c; }
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>!(r.length===1 && r[0]===""));
+}
+
+/* ===== Import / Export universal (Excel .xlsx + CSV) pentru ingrediente și elemente de rețetă =====
+   - "Exportă șablon" descarcă doar antetul de coloane (formatat, gata de completat în Excel).
+   - "Importă" citește .xlsx / .xls / .csv, potrivește coloanele după numele din antet (ignoră diacritice/majuscule)
+     și NU suprapune: ingredientele existente (după INCI sau nume) și elementele deja prezente într-o rețetă sunt ignorate, nu duplicate. */
+function normText(s){
+  return String(s==null?"":s).trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+}
+function downloadXlsxTemplate(filename, sheetName, headers){
+  if (typeof XLSX==="undefined"){ alert("Modulul Excel nu s-a încărcat; reîmprospătează pagina și încearcă din nou."); return; }
+  const ws = XLSX.utils.aoa_to_sheet([headers]);
+  ws['!cols'] = headers.map(h=>({wch: Math.max(16, String(h).length+3)}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
+  XLSX.writeFile(wb, filename);
+}
+function readImportFile(file, onRows){
+  const name = (file.name||"").toLowerCase();
+  const reader = new FileReader();
+  reader.onerror = ()=> alert("Nu am putut citi fișierul.");
+  if (name.endsWith(".csv")){
+    reader.onload = ()=>{
+      try{ onRows(parseCSV(String(reader.result))); }
+      catch(err){ alert("Nu am putut citi fișierul CSV: "+err.message); }
+    };
+    reader.readAsText(file);
+  } else {
+    reader.onload = ()=>{
+      try{
+        if (typeof XLSX==="undefined") throw new Error("modulul Excel nu s-a încărcat");
+        const wb = XLSX.read(new Uint8Array(reader.result), {type:"array"});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:""})
+          .map(r=>r.map(c=>String(c==null?"":c)));
+        onRows(rows);
+      }catch(err){
+        alert("Nu am putut citi fișierul Excel (.xlsx/.xls): "+err.message+"\n\nFormate acceptate la import: .xlsx, .xls, .csv.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+/* caută indexul unei coloane în antet, tolerant la diacritice/majuscule/paranteze */
+function findColIdx(header, ...variants){
+  for (const v of variants){
+    const target = normText(v);
+    let i = header.findIndex(h=> h===target);
+    if (i>=0) return i;
+    i = header.findIndex(h=> h.includes(target) || target.includes(h));
+    if (i>=0) return i;
+  }
+  return -1;
+}
+
+const INGREDIENT_IMPORT_HEADERS = ["Nume (uzual)","INCI","Categorie","Faza (ulei/apa/pulbere/tehnic)","Concentratie max. % (optional)","Functie","Alergen parfum (DA/NU)","Nota / sursa"];
+function exportIngredientTemplate(){
+  downloadXlsxTemplate("sablon-import-ingrediente.xlsx", "Ingrediente", INGREDIENT_IMPORT_HEADERS);
+}
+function importIngredientRows(rows){
+  if (!rows || rows.length<2){ alert("Fișierul nu are rânduri de importat (doar antetul sau e gol)."); return; }
+  const header = rows[0].map(normText);
+  const iNume = findColIdx(header, "Nume (uzual)","nume","nume ro");
+  const iInci = findColIdx(header, "INCI","denumire inci");
+  const iCat = findColIdx(header, "Categorie");
+  const iFaza = findColIdx(header, "Faza (ulei/apa/pulbere/tehnic)","faza");
+  const iPrag = findColIdx(header, "Concentratie max. % (optional)","concentratie max","prag maxim");
+  const iFunctie = findColIdx(header, "Functie");
+  const iAlergen = findColIdx(header, "Alergen parfum (DA/NU)","alergen");
+  const iNota = findColIdx(header, "Nota / sursa","nota");
+
+  let added=0, duplicate=0, invalid=0;
+  const existing = allIngredients();
+  const seenInci = new Set(existing.map(x=>normText(x.inci)));
+  const seenNume = new Set(existing.map(x=>normText(x.ro)));
+  for (let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if (!row || row.every(c=>String(c||"").trim()==="")) continue;
+    const ro = iNume>=0 ? String(row[iNume]||"").trim() : "";
+    const inci = iInci>=0 ? String(row[iInci]||"").trim() : "";
+    if (!ro || !inci){ invalid++; continue; }
+    if (seenInci.has(normText(inci)) || seenNume.has(normText(ro))){ duplicate++; continue; }
+    const faza = iFaza>=0 ? normText(row[iFaza]) : "";
+    const pragRaw = iPrag>=0 ? String(row[iPrag]||"").trim().replace(",",".") : "";
+    const prag = pragRaw ? Number(pragRaw) : NaN;
+    const alergenRaw = iAlergen>=0 ? normText(row[iAlergen]) : "";
+    const newIng = {
+      id: "custom-"+uid(),
+      ro, inci,
+      cat: iCat>=0 ? (String(row[iCat]||"").trim() || "Ingredient personalizat") : "Ingredient personalizat",
+      faza: ["ulei","apa","pulbere","tehnic"].includes(faza) ? faza : "tehnic",
+      functie: iFunctie>=0 ? (String(row[iFunctie]||"").trim() || "—") : "—",
+      maxPct: (!isNaN(prag) && prag>0) ? prag : null,
+      alergen: alergenRaw==="da" || alergenRaw==="yes" || alergenRaw==="true" || alergenRaw==="1",
+      nota: iNota>=0 ? String(row[iNota]||"").trim() : "",
+      custom: true,
+    };
+    customIngredients.push(newIng);
+    seenInci.add(normText(inci)); seenNume.add(normText(ro));
+    added++;
+  }
+  persistCustom();
+  renderMain();
+  alert(`Import ingrediente finalizat:\n• ${added} adăugate\n• ${duplicate} deja existente în bază (ignorate, ca să nu se suprapună)\n• ${invalid} rânduri incomplete (fără nume sau INCI, ignorate)`);
+}
+
+const RECIPE_ITEM_IMPORT_HEADERS = ["Ingredient (nume uzual sau INCI)","Grame"];
+function exportRecipeItemTemplate(){
+  downloadXlsxTemplate("sablon-import-ingrediente-reteta.xlsx", "Ingrediente reteta", RECIPE_ITEM_IMPORT_HEADERS);
+}
+function importRecipeItemRows(rows){
+  if (!rows || rows.length<2){ alert("Fișierul nu are rânduri de importat (doar antetul sau e gol)."); return; }
+  const r = activeRecipe();
+  const header = rows[0].map(normText);
+  const iIng = findColIdx(header, "Ingredient (nume uzual sau INCI)","ingredient","nume");
+  const iGrame = findColIdx(header, "Grame","gr","grame (g)");
+
+  const all = allIngredients();
+  const inRecipe = new Set(r.items.map(it=>it.ingId));
+  let added=0, duplicate=0, unknown=0, invalid=0;
+  const unknownNames = [];
+  for (let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if (!row || row.every(c=>String(c||"").trim()==="")) continue;
+    const name = iIng>=0 ? String(row[iIng]||"").trim() : (row[0]||"").trim();
+    const gramsRaw = iGrame>=0 ? String(row[iGrame]||"").trim().replace(",",".") : String(row[1]||"").trim().replace(",",".");
+    const grams = Number(gramsRaw);
+    if (!name || !gramsRaw || isNaN(grams) || grams<=0){ invalid++; continue; }
+    const ing = all.find(x=> normText(x.ro)===normText(name) || normText(x.inci)===normText(name));
+    if (!ing){ unknown++; unknownNames.push(name); continue; }
+    if (inRecipe.has(ing.id)){ duplicate++; continue; }
+    r.items.push({id:uid(), ingId: ing.id, grams, price: defaultPrice(ing.id)});
+    inRecipe.add(ing.id);
+    added++;
+  }
+  persistRecipes();
+  renderMain();
+  let msg = `Import în rețeta „${r.name}" finalizat:\n• ${added} ingrediente adăugate\n• ${duplicate} deja erau în rețetă (ignorate, ca să nu se suprapună)\n• ${invalid} rânduri incomplete (nume/grame lipsă)`;
+  if (unknown>0) msg += `\n• ${unknown} ingrediente necunoscute (nu există în bază — adaugă-le mai întâi din tab-ul „Ingrediente"): ${unknownNames.slice(0,8).join(", ")}${unknownNames.length>8?"…":""}`;
+  alert(msg);
+}
+function exportBackup(){
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    recipes: state.recipes,
+    batches: state.batches,
+    customIngredients,
+    products,
+    ingredientPrices,
+    stock,
+    costState,
+    sales,
+    lyeState,
+  };
+  downloadText(`backup-formulator-natural-${todayISO()}.json`, JSON.stringify(data, null, 2), "application/json");
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const d = JSON.parse(String(reader.result));
+      if (!confirm("Import backup: toate datele curente din aplicație vor fi înlocuite cu cele din fișier. Continui?")) return;
+      if (Array.isArray(d.recipes) && d.recipes.length) state.recipes = d.recipes;
+      if (Array.isArray(d.batches)) state.batches = d.batches;
+      if (Array.isArray(d.customIngredients)) customIngredients = d.customIngredients;
+      if (Array.isArray(d.products)) products = d.products;
+      if (d.ingredientPrices) ingredientPrices = d.ingredientPrices;
+      if (d.stock) stock = d.stock;
+      if (d.costState) costState = d.costState;
+      if (Array.isArray(d.sales)) sales = d.sales;
+      if (d.lyeState) lyeState = d.lyeState;
+      state.activeRecipeId = state.recipes[0] ? state.recipes[0].id : null;
+      persistRecipes(); persistBatches(); persistCustom(); persistProducts();
+      persistPrices(); persistStock(); persistSales(); persistLye();
+      scheduleApiSave();
+      render();
+      alert("Backup importat cu succes.");
+    }catch(e){
+      alert("Fișierul nu pare a fi un backup valid: "+e.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+boot();
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
