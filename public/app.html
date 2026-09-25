@@ -538,8 +538,13 @@ const LEGISLATION = [
   },
   {
     title: "Regulamentul (UE) 2023/1545 — lista extinsă de alergeni de parfum (82 substanțe)",
-    desc: "Extinde Anexa III de la 26 la 82 de alergeni de parfum de declarat pe etichetă (multe fiind uleiuri esențiale/extracte naturale). Termen: 31.07.2026 pentru produsele puse pe piață pentru prima dată, 31.07.2028 pentru cele deja pe piață. Verifică orice rețetă nouă contra listei complete înainte de lansare.",
+    desc: "Extinde Anexa III de la 26 la 82 de alergeni de parfum de declarat pe etichetă (multe fiind uleiuri esențiale/extracte naturale). De la 31.07.2026, obligatoriu pentru toate produsele noi puse pe piață (termenul a trecut deja); termen suplimentar până la 31.07.2028 doar pentru produsele deja pe piață înainte de acea dată. Verifică orice rețetă nouă contra listei complete înainte de lansare.",
     url: "https://eur-lex.europa.eu/eli/reg/2023/1545/oj/eng",
+  },
+  {
+    title: "Regulamentul (UE) 2026/78 (\"Omnibus VIII\") — restricții noi Anexele II-V",
+    desc: "Aplicabil din 01.05.2026. Interzice argintul (nano și masiv) ca ingredient cosmetic (Anexa II) și introduce praguri noi de restricție pentru Hexyl Salicylate (interzis la copii sub 3 ani, prag maxim 0.001–2% după tipul produsului) și O-Phenylphenol/sodium o-phenylphenate ca și conservant (Anexa III/V). Verifică dacă vreo rețetă folosește aceste substanțe ca ingredient personalizat.",
+    url: "https://eur-lex.europa.eu/eli/reg/2026/78/oj/eng",
   },
   {
     title: "Legea nr. 178/2000 privind produsele cosmetice (republicată)",
@@ -1135,7 +1140,8 @@ function viewStoc(){
     <h1 class="pageTitle">Stoc materii prime</h1>
     <div class="row">
       <button class="btn sm" id="exportStockCsvBtn">Exportă CSV</button>
-      <label class="btn sm" style="margin:0">Importă CSV<input type="file" id="importStockCsvInput" accept=".csv,text/csv" style="display:none"></label>
+      <button class="btn sm" id="exportStockXlsxBtn">Exportă Excel</button>
+      <label class="btn sm" style="margin:0">Importă CSV/Excel<input type="file" id="importStockCsvInput" accept=".xlsx,.xls,.csv,text/csv" style="display:none"></label>
     </div>
   </div>
   <p class="pageDesc">Inventarul curent, editabil direct din tabel. Valoare estimată totală: <strong>${totalValue.toFixed(2)} lei</strong>. Prețurile provin din baza de prețuri salvată (tab Cost / Ingrediente). Pragul minim declanșează o alertă pe „Prezentare generală” când stocul scade sub el.</p>
@@ -1292,6 +1298,7 @@ function viewReteta(){
       <button class="btn sm" id="cloneRecipeBtn">Clonează</button>
       <button class="btn sm" id="printRecipeBtn">Printează / PDF</button>
       <button class="btn sm" id="exportRecipeCsvBtn">Exportă CSV</button>
+      <button class="btn sm" id="exportRecipeXlsxBtn">Exportă Excel</button>
       <button class="btn sm danger ghost" id="delRecipeBtn">Șterge</button>
     </div>
   </div>
@@ -2290,55 +2297,52 @@ function wireEvents(){
       persistStock(); renderMain();
     };
   });
+  const stockExportHeaders = ["id","nume","inci","stoc_g","prag_minim_g","pret_lei_kg","furnizor","lot"];
+  const stockExportRows = ()=> allIngredients().map(ing=>{
+    const st = stockOf(ing.id);
+    return [ing.id, ing.ro, ing.inci, st.qty||0, st.minQty||0, ingredientPrices[ing.id]||0, st.supplier||"", st.lot||""];
+  });
   const exportStockCsvBtn = document.getElementById("exportStockCsvBtn");
   if (exportStockCsvBtn) exportStockCsvBtn.onclick = ()=>{
-    const rows = [["id","nume","inci","stoc_g","prag_minim_g","pret_lei_kg","furnizor","lot"]];
-    allIngredients().forEach(ing=>{
-      const st = stockOf(ing.id);
-      rows.push([ing.id, ing.ro, ing.inci, st.qty||0, st.minQty||0, ingredientPrices[ing.id]||0, st.supplier||"", st.lot||""]);
-    });
-    downloadText("stoc-formulator-natural.csv", toCSV(rows), "text/csv");
+    downloadText("stoc-formulator-natural.csv", toCSV([stockExportHeaders, ...stockExportRows()]), "text/csv");
+  };
+  const exportStockXlsxBtn = document.getElementById("exportStockXlsxBtn");
+  if (exportStockXlsxBtn) exportStockXlsxBtn.onclick = ()=>{
+    downloadXlsxData("stoc-formulator-natural.xlsx", "Stoc", stockExportHeaders, stockExportRows());
   };
   const importStockCsvInput = document.getElementById("importStockCsvInput");
   if (importStockCsvInput) importStockCsvInput.onchange = e=>{
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const rows = parseCSV(String(reader.result));
-        if (rows.length<2){ alert("Fișierul CSV pare gol."); return; }
-        const header = rows[0].map(h=>h.trim().toLowerCase());
-        const idx = name=>header.indexOf(name);
-        let updated = 0, skipped = 0;
-        for (let i=1;i<rows.length;i++){
-          const row = rows[i];
-          if (row.length<2) continue;
-          const id = idx("id")>=0 ? row[idx("id")] : null;
-          const nume = idx("nume")>=0 ? row[idx("nume")] : null;
-          let ing = id ? findIng(id) : null;
-          if (!ing && nume) ing = allIngredients().find(i2=>i2.ro.toLowerCase()===nume.trim().toLowerCase());
-          if (!ing){ skipped++; continue; }
-          const cur = stockOf(ing.id);
-          stock[ing.id] = {
-            qty: idx("stoc_g")>=0 ? Number(row[idx("stoc_g")]||0) : cur.qty,
-            minQty: idx("prag_minim_g")>=0 ? Number(row[idx("prag_minim_g")]||0) : cur.minQty,
-            supplier: idx("furnizor")>=0 ? row[idx("furnizor")] : cur.supplier,
-            lot: idx("lot")>=0 ? row[idx("lot")] : cur.lot,
-          };
-          if (idx("pret_lei_kg")>=0){
-            const price = Number(row[idx("pret_lei_kg")]||0);
-            if (price>0) ingredientPrices[ing.id] = price;
-          }
-          updated++;
+    readImportFile(file, rows=>{
+      if (rows.length<2){ alert("Fișierul pare gol."); return; }
+      const header = rows[0].map(h=>normText(h));
+      const idx = name=>header.indexOf(name);
+      let updated = 0, skipped = 0;
+      for (let i=1;i<rows.length;i++){
+        const row = rows[i];
+        if (row.length<2) continue;
+        const id = idx("id")>=0 ? row[idx("id")] : null;
+        const nume = idx("nume")>=0 ? row[idx("nume")] : null;
+        let ing = id ? findIng(id) : null;
+        if (!ing && nume) ing = allIngredients().find(i2=>normText(i2.ro)===normText(nume));
+        if (!ing){ skipped++; continue; }
+        const cur = stockOf(ing.id);
+        stock[ing.id] = {
+          qty: idx("stoc_g")>=0 ? Number(row[idx("stoc_g")]||0) : cur.qty,
+          minQty: idx("prag_minim_g")>=0 ? Number(row[idx("prag_minim_g")]||0) : cur.minQty,
+          supplier: idx("furnizor")>=0 ? row[idx("furnizor")] : cur.supplier,
+          lot: idx("lot")>=0 ? row[idx("lot")] : cur.lot,
+        };
+        if (idx("pret_lei_kg")>=0){
+          const price = Number(row[idx("pret_lei_kg")]||0);
+          if (price>0) ingredientPrices[ing.id] = price;
         }
-        persistStock(); persistPrices(); renderMain();
-        alert(`Import finalizat: ${updated} ingrediente actualizate, ${skipped} rânduri nepotrivite.`);
-      }catch(err){
-        alert("Nu am putut citi fișierul CSV: "+err.message);
+        updated++;
       }
-    };
-    reader.readAsText(file);
+      persistStock(); persistPrices(); renderMain();
+      alert(`Import finalizat: ${updated} ingrediente actualizate, ${skipped} rânduri nepotrivite.`);
+    });
     importStockCsvInput.value = "";
   };
   document.querySelectorAll(".ingRow").forEach(row=>{
@@ -2437,17 +2441,25 @@ function wireEvents(){
   };
   const printRecipeBtn = document.getElementById("printRecipeBtn");
   if (printRecipeBtn) printRecipeBtn.onclick = ()=>{ window.print(); };
+  const recipeExportHeaders = ["ingredient","inci","grame","procent","pret_lei_kg"];
+  const recipeExportRows = ()=>{
+    const r = activeRecipe();
+    const totals = computeTotals(r);
+    return sortedItems(r).map(it=>{
+      const ing = findIng(it.ingId);
+      const pct = totals.total>0 ? (it.grams/totals.total*100) : 0;
+      return [ing?ing.ro:"?", ing?ing.inci:"", it.grams, pct.toFixed(2), it.price||defaultPrice(it.ingId)||0];
+    });
+  };
   const exportRecipeCsvBtn = document.getElementById("exportRecipeCsvBtn");
   if (exportRecipeCsvBtn) exportRecipeCsvBtn.onclick = ()=>{
     const r = activeRecipe();
-    const totals = computeTotals(r);
-    const rows = [["ingredient","inci","grame","procent","pret_lei_kg"]];
-    sortedItems(r).forEach(it=>{
-      const ing = findIng(it.ingId);
-      const pct = totals.total>0 ? (it.grams/totals.total*100) : 0;
-      rows.push([ing?ing.ro:"?", ing?ing.inci:"", it.grams, pct.toFixed(2), it.price||defaultPrice(it.ingId)||0]);
-    });
-    downloadText(`reteta-${(r.name||"reteta").replace(/[^a-z0-9]+/gi,"-")}.csv`, toCSV(rows), "text/csv");
+    downloadText(`reteta-${(r.name||"reteta").replace(/[^a-z0-9]+/gi,"-")}.csv`, toCSV([recipeExportHeaders, ...recipeExportRows()]), "text/csv");
+  };
+  const exportRecipeXlsxBtn = document.getElementById("exportRecipeXlsxBtn");
+  if (exportRecipeXlsxBtn) exportRecipeXlsxBtn.onclick = ()=>{
+    const r = activeRecipe();
+    downloadXlsxData(`reteta-${(r.name||"reteta").replace(/[^a-z0-9]+/gi,"-")}.xlsx`, "Reteta", recipeExportHeaders, recipeExportRows());
   };
   const delRecipeBtn = document.getElementById("delRecipeBtn");
   if (delRecipeBtn) delRecipeBtn.onclick = ()=>{
@@ -2827,6 +2839,19 @@ function downloadXlsxTemplate(filename, sheetName, headers){
   if (typeof XLSX==="undefined"){ alert("Modulul Excel nu s-a încărcat; reîmprospătează pagina și încearcă din nou."); return; }
   const ws = XLSX.utils.aoa_to_sheet([headers]);
   ws['!cols'] = headers.map(h=>({wch: Math.max(16, String(h).length+3)}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
+  XLSX.writeFile(wb, filename);
+}
+// La fel ca downloadXlsxTemplate, dar scrie și datele (nu doar antetul) —
+// folosit pentru exporturile reale (Stoc, Rețetă), nu doar pentru șabloane goale.
+function downloadXlsxData(filename, sheetName, headers, rows){
+  if (typeof XLSX==="undefined"){ alert("Modulul Excel nu s-a încărcat; reîmprospătează pagina și încearcă din nou."); return; }
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!cols'] = headers.map((h,i)=>{
+    const maxLen = rows.reduce((m,r)=>Math.max(m, String(r[i]==null?"":r[i]).length), String(h).length);
+    return { wch: Math.max(12, Math.min(40, maxLen+3)) };
+  });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
   XLSX.writeFile(wb, filename);
