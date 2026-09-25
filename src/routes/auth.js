@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
 const prisma = require("../db");
 const {
   hashPassword,
@@ -17,7 +18,19 @@ const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITE_TTL = "7d";
 
-router.post("/register", async (req, res) => {
+// Limitează încercările de autentificare/înregistrare per IP, ca să nu se
+// poată încerca parole în buclă (brute-force) sau ghici ce email-uri există
+// în bază. 20 de încercări/15 minute e generos pentru un utilizator real care
+// greșește parola, dar taie complet un script automat.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "too_many_attempts" },
+});
+
+router.post("/register", authLimiter, async (req, res) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
     const password = String(req.body.password || "");
@@ -64,7 +77,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
     const password = String(req.body.password || "");
@@ -133,7 +146,7 @@ router.post("/invite", requireAuth, requireActiveSubscription, async (req, res) 
 });
 
 // Membrul invitat își setează parola și contul e creat, legat de owner.
-router.post("/accept-invite", async (req, res) => {
+router.post("/accept-invite", authLimiter, async (req, res) => {
   try {
     const token = String(req.body.token || "");
     const password = String(req.body.password || "");
