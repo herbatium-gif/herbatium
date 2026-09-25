@@ -1,7 +1,7 @@
 const express = require("express");
 const prisma = require("../db");
 const stripe = require("../stripe");
-const { requireAuth } = require("../auth");
+const { requireAuth, isSubscriptionActive } = require("../auth");
 
 const router = express.Router();
 
@@ -79,9 +79,7 @@ router.get("/price", async (req, res) => {
 
 router.get("/status", requireAuth, (req, res) => {
   const u = req.user;
-  const active =
-    u.subscriptionStatus === "active" &&
-    (!u.currentPeriodEnd || new Date(u.currentPeriodEnd).getTime() > Date.now());
+  const active = isSubscriptionActive(u);
   res.json({
     subscriptionStatus: u.subscriptionStatus,
     currentPeriodEnd: u.currentPeriodEnd,
