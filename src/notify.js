@@ -120,4 +120,4 @@ function scheduleDailyDigest(hourLocal) {
   setTimeout(tick, msUntilNext());
 }
 
-module.exports = { runDailyDigest, scheduleDailyDigest, buildDigestHtml };
+module.exports = { runDailyDigest, scheduleDailyDigest, buildDigestHtml, sendEmail };

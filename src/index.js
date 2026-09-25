@@ -13,8 +13,11 @@ const catalogRoutes = require("./routes/catalog");
 const legalRoutes = require("./routes/legal");
 const accountRoutes = require("./routes/account");
 const adminRoutes = require("./routes/admin");
+const changelogRoutes = require("./routes/changelog");
+const feedbackRoutes = require("./routes/feedback");
 const { router: billingRoutes, webhookHandler } = require("./routes/billing");
 const { scheduleDailyDigest } = require("./notify");
+const { scheduleRetentionCleanup } = require("./retention");
 
 const app = express();
 
@@ -46,6 +49,8 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/account", accountRoutes); // GDPR — export date (art. 15/20) + ștergere cont (art. 17)
 app.use("/api/admin", adminRoutes); // panou de administrator platformă — doar contul isAdmin
+app.use("/api/changelog", changelogRoutes); // noutăți aplicație, afișate în tab-ul "Noutăți"
+app.use("/api/feedback", feedbackRoutes); // feedback trimis din aplicație, de la utilizatori
 app.use("/catalog", catalogRoutes); // public, fără autentificare — pagina de catalog + director
 app.use("/legal", legalRoutes); // public — Termeni, Confidențialitate, Cookie-uri, DPA
 
@@ -56,4 +61,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Herbatium (SaaS) rulează pe http://localhost:${PORT}`);
   scheduleDailyDigest(8); // digest zilnic la ora 8:00 (ora serverului) — nu face nimic dacă RESEND_API_KEY nu e setat
+  scheduleRetentionCleanup(4); // curățare zilnică la ora 4:00 — șterge conturile anulate de peste 30 de zile
 });
