@@ -18,6 +18,33 @@ const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITE_TTL = "7d";
 
+// Normalizează un CUI introdus de utilizator: scoate spații/liniuțe, prefixul
+// "RO" (dacă firma e plătitoare de TVA) și păstrează doar cifrele.
+function normalizeCui(raw) {
+  return String(raw || "")
+    .trim()
+    .toUpperCase()
+    .replace(/^RO/, "")
+    .replace(/[^0-9]/g, "");
+}
+
+// Validează cifra de control a CUI-ului, conform algoritmului oficial ANAF:
+// ponderi [7,5,3,2,1,7,5,3,2] aplicate primelor 9 cifre (completate cu 0 la
+// stânga până la 9 cifre), rest mod 11 → cifră de control (10 devine 0),
+// care trebuie să fie ultima cifră a CUI-ului. Verificare simplă, fără apel
+// extern, care taie greșelile de tastare și cele mai multe CUI-uri inventate.
+function isValidCui(digits) {
+  if (!/^\d{2,10}$/.test(digits)) return false;
+  const control = digits[digits.length - 1];
+  const base = digits.slice(0, -1).padStart(9, "0");
+  const weights = [7, 5, 3, 2, 1, 7, 5, 3, 2];
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += Number(base[i]) * weights[i];
+  let expected = (sum * 10) % 11;
+  if (expected === 10) expected = 0;
+  return String(expected) === control;
+}
+
 // Limitează încercările de autentificare/înregistrare per IP, ca să nu se
 // poată încerca parole în buclă (brute-force) sau ghici ce email-uri există
 // în bază. 20 de încercări/15 minute e generos pentru un utilizator real care
@@ -36,12 +63,23 @@ router.post("/register", authLimiter, async (req, res) => {
     const password = String(req.body.password || "");
     const acceptTerms = !!req.body.acceptTerms;
     const marketing = !!req.body.marketing;
+    const cui = normalizeCui(req.body.cui);
 
     if (!EMAIL_RE.test(email)) {
       return res.status(400).json({ error: "email_invalid" });
     }
     if (password.length < 8) {
       return res.status(400).json({ error: "password_too_short" });
+    }
+    // CUI-ul firmei/PFA e obligatoriu la înregistrare: (1) e necesar oricum
+    // pentru facturarea clientului (e-Factura), (2) leagă contul de o firmă
+    // reală, care nu poate fi recreată la nesfârșit doar ca să se reia
+    // promoția introductivă cu un e-mail nou — o firmă are un singur CUI.
+    if (!cui) {
+      return res.status(400).json({ error: "cui_required" });
+    }
+    if (!isValidCui(cui)) {
+      return res.status(400).json({ error: "cui_invalid" });
     }
     // Art. 6 și 7 GDPR: contul nu poate fi creat fără acordul explicit cu
     // Termenii și fără confirmarea că utilizatorul a luat la cunoștință
@@ -55,12 +93,17 @@ router.post("/register", authLimiter, async (req, res) => {
     if (existing) {
       return res.status(409).json({ error: "email_taken" });
     }
+    const existingCui = await prisma.user.findUnique({ where: { cui } });
+    if (existingCui) {
+      return res.status(409).json({ error: "cui_taken" });
+    }
 
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
+        cui,
         termsVersion: process.env.LEGAL_VERSION || "1.0",
         termsAcceptedAt: new Date(),
         marketingConsent: marketing,

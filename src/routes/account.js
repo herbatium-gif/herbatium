@@ -126,6 +126,14 @@ router.delete("/", requireAuth, async (req, res) => {
     }
   }
 
+  // Feedback-ul trimis de acest utilizator rămâne (util pentru dezvoltarea
+  // aplicației), dar se anonimizează — vezi și src/retention.js pentru
+  // aceeași logică, aplicată acolo la ștergerea automată.
+  await prisma.feedback.updateMany({
+    where: { userId: u.id },
+    data: { userId: null, email: "(cont șters)" },
+  });
+
   // UserData e legat cu onDelete: Cascade — se șterge automat odată cu User.
   await prisma.user.delete({ where: { id: u.id } });
 
