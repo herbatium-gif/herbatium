@@ -22,6 +22,9 @@
     <input type="email" id="email" required autocomplete="email">
     <label for="password">Parolă (minim 8 caractere)</label>
     <input type="password" id="password" required minlength="8" autocomplete="new-password">
+    <label for="cui">CUI firmă/PFA</label>
+    <input type="text" id="cui" required autocomplete="off" placeholder="ex: 49969146 sau RO49969146" inputmode="numeric">
+    <div class="sub" style="margin-top:-8px; margin-bottom:14px">Necesar pentru facturare și pentru a confirma o singură înregistrare per firmă/PFA.</div>
     <label class="consentRow" for="acceptTerms">
       <input type="checkbox" id="acceptTerms" required>
       <span>Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
@@ -51,6 +54,7 @@ form.onsubmit = async (e)=>{
       body: JSON.stringify({
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
+        cui: document.getElementById("cui").value,
         acceptTerms: document.getElementById("acceptTerms").checked,
         marketing: document.getElementById("marketing").checked,
       }),
@@ -61,6 +65,9 @@ form.onsubmit = async (e)=>{
         email_invalid: "Adresa de email nu pare validă.",
         password_too_short: "Parola trebuie să aibă minim 8 caractere.",
         email_taken: "Există deja un cont cu acest email — încearcă să te conectezi.",
+        cui_required: "Te rugăm să completezi CUI-ul firmei/PFA.",
+        cui_invalid: "CUI-ul nu pare valid — verifică-l (fără spații, cu sau fără prefixul RO).",
+        cui_taken: "Există deja un cont înregistrat cu acest CUI — încearcă să te conectezi, sau scrie-ne dacă ai nevoie de ajutor cu contul.",
         terms_not_accepted: "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
       };
       errBox.textContent = msgs[d.error] || "A apărut o eroare. Încearcă din nou.";

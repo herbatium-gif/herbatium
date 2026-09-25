@@ -36,6 +36,12 @@
     <a class="backLink" href="/app.html">← Înapoi la aplicație</a>
   </div>
   <div class="statsRow" id="statsRow"></div>
+  <div class="statCard" id="changelogCard" style="margin-bottom:20px;min-width:auto">
+    <div class="lbl" style="margin-bottom:6px">Ultima noutate din aplicație</div>
+    <div id="changelogPreview" style="font-size:14px;margin-bottom:10px">Se încarcă…</div>
+    <button class="btn sm" id="sendChangelogBtn">Trimite email de noutăți tuturor utilizatorilor</button>
+    <span id="sendChangelogStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
+  </div>
   <div id="errBox" class="errBox" style="display:none"></div>
   <table id="usersTable" style="display:none">
     <thead>
@@ -43,6 +49,15 @@
     </thead>
     <tbody id="usersBody"></tbody>
   </table>
+
+  <h2 style="margin:32px 0 12px">Feedback de la utilizatori</h2>
+  <table id="feedbackTable" style="display:none">
+    <thead>
+      <tr><th>Data</th><th>Email</th><th>Tip</th><th>Mesaj</th><th>Pagină</th><th>Stare</th></tr>
+    </thead>
+    <tbody id="feedbackBody"></tbody>
+  </table>
+  <div id="feedbackEmpty" style="display:none;color:#6b7280;font-size:14px">Niciun mesaj de feedback încă.</div>
 </div>
 <script>
 function fmtDate(s){
@@ -50,8 +65,77 @@ function fmtDate(s){
   const d = new Date(s);
   return d.toLocaleDateString("ro-RO");
 }
+async function loadChangelogPreview(){
+  try{
+    const res = await fetch("/api/admin/changelog-latest", { credentials: "include" });
+    if (!res.ok) return;
+    const d = await res.json();
+    const el = document.getElementById("changelogPreview");
+    if (!d.latest){ el.textContent = "Nu există nicio noutate încă."; return; }
+    el.innerHTML = `<strong>${d.latest.title}</strong> (${fmtDate(d.latest.date)})<br><span style="color:#6b7280">${d.latest.message}</span>`;
+  }catch(e){}
+}
+document.getElementById("sendChangelogBtn").onclick = async ()=>{
+  if (!confirm("Trimiți acum, pe e-mail, ultima noutate tuturor utilizatorilor? Fă asta doar după ce ai confirmat că actualizarea e live și funcționează.")) return;
+  const btn = document.getElementById("sendChangelogBtn");
+  const status = document.getElementById("sendChangelogStatus");
+  btn.disabled = true;
+  status.textContent = "Se trimite…";
+  try{
+    const res = await fetch("/api/admin/send-changelog-email", { method:"POST", credentials:"include" });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || "eroare");
+    status.textContent = `Trimis la ${d.sent}/${d.total} utilizatori.`;
+  }catch(e){
+    status.textContent = "Trimiterea a eșuat.";
+  }
+  btn.disabled = false;
+};
+
+const CATEGORY_LABEL = { bug: "Bug", idee: "Idee", altceva: "Altceva" };
+const STATUS_LABEL = { nou: "Nou", citit: "Citit", rezolvat: "Rezolvat" };
+
+async function loadFeedback(){
+  try{
+    const res = await fetch("/api/admin/feedback", { credentials: "include" });
+    if (!res.ok) return;
+    const { items } = await res.json();
+    if (!items.length){
+      document.getElementById("feedbackEmpty").style.display = "block";
+      return;
+    }
+    document.getElementById("feedbackBody").innerHTML = items.map(f => `
+      <tr data-id="${f.id}">
+        <td>${fmtDate(f.createdAt)}</td>
+        <td>${f.email}</td>
+        <td>${CATEGORY_LABEL[f.category] || f.category}</td>
+        <td style="max-width:320px;white-space:pre-wrap">${(f.message||"").replace(/</g,"&lt;")}</td>
+        <td>${f.page || "—"}</td>
+        <td>
+          <select class="fbStatus" data-id="${f.id}">
+            ${["nou","citit","rezolvat"].map(s=>`<option value="${s}" ${f.status===s?"selected":""}>${STATUS_LABEL[s]}</option>`).join("")}
+          </select>
+        </td>
+      </tr>
+    `).join("");
+    document.getElementById("feedbackTable").style.display = "table";
+    document.querySelectorAll(".fbStatus").forEach(sel=>{
+      sel.onchange = async ()=>{
+        await fetch(`/api/admin/feedback/${sel.dataset.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status: sel.value }),
+        });
+      };
+    });
+  }catch(e){}
+}
+
 async function load(){
   const errBox = document.getElementById("errBox");
+  loadChangelogPreview();
+  loadFeedback();
   try{
     const [statsRes, usersRes] = await Promise.all([
       fetch("/api/admin/stats", { credentials: "include" }),
