@@ -165,7 +165,8 @@ function termeni(v) {
   <p>Accesul complet la aplicație necesită un abonament lunar, plătit prin Stripe. Abonamentul se reînnoiește automat până când îl anulezi din contul tău. Poți anula oricând — accesul rămâne activ până la sfârșitul perioadei deja plătite.</p>
 
   <h2>5. Dreptul de retragere (contracte la distanță)</h2>
-  <p>Conform OUG 34/2014, ai dreptul să te retragi din contract în 14 zile de la abonare, fără motivare. Dacă începi să folosești serviciul (conținut digital care nu se livrează pe suport fizic) înainte de expirarea acestui termen, prin abonare confirmi că soliciți începerea furnizării imediat și că îți pierzi dreptul de retragere odată ce serviciul a fost complet furnizat.</p>
+  <p>Dacă te abonezi ca persoană fizică, în afara unei activități profesionale, ai dreptul să te retragi din contract în 14 zile de la abonare, fără motivare, conform OUG 34/2014. Dacă începi să folosești serviciul (conținut digital care nu se livrează pe suport fizic) înainte de expirarea acestui termen, prin abonare confirmi că soliciți începerea furnizării imediat și că îți pierzi dreptul de retragere odată ce serviciul a fost complet furnizat.</p>
+  <p>Dacă te abonezi ca PFA/SRL, pentru activitatea ta de producție/vânzare de cosmetice, OUG 34/2014 nu se aplică (e o protecție rezervată consumatorilor persoane fizice) — în acest caz, îți oferim totuși aceleași 14 zile de retragere, voluntar, ca politică proprie, nu ca obligație legală.</p>
 
   <h2>6. Răspundere</h2>
   <p>Aplicația e furnizată „ca atare". Nu răspundem pentru decizii de afaceri, de formulare sau de conformitate luate exclusiv pe baza informațiilor din aplicație, fără verificare de specialitate. Răspunderea noastră, în limita permisă de lege, este limitată la sumele plătite de tine pentru abonament în ultimele 12 luni.</p>
