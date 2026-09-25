@@ -106,7 +106,7 @@ function confidentialitate(v) {
   <p>Nu vindem și nu închiriem datele tale. Le transmitem doar furnizorilor care ne ajută să livrăm serviciul, pe bază de contract de prelucrare (art. 28 GDPR):</p>
   <table>
     <tr><th>Furnizor</th><th>Ce face</th><th>Unde</th></tr>
-    <tr><td>Railway Corporation</td><td>serverul aplicației și baza de date (PostgreSQL)</td><td>[completează regiunea exactă — Railway, din contul tău: Project → Settings → Region]</td></tr>
+    <tr><td>Railway Corporation</td><td>serverul aplicației și baza de date (PostgreSQL)</td><td>SUA — us-west1 (California)</td></tr>
     <tr><td>Stripe Payments Europe Ltd.</td><td>procesarea plăților cu cardul / abonamentul</td><td>UE (Irlanda), cu posibile transferuri către Stripe Inc. (SUA) pe bază de garanții adecvate</td></tr>
     <tr><td>Resend (dacă activezi notificările e-mail)</td><td>trimite e-mailul de rezumat zilnic</td><td>[completează — verifică regiunea de procesare a furnizorului]</td></tr>
     <tr><td>Google Fonts</td><td>livrează fonturile folosite în interfață (adresa IP e trimisă către Google la încărcarea paginii)</td><td>SUA/global — vezi <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politica Google</a></td></tr>
