@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
@@ -21,11 +23,18 @@ const app = express();
 // recunoască corect conexiunile HTTPS (cookie-ul de autentificare "secure").
 app.set("trust proxy", 1);
 
+// Headere de securitate de bază (X-Content-Type-Options, X-Frame-Options,
+// Referrer-Policy etc.). CSP e dezactivat explicit: app.html/login.html/etc.
+// folosesc <script>/<style> inline masiv (SPA cu HTML generat dinamic) — un
+// CSP implicit ar bloca aplicația să ruleze. Dacă se rescrie front-end-ul
+// fără inline scripts, CSP poate fi reactivat aici.
+app.use(helmet({ contentSecurityPolicy: false }));
+
 // Webhook-ul Stripe are nevoie de body-ul brut (nesparsat) ca să verifice
 // semnătura — de-asta ruta asta trebuie declarată ÎNAINTE de express.json().
 app.post("/api/billing/webhook", express.raw({ type: "application/json" }), webhookHandler);
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" })); // limită explicită — datele salvate (rețete/loturi/stoc) sunt un singur JSON
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use(express.static(path.join(__dirname, "..", "public")));
