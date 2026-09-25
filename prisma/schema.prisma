@@ -16,6 +16,15 @@ model User {
   passwordHash String
   createdAt DateTime @default(now())
 
+  // CUI (cod unic de înregistrare) al firmei/PFA a clientului — obligatoriu
+  // la înregistrare. Normalizat (fără "RO", fără spații, doar cifre) și unic:
+  // o firmă/PFA nu poate deschide un al doilea cont. Scop dublu: (1) necesar
+  // pentru facturarea corectă a clientului (e-Factura), (2) previne
+  // deschiderea de conturi noi doar ca să se reia promoția introductivă —
+  // vezi restricția "first_time_transaction" din billing.js, care altfel
+  // acționează doar per client Stripe, nu per firmă reală.
+  cui       String?  @unique
+
   // GDPR — consimțământ la înregistrare (art. 6, 7 GDPR)
   termsVersion      String?   // versiunea Termenilor acceptată (vezi LEGAL_VERSION din .env)
   termsAcceptedAt   DateTime? // data/ora acceptării — dovadă de consimțământ
@@ -26,6 +35,18 @@ model User {
   stripeSubscriptionId String?   @unique
   subscriptionStatus   String    @default("none") // none | active | past_due | canceled
   currentPeriodEnd     DateTime?
+
+  // Retenție date (art. 5 alin. (1) lit. e) GDPR — limitarea stocării): data
+  // la care abonamentul a fost anulat (webhook Stripe customer.subscription.deleted).
+  // Un job zilnic (src/retention.js) șterge definitiv contul dacă rămâne
+  // "canceled" mai mult de RETENTION_DAYS (30 de zile) de la această dată,
+  // fără reabonare între timp. Se resetează la null la orice reabonare.
+  canceledAt DateTime?
+
+  // Noutăți aplicație — ultima versiune din CHANGELOG (src/changelog.js) pe
+  // care utilizatorul a văzut-o deja, ca să știm dacă îi arătăm badge-ul
+  // "Noutăți" sau nu.
+  lastSeenChangelogVersion Int @default(0)
 
   // Pagină publică de catalog (opțională — producătorul o activează explicit)
   publicPageEnabled Boolean  @default(false)
@@ -50,7 +71,27 @@ model User {
   // Stripe (are mereu acces la aplicație) și poate vedea panoul /admin.html.
   isAdmin Boolean @default(false)
 
-  data UserData?
+  data     UserData?
+  feedback Feedback[]
+}
+
+// Feedback trimis din aplicație (buton "Feedback" din topbar) — folosit doar
+// intern, ca să dezvoltăm aplicația pe baza a ceea ce chiar contează pentru
+// utilizatori. Dacă utilizatorul își șterge contul (manual sau automat, prin
+// politica de retenție — vezi src/retention.js), userId devine null și
+// email-ul e anonimizat: mesajul rămâne, pentru îmbunătățirea produsului, dar
+// fără nicio legătură cu identitatea utilizatorului — vezi Politica de
+// confidențialitate, secțiunea 3.
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  category  String   // "bug" | "idee" | "altceva"
+  message   String
+  page      String?  // ce tab era deschis când a fost trimis, pentru context
+  status    String   @default("nou") // nou | citit | rezolvat
+  createdAt DateTime @default(now())
 }
 
 model UserData {
