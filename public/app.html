@@ -478,9 +478,51 @@ tbody tr{transition:background .12s ease}
 
 <div class="topbar" id="topbar" hidden>
   <span class="email" id="topbarEmail"></span>
+  <button class="btn sm ghost" id="changelogBtn" style="position:relative">Noutăți<span id="changelogDot" hidden style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--amber,#c2660c)"></span></button>
+  <button class="btn sm ghost" id="feedbackBtn">Feedback</button>
   <a class="btn sm ghost" id="adminLink" href="/admin.html" hidden>Administrare</a>
   <button class="btn sm ghost" id="manageBillingBtn">Abonamentul meu</button>
   <button class="btn sm ghost" id="logoutBtn">Deconectare</button>
+</div>
+
+<div id="changelogOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="max-width:480px;width:100%;max-height:80vh;overflow:auto">
+    <div class="pad stack">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2 style="margin:0;font-size:18px">Noutăți Herbatium</h2>
+        <button class="btn sm ghost" id="changelogCloseBtn">Închide</button>
+      </div>
+      <div id="changelogList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="feedbackOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="max-width:440px;width:100%">
+    <div class="pad stack">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2 style="margin:0;font-size:18px">Trimite feedback</h2>
+        <button class="btn sm ghost" id="feedbackCloseBtn">Închide</button>
+      </div>
+      <p class="hint" style="margin:0">Ai găsit o problemă, sau ai o idee care ar face aplicația mai bună? Scrie-ne — citim fiecare mesaj.</p>
+      <div id="feedbackFormWrap">
+        <label for="feedbackCategory">Ce fel de mesaj e?</label>
+        <select id="feedbackCategory">
+          <option value="idee">O idee / sugestie</option>
+          <option value="bug">Ceva nu funcționează (bug)</option>
+          <option value="altceva">Altceva</option>
+        </select>
+        <label for="feedbackMessage" style="margin-top:10px">Mesajul tău</label>
+        <textarea id="feedbackMessage" rows="5" maxlength="2000" placeholder="Scrie aici…" style="width:100%;resize:vertical"></textarea>
+        <div id="feedbackErr" class="err" style="display:none;margin-top:6px"></div>
+        <button class="btn" id="feedbackSubmitBtn" style="margin-top:12px">Trimite</button>
+      </div>
+      <div id="feedbackThanks" hidden style="text-align:center;padding:12px 0">
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">Mulțumim!</div>
+        <div class="hint">Am primit mesajul tău.</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="app" id="appRoot" hidden>
@@ -809,13 +851,93 @@ async function boot(){
     if (me.isAdmin) document.getElementById("adminLink").hidden = false;
     document.getElementById("manageBillingBtn").onclick = openBillingPortal;
     document.getElementById("logoutBtn").onclick = doLogout;
+    document.getElementById("changelogBtn").onclick = openChangelog;
+    document.getElementById("changelogCloseBtn").onclick = closeChangelog;
+    document.getElementById("changelogOverlay").onclick = (e)=>{ if (e.target.id === "changelogOverlay") closeChangelog(); };
+    document.getElementById("feedbackBtn").onclick = openFeedback;
+    document.getElementById("feedbackCloseBtn").onclick = closeFeedback;
+    document.getElementById("feedbackOverlay").onclick = (e)=>{ if (e.target.id === "feedbackOverlay") closeFeedback(); };
+    document.getElementById("feedbackSubmitBtn").onclick = submitFeedback;
     document.getElementById("topbar").hidden = false;
     document.getElementById("appRoot").hidden = false;
     document.getElementById("loadingGate").hidden = true;
     render();
+    loadChangelog(); // nu blocăm încărcarea aplicației dacă eșuează
   }catch(e){
     document.getElementById("loadingGate").innerHTML = '<div class="card pad" style="padding:24px">Nu am putut încărca aplicația. Reîncearcă reîmprospătând pagina.</div>';
   }
+}
+
+/* ---- Noutăți aplicație (tab "Noutăți" din topbar) ---- */
+async function loadChangelog(){
+  try{
+    const res = await api("/changelog");
+    if(!res.ok) return;
+    const d = await res.json();
+    renderChangelogList(d.entries || []);
+    const unseen = (d.currentVersion || 0) > (d.lastSeenVersion || 0);
+    document.getElementById("changelogDot").hidden = !unseen;
+    if (unseen) openChangelog();
+  }catch(e){ /* tăcut — nu e critic pentru funcționarea aplicației */ }
+}
+function fmtChangelogDate(s){
+  try{ return new Date(s+"T00:00:00").toLocaleDateString("ro-RO",{day:"numeric",month:"long",year:"numeric"}); }
+  catch(e){ return s; }
+}
+function renderChangelogList(entries){
+  document.getElementById("changelogList").innerHTML = entries.map(e=>`
+    <div style="padding:14px 0;border-bottom:1px solid var(--surface-2)">
+      <div style="font-weight:700;font-size:14px">${escHtml(e.title||"")}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin:2px 0 8px">${fmtChangelogDate(e.date)}</div>
+      <div style="font-size:13.5px;line-height:1.55">${escHtml(e.message||"")}</div>
+    </div>
+  `).join("") || '<div class="empty">Nu sunt noutăți încă.</div>';
+}
+function openChangelog(){
+  document.getElementById("changelogOverlay").hidden = false;
+}
+async function closeChangelog(){
+  document.getElementById("changelogOverlay").hidden = true;
+  document.getElementById("changelogDot").hidden = true;
+  try{ await api("/changelog/seen", {method:"POST"}); }catch(e){}
+}
+
+/* ---- Feedback (buton "Feedback" din topbar) ---- */
+function openFeedback(){
+  document.getElementById("feedbackFormWrap").hidden = false;
+  document.getElementById("feedbackThanks").hidden = true;
+  document.getElementById("feedbackErr").style.display = "none";
+  document.getElementById("feedbackMessage").value = "";
+  document.getElementById("feedbackOverlay").hidden = false;
+}
+function closeFeedback(){
+  document.getElementById("feedbackOverlay").hidden = true;
+}
+async function submitFeedback(){
+  const errBox = document.getElementById("feedbackErr");
+  const message = document.getElementById("feedbackMessage").value.trim();
+  const category = document.getElementById("feedbackCategory").value;
+  errBox.style.display = "none";
+  if (!message){
+    errBox.textContent = "Scrie câteva cuvinte înainte de a trimite.";
+    errBox.style.display = "block";
+    return;
+  }
+  const btn = document.getElementById("feedbackSubmitBtn");
+  btn.disabled = true; btn.textContent = "Se trimite…";
+  try{
+    const res = await api("/feedback", {
+      method: "POST",
+      body: JSON.stringify({ message, category, page: state.tab || "" }),
+    });
+    if (!res.ok) throw new Error("send_failed");
+    document.getElementById("feedbackFormWrap").hidden = true;
+    document.getElementById("feedbackThanks").hidden = false;
+  }catch(e){
+    errBox.textContent = "Nu am putut trimite mesajul. Încearcă din nou.";
+    errBox.style.display = "block";
+  }
+  btn.disabled = false; btn.textContent = "Trimite";
 }
 
 function scheduleApiSave(){
@@ -2016,6 +2138,10 @@ function viewResurse(){
   <div class="topline"><h1 class="pageTitle">Legislație & consultanți CPNP</h1></div>
   <p class="pageDesc">Punct de plecare pentru documentare și pentru găsirea unui evaluator de siguranță/consultant care să întocmească dosarul CPSR și să facă notificarea CPNP — pași obligatorii înainte de comercializare, pe care această aplicație nu îi înlocuiește.</p>
 
+  <div style="background:var(--amber-soft);color:var(--amber);border-radius:8px;padding:12px 14px;font-size:12.5px;font-weight:500;line-height:1.6;margin-bottom:16px">
+    ⚠ <strong>Caracter strict informativ.</strong> Herbatium nu este o aplicație de contabilitate și nu oferă consultanță fiscală, contabilă sau juridică. Actele normative și informațiile legislative afișate mai jos (cosmetice, fiscale sau de altă natură) sunt un rezumat orientativ, pot fi incomplete sau depășite de modificări ulterioare și <strong>nu constituie sfat de specialitate</strong>. Aplicarea corectă a legislației în activitatea ta (inclusiv obligațiile fiscale și contabile) rămâne exclusiv responsabilitatea ta sau a firmei tale — pentru orice decizie cu implicații legale, fiscale sau contabile, consultă un avocat, un consultant fiscal sau un contabil autorizat. Furnizorul aplicației nu își asumă nicio răspundere pentru modul în care interpretezi sau aplici aceste informații.
+  </div>
+
   <div class="card"><div class="pad stack">
     <h3 style="font-size:14px">Legislație în vigoare</h3>
     ${LEGISLATION.map(l=>`
@@ -2134,6 +2260,7 @@ function viewAjutor(){
     ["Ce fac dacă greșesc ceva?", "Poți edita sau șterge orice rețetă, lot, produs sau înregistrare din stoc oricând, din pagina respectivă. Nimic nu e permanent."],
     ["Îmi pot pierde datele?", "Datele tale sunt păstrate în contul tău și le regăsești pe orice dispozitiv pe care te loghezi. Din „Prezentare generală” poți face oricând și un export de siguranță (backup) suplimentar."],
     ["Aplicația înlocuiește un consultant de siguranță (CPNP)?", "Nu. Te ajută să ai rețeta și eticheta organizate corect, dar dosarul oficial de siguranță al unui produs cosmetic trebuie întocmit de un evaluator autorizat — vezi tabul „Legislație & consultanți” pentru un punct de plecare."],
+    ["Mă ajută aplicația cu contabilitatea sau fiscalitatea (TVA, e-Factura etc.)?", "Nu. Herbatium nu este o aplicație de contabilitate și nu oferă consultanță fiscală sau contabilă. Costurile, prețurile și rapoartele din aplicație sunt calcule orientative pentru gestiunea producției tale, nu evidență contabilă/fiscală oficială. Informațiile legislative din tabul „Legislație & consultanți” au caracter pur informativ. Pentru TVA, e-Factura, impozite sau orice altă obligație fiscală/contabilă, discută cu un contabil autorizat sau un consultant fiscal — răspunderea aplicării corecte a legislației îți aparține în întregime."],
   ];
   return `
   <div class="topline"><h1 class="pageTitle">Ajutor</h1></div>
