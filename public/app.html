@@ -870,9 +870,9 @@ async function boot(){
     if (Array.isArray(d.products)) products = d.products;
     if (d.ingredientPrices) ingredientPrices = d.ingredientPrices;
     if (d.stock) stock = d.stock;
-    if (d.costState) costState = d.costState;
+    if (d.costState) costState = { units:10, margin:120, packaging:4, ...d.costState };
     if (Array.isArray(d.sales)) sales = d.sales;
-    if (d.lyeState) lyeState = d.lyeState;
+    if (d.lyeState) lyeState = { type:"naoh", superfat:5, waterPct:38, ...d.lyeState };
     cloud.lastKnownUpdatedAt = d.updatedAt || null;
     const conflictReloadBtn = document.getElementById("conflictReloadBtn");
     if (conflictReloadBtn) conflictReloadBtn.onclick = ()=>window.location.reload();
@@ -1717,8 +1717,8 @@ function viewLesie(){
         </select>
       </div>
       <div class="grid2">
-        <div><label>Superfat / discount leșie (%)</label><input type="text" inputmode="decimal" id="lyeSuperfat" value="${lyeState.superfat}" onfocus="this.select()"></div>
-        <div><label>Apă (% din greutatea uleiurilor)</label><input type="text" inputmode="decimal" id="lyeWaterPct" value="${lyeState.waterPct}" onfocus="this.select()"></div>
+        <div><label>Superfat / discount leșie (%)</label><input type="text" inputmode="decimal" id="lyeSuperfat" value="${lyeState.superfat ?? 5}" onfocus="this.select()"></div>
+        <div><label>Apă (% din greutatea uleiurilor)</label><input type="text" inputmode="decimal" id="lyeWaterPct" value="${lyeState.waterPct ?? 38}" onfocus="this.select()"></div>
       </div>
       <p class="hint">Superfat = procent de uleiuri lăsate nesaponificate, pentru un săpun mai blând (5-8% e uzual). Apa e exprimată ca procent din greutatea totală a uleiurilor (o concentrație de leșie tipică — 33-40% — corespunde la 38% apă/ulei implicit).</p>
     </div></div>
@@ -1894,11 +1894,11 @@ function viewCost(){
       <div class="card"><div class="pad stack">
         <div class="statTile"><div class="num">${totalCost.toFixed(2)} lei</div><div class="lbl">cost total materie primă / lot</div></div>
         <div class="grid2">
-          <div><label>Nr. unități din acest lot</label><input type="text" inputmode="decimal" id="costUnits" value="${costState.units}" onfocus="this.select()"></div>
-          <div><label>Marjă țintă (%)</label><input type="text" inputmode="decimal" id="costMargin" value="${costState.margin}" onfocus="this.select()"></div>
+          <div><label>Nr. unități din acest lot</label><input type="text" inputmode="decimal" id="costUnits" value="${costState.units ?? 10}" onfocus="this.select()"></div>
+          <div><label>Marjă țintă (%)</label><input type="text" inputmode="decimal" id="costMargin" value="${costState.margin ?? 120}" onfocus="this.select()"></div>
         </div>
         <div class="kv"><span class="k">Cost materie primă / unitate</span><span class="v mono">${(totalCost/Math.max(1,costState.units)).toFixed(2)} lei</span></div>
-        <div class="kv"><span class="k">+ ambalaj &amp; etichetă (estimat)</span><span class="v"><input type="text" inputmode="decimal" id="costPackaging" value="${costState.packaging}" style="width:80px;padding:4px 6px" onfocus="this.select()"></span></div>
+        <div class="kv"><span class="k">+ ambalaj &amp; etichetă (estimat)</span><span class="v"><input type="text" inputmode="decimal" id="costPackaging" value="${costState.packaging ?? 4}" style="width:80px;padding:4px 6px" onfocus="this.select()"></span></div>
         <div class="kv"><span class="k">Cost total / unitate</span><span class="v mono">${unitCostTotal(totalCost).toFixed(2)} lei</span></div>
         <div class="kv" style="border-top:1px solid var(--line);padding-top:10px;margin-top:2px"><span class="k" style="font-weight:600;color:var(--ink)">Preț de vânzare sugerat</span><span class="v mono" style="font-weight:600;font-size:15px;color:var(--accent)">${suggestedPrice(totalCost).toFixed(2)} lei</span></div>
         <div class="hint">Preț sugerat = (cost materie primă + ambalaj) / unitate, majorat cu marja țintă. Nu include manoperă, CPNP/dosar de siguranță, TVA sau costuri fixe (chirie, utilități) — adaugă-le separat pentru o marjă reală.</div>
@@ -3217,9 +3217,9 @@ function importBackup(file){
       if (Array.isArray(d.products)) products = d.products;
       if (d.ingredientPrices) ingredientPrices = d.ingredientPrices;
       if (d.stock) stock = d.stock;
-      if (d.costState) costState = d.costState;
+      if (d.costState) costState = { units:10, margin:120, packaging:4, ...d.costState };
       if (Array.isArray(d.sales)) sales = d.sales;
-      if (d.lyeState) lyeState = d.lyeState;
+      if (d.lyeState) lyeState = { type:"naoh", superfat:5, waterPct:38, ...d.lyeState };
       state.activeRecipeId = state.recipes[0] ? state.recipes[0].id : null;
       persistRecipes(); persistBatches(); persistCustom(); persistProducts();
       persistPrices(); persistStock(); persistSales(); persistLye();
