@@ -146,7 +146,7 @@ router.get("/:slug", async (req, res) => {
     if (!user) return res.status(404).send(pageShell("Pagină negăsită", `<div class="top"><a href="/catalog">← Toți producătorii</a></div><div class="card">Această pagină nu există sau nu mai e activă.</div>`, DEFAULT_TEMPLATE));
 
     const data = await prisma.userData.findUnique({ where: { userId: user.id } });
-    const products = ((data && data.products) || []).filter((p) => p && p.publicVisible);
+    const products = ((data && data.products) || []).filter((p) => p && p.publicVisible && p.name && p.name.trim());
     const body = renderProducerBody(user, products);
     res.send(pageShell(user.businessName || "Catalog produse", body, user.catalogTemplate));
   } catch (e) {
