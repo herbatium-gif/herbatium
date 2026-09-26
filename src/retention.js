@@ -14,6 +14,17 @@ const { sendEmail } = require("./notify");
 const RETENTION_DAYS = 30; // 1 lună de la anularea abonamentului
 const UPLOAD_ROOT = path.join(__dirname, "..", "uploads");
 
+// Retenția pentru IntroPriceHistory / IntroPriceHistoryEmail (vezi
+// prisma/schema.prisma) — evidența minimă (CUI/e-mail + data ultimei
+// activări) ținută separat de User, EXPLICIT ca să supraviețuiască
+// ștergerii contului de mai sus, ca protecție împotriva reutilizării
+// prețului introductiv de 99 lei. Conform art. 5 alin. (1) lit. e) GDPR,
+// această evidență NU se păstrează la nesfârșit: se șterge definitiv după
+// atâția ani de la ULTIMA activare a clientului respectiv (vezi
+// purgeIntroPriceHistory mai jos) — vezi Politica de confidențialitate,
+// secțiunea 3, pentru temeiul legal (interes legitim) și această durată.
+const INTRO_HISTORY_RETENTION_YEARS = 3;
+
 function deletionDateFrom(fromDate) {
   const d = new Date(fromDate);
   d.setDate(d.getDate() + RETENTION_DAYS);
@@ -82,6 +93,29 @@ async function runRetentionCleanup() {
   }
 }
 
+// Șterge definitiv rândurile din IntroPriceHistory / IntroPriceHistoryEmail
+// mai vechi de INTRO_HISTORY_RETENTION_YEARS ani (de la ultima activare a
+// clientului respectiv) — parte din aceeași curățare zilnică de mai sus.
+// Best-effort: dacă eșuează (ex. tabelele nu există încă pe un mediu care nu
+// a rulat migrarea respectivă), doar loghează, nu oprește restul curățării.
+async function purgeIntroPriceHistory() {
+  const cutoff = new Date();
+  cutoff.setFullYear(cutoff.getFullYear() - INTRO_HISTORY_RETENTION_YEARS);
+  try {
+    const [byCui, byEmail] = await Promise.all([
+      prisma.introPriceHistory.deleteMany({ where: { lastActivatedAt: { lt: cutoff } } }),
+      prisma.introPriceHistoryEmail.deleteMany({ where: { lastActivatedAt: { lt: cutoff } } }),
+    ]);
+    if (byCui.count || byEmail.count) {
+      console.log(
+        `Retenție: șters istoric expirat pentru prețul introductiv (CUI: ${byCui.count}, e-mail: ${byEmail.count}).`
+      );
+    }
+  } catch (e) {
+    console.error("Retenție: curățarea istoricului de preț introductiv a eșuat:", e.message);
+  }
+}
+
 function scheduleRetentionCleanup(hourLocal) {
   const hour = typeof hourLocal === "number" ? hourLocal : 4;
   function msUntilNext() {
@@ -93,6 +127,7 @@ function scheduleRetentionCleanup(hourLocal) {
   }
   function tick() {
     runRetentionCleanup().catch((e) => console.error("Curățare retenție eșuată:", e.message));
+    purgeIntroPriceHistory().catch((e) => console.error("Curățare istoric preț introductiv eșuată:", e.message));
     setTimeout(tick, 24 * 60 * 60 * 1000);
   }
   setTimeout(tick, msUntilNext());
@@ -100,7 +135,9 @@ function scheduleRetentionCleanup(hourLocal) {
 
 module.exports = {
   RETENTION_DAYS,
+  INTRO_HISTORY_RETENTION_YEARS,
   runRetentionCleanup,
+  purgeIntroPriceHistory,
   scheduleRetentionCleanup,
   sendCancellationRetentionNotice,
 };
