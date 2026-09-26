@@ -43,9 +43,24 @@
     <span id="sendChangelogStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
   </div>
   <div id="errBox" class="errBox" style="display:none"></div>
+
+  <h2 style="margin:32px 0 12px">Panou de activări licențe</h2>
+  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280">
+    Plăți declarate (transfer bancar, cod de plată) care așteaptă confirmare în extrasul de cont. Caută după cod, email sau CUI, verifică suma în bancă, apoi activează — durata se calculează automat din câte luni a ales clientul.
+  </div>
+  <input id="paymentSearch" type="text" placeholder="Caută după cod, email, CUI sau denumire firmă…"
+    style="width:100%;max-width:420px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:12px">
+  <table id="paymentsTable" style="display:none;margin-bottom:32px">
+    <thead>
+      <tr><th>Cod plată</th><th>Client</th><th>CUI</th><th>Luni declarate</th><th>Sumă</th><th>Declarat la</th><th>Abonament curent</th><th>Acțiune</th></tr>
+    </thead>
+    <tbody id="paymentsBody"></tbody>
+  </table>
+  <div id="paymentsEmpty" style="display:none;color:#6b7280;font-size:14px;margin-bottom:32px">Nicio plată declarată în așteptare.</div>
+
   <table id="usersTable" style="display:none">
     <thead>
-      <tr><th>Email</th><th>Creat</th><th>Abonament</th><th>Rol</th><th>Pagină publică</th></tr>
+      <tr><th>Email</th><th>Creat</th><th>Abonament</th><th>Rol</th><th>Pagină publică</th><th>Transfer bancar</th></tr>
     </thead>
     <tbody id="usersBody"></tbody>
   </table>
@@ -132,10 +147,110 @@ async function loadFeedback(){
   }catch(e){}
 }
 
+let ALL_PAYMENTS = [];
+
+function renderPayments(list){
+  const body = document.getElementById("paymentsBody");
+  const table = document.getElementById("paymentsTable");
+  const empty = document.getElementById("paymentsEmpty");
+
+  if (!ALL_PAYMENTS.length){
+    // Nicio plată declarată, nici măcar înainte de filtrare — arătăm mesajul gol.
+    table.style.display = "none";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  table.style.display = "table";
+
+  if (!list.length){
+    // Există plăți, dar căutarea curentă nu găsește niciuna.
+    body.innerHTML = `<tr><td colspan="8" style="color:#9ca3af">Niciun rezultat pentru căutarea curentă.</td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(u => `
+    <tr data-id="${u.id}">
+      <td style="font-family:monospace;font-weight:600">${u.paymentCode || "—"}</td>
+      <td>${u.email}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${u.businessName}</span>` : ""}</td>
+      <td>${u.cui || "—"}</td>
+      <td>${u.declaredMonths ? `${u.declaredMonths} ${u.declaredMonths===1?"lună":"luni"}` : "—"}</td>
+      <td>${u.declaredAmountRon ? `${u.declaredAmountRon} RON` : "—"}</td>
+      <td>${fmtDate(u.declaredAt)}</td>
+      <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
+      <td><button class="btn sm activatePaymentBtn" data-id="${u.id}" data-email="${u.email}" data-months="${u.declaredMonths || ""}">Activează${u.declaredMonths ? ` (${u.declaredMonths} luni)` : ""}</button></td>
+    </tr>
+  `).join("");
+  document.querySelectorAll(".activatePaymentBtn").forEach(btn => {
+    btn.onclick = async () => {
+      const months = btn.dataset.months;
+      const label = months ? `${months} luni` : "durata declarată";
+      if (!confirm(`Ai confirmat în extrasul de cont plata cu codul de mai sus pentru ${btn.dataset.email}? Se activează accesul pentru ${label}.`)) return;
+      btn.disabled = true;
+      btn.textContent = "Se activează…";
+      try{
+        const res = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({}),
+        });
+        if (!res.ok){
+          const d = await res.json().catch(()=>({}));
+          if (d.error === "days_required_no_declaration"){
+            const custom = prompt("Acest client nu are o declarație de luni. Introdu manual câte zile de acces acorzi:");
+            const days = Number(custom);
+            if (!Number.isFinite(days) || days <= 0) throw new Error("cancelled");
+            const res2 = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ days }),
+            });
+            if (!res2.ok) throw new Error("eroare");
+          } else {
+            throw new Error("eroare");
+          }
+        }
+        await loadPaymentDeclarations();
+        await load();
+      }catch(e){
+        if (e.message !== "cancelled"){
+          alert("Activarea a eșuat. Încearcă din nou.");
+        }
+        btn.disabled = false;
+        btn.textContent = `Activează${months ? ` (${months} luni)` : ""}`;
+      }
+    };
+  });
+}
+
+async function loadPaymentDeclarations(){
+  try{
+    const res = await fetch("/api/admin/payment-declarations", { credentials: "include" });
+    if (!res.ok) return;
+    const { users } = await res.json();
+    ALL_PAYMENTS = users;
+    renderPayments(ALL_PAYMENTS);
+  }catch(e){}
+}
+
+document.getElementById("paymentSearch").oninput = (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q){ renderPayments(ALL_PAYMENTS); return; }
+  const filtered = ALL_PAYMENTS.filter(u =>
+    (u.paymentCode||"").toLowerCase().includes(q) ||
+    (u.email||"").toLowerCase().includes(q) ||
+    (u.cui||"").toLowerCase().includes(q) ||
+    (u.businessName||"").toLowerCase().includes(q)
+  );
+  renderPayments(filtered);
+};
+
 async function load(){
   const errBox = document.getElementById("errBox");
   loadChangelogPreview();
   loadFeedback();
+  loadPaymentDeclarations();
   try{
     const [statsRes, usersRes] = await Promise.all([
       fetch("/api/admin/stats", { credentials: "include" }),
@@ -164,15 +279,38 @@ async function load(){
 
     const body = document.getElementById("usersBody");
     body.innerHTML = users.map(u => `
-      <tr>
+      <tr data-id="${u.id}">
         <td>${u.email}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${u.businessName}</span>` : ""}</td>
         <td>${fmtDate(u.createdAt)}</td>
-        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span></td>
+        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
         <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? "membru echipă" : "client")}</td>
         <td>${u.publicPageEnabled ? "da" : "—"}</td>
+        <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${u.id}" data-email="${u.email}">Activează 30 zile</button>`}</td>
       </tr>
     `).join("");
     document.getElementById("usersTable").style.display = "table";
+
+    document.querySelectorAll(".activateBtn").forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm(`Ai confirmat în extrasul de cont că ${btn.dataset.email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.`)) return;
+        btn.disabled = true;
+        btn.textContent = "Se activează…";
+        try {
+          const res = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ days: 30 }),
+          });
+          if (!res.ok) throw new Error("eroare");
+          await load();
+        } catch (e) {
+          alert("Activarea a eșuat. Încearcă din nou.");
+          btn.disabled = false;
+          btn.textContent = "Activează 30 zile";
+        }
+      };
+    });
   }catch(e){
     errBox.textContent = "Nu am putut încărca datele de administrare.";
     errBox.style.display = "block";
