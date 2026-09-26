@@ -129,6 +129,7 @@ a{color:var(--accent)}
 .syncDot{width:6px;height:6px;border-radius:99px;background:var(--sidebar-ink-soft);flex:none}
 .syncDot.on{background:var(--accent-2);box-shadow:0 0 0 3px var(--accent-2-soft)}
 .syncDot.pending{background:var(--amber)}
+.syncDot.error,.syncDot.conflict{background:#d0332c;box-shadow:0 0 0 3px rgba(208,51,44,.2)}
 .navbtn{
   display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:none;
   background:transparent;color:var(--sidebar-ink-soft);text-align:left;font-size:13px;font-weight:500;
@@ -512,6 +513,11 @@ tbody tr{transition:background .12s ease}
   <button class="btn sm ghost" id="logoutBtn">Deconectare</button>
 </div>
 
+<div id="conflictBanner" hidden style="position:fixed;top:0;left:0;right:0;z-index:300;background:#d0332c;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:14px;font-size:14px">
+  <span>⚠️ Datele au fost modificate între timp dintr-o altă sesiune sau de un coleg din echipă. Modificările tale recente nu au fost salvate.</span>
+  <button id="conflictReloadBtn" class="btn sm" style="background:#fff;color:#d0332c;border:none">Reîncarcă pagina</button>
+</div>
+
 <div id="changelogOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">
   <div class="card" style="max-width:480px;width:100%;max-height:80vh;overflow:auto">
     <div class="pad stack">
@@ -832,7 +838,7 @@ function persistRecipes(){ scheduleApiSave(); }
 function persistBatches(){ scheduleApiSave(); }
 
 /* ---- Cont & sincronizare (server propriu, contul tău cu email/parolă + abonament) ---- */
-const cloud = { status:"local", saveTimer:null, email:"", isTeamMember:false, teamOwnerEmail:"", termsVersion:"", termsAcceptedAt:"", marketingConsent:false };
+const cloud = { status:"local", saveTimer:null, email:"", isTeamMember:false, teamOwnerEmail:"", termsVersion:"", termsAcceptedAt:"", marketingConsent:false, lastKnownUpdatedAt:null };
 
 async function api(path, opts){
   return fetch("/api"+path, Object.assign({
@@ -867,6 +873,9 @@ async function boot(){
     if (d.costState) costState = d.costState;
     if (Array.isArray(d.sales)) sales = d.sales;
     if (d.lyeState) lyeState = d.lyeState;
+    cloud.lastKnownUpdatedAt = d.updatedAt || null;
+    const conflictReloadBtn = document.getElementById("conflictReloadBtn");
+    if (conflictReloadBtn) conflictReloadBtn.onclick = ()=>window.location.reload();
 
     if (state.recipes.length === 0) state.recipes.push(sampleRecipe());
     if (!state.activeRecipeId || !state.recipes.find(r=>r.id===state.activeRecipeId)){
@@ -972,28 +981,70 @@ function scheduleApiSave(){
   clearTimeout(cloud.saveTimer);
   cloud.saveTimer = setTimeout(pushApiSave, 900);
 }
+function currentDataSnapshot(){
+  return {
+    recipes: state.recipes,
+    batches: state.batches,
+    customIngredients,
+    products,
+    ingredientPrices,
+    stock,
+    costState,
+    sales,
+    lyeState,
+    expectedUpdatedAt: cloud.lastKnownUpdatedAt,
+  };
+}
+/* Salvează acum, fără să mai aștepte debounce-ul de 900ms — folosit de
+   butoanele explicite de "Salvează" (ca să nu arate "Salvat ✓" înainte ca
+   serverul să fi confirmat efectiv) și la închiderea/ascunderea paginii, ca
+   să nu se piardă o modificare abia făcută. Întoarce "on", "conflict" sau
+   "error" — niciodată nu aruncă. */
 async function pushApiSave(){
+  clearTimeout(cloud.saveTimer);
   try{
-    const res = await api("/data", {
-      method: "PUT",
-      body: JSON.stringify({
-        recipes: state.recipes,
-        batches: state.batches,
-        customIngredients,
-        products,
-        ingredientPrices,
-        stock,
-        costState,
-        sales,
-        lyeState,
-      }),
-    });
-    cloud.status = res.ok ? "on" : "error";
+    const res = await api("/data", { method: "PUT", body: JSON.stringify(currentDataSnapshot()) });
+    if (res.status === 409){
+      cloud.status = "conflict";
+      const banner = document.getElementById("conflictBanner");
+      if (banner) banner.hidden = false;
+    } else if (res.ok){
+      const body = await res.json().catch(()=>({}));
+      if (body.updatedAt) cloud.lastKnownUpdatedAt = body.updatedAt;
+      cloud.status = "on";
+    } else {
+      cloud.status = "error";
+    }
   }catch(e){
     cloud.status = "error";
   }
   renderSidebar();
+  return cloud.status;
 }
+async function flushSaveNow(){
+  return await pushApiSave();
+}
+/* Ultimă șansă de salvare când pagina se ascunde/închide — dacă mai era o
+   modificare în așteptare (debounce-ul de 900ms încă nu se declanșase),
+   trimitem oricum, cu "keepalive" ca cererea să continue chiar dacă tab-ul
+   se închide chiar acum. Nu mai putem trata un eventual conflict la acest
+   punct (pagina poate dispărea înainte să vină răspunsul) — dar tot e mai
+   bine decât să pierdem modificarea complet, fără nicio încercare. */
+function flushBeforeUnload(){
+  if (cloud.status !== "pending") return;
+  try{
+    clearTimeout(cloud.saveTimer);
+    fetch("/api/data", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      credentials: "same-origin",
+      keepalive: true,
+      body: JSON.stringify(currentDataSnapshot()),
+    });
+  }catch(e){ /* best-effort — nu mai avem ce face dacă și asta eșuează */ }
+}
+document.addEventListener("visibilitychange", ()=>{ if (document.hidden) flushBeforeUnload(); });
+window.addEventListener("pagehide", flushBeforeUnload);
 
 async function openBillingPortal(){
   const CARD_PORTAL_UNAVAILABLE_MSG =
@@ -1109,7 +1160,8 @@ function renderSidebar(){
 function syncBadgeHtml(){
   if (cloud.status==="on") return `<div class="syncBadge"><span class="syncDot on"></span>Sincronizat în contul tău — vezi datele pe orice dispozitiv</div>`;
   if (cloud.status==="pending") return `<div class="syncBadge"><span class="syncDot pending"></span>Se sincronizează…</div>`;
-  if (cloud.status==="error") return `<div class="syncBadge"><span class="syncDot"></span>Doar pe acest dispozitiv (sincronizarea nu a pornit)</div>`;
+  if (cloud.status==="conflict") return `<div class="syncBadge"><span class="syncDot conflict"></span>Conflict — reîncarcă pagina</div>`;
+  if (cloud.status==="error") return `<div class="syncBadge"><span class="syncDot error"></span>Doar pe acest dispozitiv (sincronizarea nu a pornit)</div>`;
   return `<div class="syncBadge"><span class="syncDot"></span>Doar pe acest dispozitiv</div>`;
 }
 function renderMobileTabs(){
@@ -1313,12 +1365,12 @@ function viewStoc(){
           return `
           <tr>
             <td>${ing.ro}${ing.custom?' <span class="chip accent">personalizat</span>':''}${low?' <span class="chip danger">sub prag</span>':''}</td>
-            <td><input type="number" class="stockRowQty" data-ing="${ing.id}" value="${st.qty||0}" min="0" step="1" style="width:80px;padding:6px 8px"></td>
-            <td><input type="number" class="stockRowMin" data-ing="${ing.id}" value="${st.minQty||0}" min="0" step="1" style="width:80px;padding:6px 8px"></td>
+            <td><input type="text" inputmode="decimal" class="stockRowQty" data-ing="${ing.id}" value="${st.qty||0}" style="width:80px;padding:6px 8px" onfocus="this.select()"></td>
+            <td><input type="text" inputmode="decimal" class="stockRowMin" data-ing="${ing.id}" value="${st.minQty||0}" style="width:80px;padding:6px 8px" onfocus="this.select()"></td>
             <td class="mono">${(ingredientPrices[ing.id]||0).toFixed(2)}</td>
             <td class="mono">${value.toFixed(2)} lei</td>
-            <td><input type="text" class="stockRowSupplier" data-ing="${ing.id}" value="${escAttr(st.supplier||'')}" style="width:110px;padding:6px 8px"></td>
-            <td><input type="text" class="stockRowLot" data-ing="${ing.id}" value="${escAttr(st.lot||'')}" style="width:110px;padding:6px 8px"></td>
+            <td><input type="text" class="stockRowSupplier" data-ing="${ing.id}" value="${escAttr(st.supplier||'')}" style="width:110px;padding:6px 8px" onfocus="this.select()"></td>
+            <td><input type="text" class="stockRowLot" data-ing="${ing.id}" value="${escAttr(st.lot||'')}" style="width:110px;padding:6px 8px" onfocus="this.select()"></td>
           </tr>`;
         }).join("") || `<tr><td colspan="7" class="empty">Niciun rezultat.</td></tr>`}
       </tbody>
@@ -1387,14 +1439,14 @@ function viewIngrediente(){
           <h3 style="font-size:13px">Stoc & furnizor</h3>
           ${(()=>{ const st = stockOf(sel.id); return `
           <div class="grid2">
-            <div><label>Stoc curent (g)</label><input type="number" id="stockQty" min="0" step="1" value="${st.qty||0}"></div>
-            <div><label>Preț implicit (lei/kg)</label><input type="number" id="stockPrice" min="0" step="0.5" value="${defaultPrice(sel.id)||''}"></div>
+            <div><label>Stoc curent (g)</label><input type="number" id="stockQty" min="0" step="1" value="${st.qty||0}" onfocus="this.select()"></div>
+            <div><label>Preț implicit (lei/kg)</label><input type="number" id="stockPrice" min="0" step="0.5" value="${defaultPrice(sel.id)||''}" onfocus="this.select()"></div>
           </div>
           <div class="grid2">
-            <div><label>Furnizor</label><input type="text" id="stockSupplier" value="${escAttr(st.supplier||'')}" placeholder="ex. Naturala SRL"></div>
-            <div><label>Lot furnizor curent</label><input type="text" id="stockLot" value="${escAttr(st.lot||'')}" placeholder="ex. LOT-2026-08"></div>
+            <div><label>Furnizor</label><input type="text" id="stockSupplier" value="${escAttr(st.supplier||'')}" placeholder="ex. Naturala SRL" onfocus="this.select()"></div>
+            <div><label>Lot furnizor curent</label><input type="text" id="stockLot" value="${escAttr(st.lot||'')}" placeholder="ex. LOT-2026-08" onfocus="this.select()"></div>
           </div>
-          <div><label>Prag minim stoc (g) — alertă pe dashboard sub acest nivel</label><input type="number" id="stockMinQty" min="0" step="1" value="${st.minQty||0}"></div>
+          <div><label>Prag minim stoc (g) — alertă pe dashboard sub acest nivel</label><input type="number" id="stockMinQty" min="0" step="1" value="${st.minQty||0}" onfocus="this.select()"></div>
           <button class="btn sm" id="saveStockBtn">Salvează stoc & furnizor</button>
           `;})()}
         </div>
@@ -1421,7 +1473,7 @@ function renderCustomForm(){
           <option value="tehnic">tehnic</option>
         </select>
       </div>
-      <div><label>Concentrație max. (%)</label><input type="number" id="cfMaxPct" placeholder="lasă gol dacă nu știi" step="0.1" min="0"></div>
+      <div><label>Concentrație max. (%)</label><input type="number" id="cfMaxPct" placeholder="lasă gol dacă nu știi" step="0.1" min="0" onfocus="this.select()"></div>
     </div>
     <div><label>Funcție</label><input type="text" id="cfFunctie" placeholder="ex. Emolient"></div>
     <div class="row"><label style="margin:0"><input type="checkbox" id="cfAlergen" style="width:auto;margin-right:6px">Conține alergeni de parfum (Anexa III)</label></div>
@@ -1495,7 +1547,7 @@ function viewReteta(){
           <select id="quickAddSelect" style="max-width:260px">
             ${allIngredients().map(i=>`<option value="${i.id}">${i.ro}${i.custom?' (personalizat)':''}</option>`).join("")}
           </select>
-          <input type="number" id="quickAddGrams" placeholder="grame" style="max-width:90px" min="0" step="0.1" value="10">
+          <input type="number" id="quickAddGrams" placeholder="grame" style="max-width:90px" min="0" step="0.1" value="10" onfocus="this.select()">
           <button class="btn sm primary" id="quickAddBtn">+ Adaugă</button>
         </div>
         <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">
@@ -1522,13 +1574,13 @@ function viewReteta(){
         <h3 style="font-size:14px">Scalează rețeta</h3>
         <div class="hint">Păstrează proporțiile, dar recalculează gramajele pentru un lot mai mare sau mai mic.</div>
         <div class="row">
-          <input type="number" id="scaleTarget" placeholder="ex. 500" min="0" step="0.1" style="max-width:110px">
+          <input type="number" id="scaleTarget" placeholder="ex. 500" min="0" step="0.1" style="max-width:110px" onfocus="this.select()">
           <span class="hint">g total (acum: ${fmt(totals.total)}g)</span>
         </div>
         <div class="row">
-          <input type="number" id="scaleUnits" placeholder="nr. bucăți" min="1" step="1" style="max-width:100px">
+          <input type="number" id="scaleUnits" placeholder="nr. bucăți" min="1" step="1" style="max-width:100px" onfocus="this.select()">
           <span class="hint">×</span>
-          <input type="number" id="scaleUnitWeight" placeholder="g / bucată" min="0" step="0.1" style="max-width:100px">
+          <input type="number" id="scaleUnitWeight" placeholder="g / bucată" min="0" step="0.1" style="max-width:100px" onfocus="this.select()">
         </div>
         <button class="btn sm primary" id="scaleBtn">Aplică scalarea</button>
       </div></div>
@@ -1579,7 +1631,7 @@ function renderRecipeItem(it, totals){
       ${lowStock ? `<div class="chip danger" style="margin-top:4px">stoc insuficient: ${fmt(st.qty)}g din ${fmt(it.grams)}g necesare</div>` : ""}
     </div>
     <div class="mono" style="text-align:right;font-size:12.5px">${pct.toFixed(2)}%</div>
-    <input type="number" class="itemGrams" data-item="${it.id}" value="${it.grams}" min="0" step="0.1" style="padding:6px 8px">
+    <input type="text" inputmode="decimal" class="itemGrams" data-item="${it.id}" value="${it.grams}" style="padding:6px 8px" onfocus="this.select()">
     <button class="btn sm ghost danger itemRemove" data-item="${it.id}" title="Elimină">✕</button>
   </div>`;
 }
@@ -1665,8 +1717,8 @@ function viewLesie(){
         </select>
       </div>
       <div class="grid2">
-        <div><label>Superfat / discount leșie (%)</label><input type="number" id="lyeSuperfat" min="0" max="30" step="0.5" value="${lyeState.superfat}"></div>
-        <div><label>Apă (% din greutatea uleiurilor)</label><input type="number" id="lyeWaterPct" min="0" max="100" step="1" value="${lyeState.waterPct}"></div>
+        <div><label>Superfat / discount leșie (%)</label><input type="text" inputmode="decimal" id="lyeSuperfat" value="${lyeState.superfat}" onfocus="this.select()"></div>
+        <div><label>Apă (% din greutatea uleiurilor)</label><input type="text" inputmode="decimal" id="lyeWaterPct" value="${lyeState.waterPct}" onfocus="this.select()"></div>
       </div>
       <p class="hint">Superfat = procent de uleiuri lăsate nesaponificate, pentru un săpun mai blând (5-8% e uzual). Apa e exprimată ca procent din greutatea totală a uleiurilor (o concentrație de leșie tipică — 33-40% — corespunde la 38% apă/ulei implicit).</p>
     </div></div>
@@ -1830,7 +1882,7 @@ function viewCost(){
               <tr>
                 <td>${ing?ing.ro:'?'}</td>
                 <td class="mono">${fmt(it.grams)}g</td>
-                <td><input type="number" class="itemPrice mono" data-item="${it.id}" value="${it.price||0}" min="0" step="0.5" style="width:90px;padding:6px 8px"></td>
+                <td><input type="text" inputmode="decimal" class="itemPrice mono" data-item="${it.id}" value="${it.price||0}" style="width:90px;padding:6px 8px" onfocus="this.select()"></td>
                 <td class="mono">${cost.toFixed(2)} lei</td>
               </tr>`).join("") || `<tr><td colspan="4" class="empty">Rețeta nu are ingrediente.</td></tr>`}
           </tbody>
@@ -1842,11 +1894,11 @@ function viewCost(){
       <div class="card"><div class="pad stack">
         <div class="statTile"><div class="num">${totalCost.toFixed(2)} lei</div><div class="lbl">cost total materie primă / lot</div></div>
         <div class="grid2">
-          <div><label>Nr. unități din acest lot</label><input type="number" id="costUnits" min="1" step="1" value="${costState.units}"></div>
-          <div><label>Marjă țintă (%)</label><input type="number" id="costMargin" min="0" step="5" value="${costState.margin}"></div>
+          <div><label>Nr. unități din acest lot</label><input type="text" inputmode="decimal" id="costUnits" value="${costState.units}" onfocus="this.select()"></div>
+          <div><label>Marjă țintă (%)</label><input type="text" inputmode="decimal" id="costMargin" value="${costState.margin}" onfocus="this.select()"></div>
         </div>
         <div class="kv"><span class="k">Cost materie primă / unitate</span><span class="v mono">${(totalCost/Math.max(1,costState.units)).toFixed(2)} lei</span></div>
-        <div class="kv"><span class="k">+ ambalaj &amp; etichetă (estimat)</span><span class="v"><input type="number" id="costPackaging" min="0" step="0.5" value="${costState.packaging}" style="width:80px;padding:4px 6px"></span></div>
+        <div class="kv"><span class="k">+ ambalaj &amp; etichetă (estimat)</span><span class="v"><input type="text" inputmode="decimal" id="costPackaging" value="${costState.packaging}" style="width:80px;padding:4px 6px" onfocus="this.select()"></span></div>
         <div class="kv"><span class="k">Cost total / unitate</span><span class="v mono">${unitCostTotal(totalCost).toFixed(2)} lei</span></div>
         <div class="kv" style="border-top:1px solid var(--line);padding-top:10px;margin-top:2px"><span class="k" style="font-weight:600;color:var(--ink)">Preț de vânzare sugerat</span><span class="v mono" style="font-weight:600;font-size:15px;color:var(--accent)">${suggestedPrice(totalCost).toFixed(2)} lei</span></div>
         <div class="hint">Preț sugerat = (cost materie primă + ambalaj) / unitate, majorat cu marja țintă. Nu include manoperă, CPNP/dosar de siguranță, TVA sau costuri fixe (chirie, utilități) — adaugă-le separat pentru o marjă reală.</div>
@@ -1884,12 +1936,12 @@ function viewJurnal(){
       </div>
       <div class="grid2">
         <div><label>Cantitate produsă (g/ml sau bucăți)</label><input type="text" id="batchQty" placeholder="ex. 480 g / 24 buc"></div>
-        <div><label>Valabilitate (luni)</label><input type="number" id="batchShelfMonths" min="0" step="1" placeholder="ex. 12"></div>
+        <div><label>Valabilitate (luni)</label><input type="number" id="batchShelfMonths" min="0" step="1" placeholder="ex. 12" onfocus="this.select()"></div>
       </div>
       <div><label>Observații</label><textarea id="batchNotes" placeholder="lot de test, ajustări de rețetă, sursă ingrediente etc."></textarea></div>
       <div class="row"><label style="margin:0"><input type="checkbox" id="batchDeductStock" style="width:auto;margin-right:6px" checked>Scade automat din stocul de materii prime</label></div>
-      <div><label>Cantitate materie primă folosită / planificată (g)</label><input type="number" id="batchStockGrams" min="0" step="0.1" placeholder="ex. 480"></div>
-      <div><label>Cantitate obținută efectiv (g) — după turnare/uscare, opțional</label><input type="number" id="batchYieldQty" min="0" step="0.1" placeholder="ex. 462"></div>
+      <div><label>Cantitate materie primă folosită / planificată (g)</label><input type="number" id="batchStockGrams" min="0" step="0.1" placeholder="ex. 480" onfocus="this.select()"></div>
+      <div><label>Cantitate obținută efectiv (g) — după turnare/uscare, opțional</label><input type="number" id="batchYieldQty" min="0" step="0.1" placeholder="ex. 462" onfocus="this.select()"></div>
       <p class="hint">„Materie primă folosită” se scade din stoc (dacă bifezi) proporțional cu rețeta, și se reține furnizorul/lotul curent pentru trasabilitate. Dacă completezi și „cantitate obținută efectiv”, aplicația calculează randamentul lotului (obținut / materie primă folosită).</p>
       <button class="btn primary" id="addBatchBtn">Salvează lot</button>
     </div></div>
@@ -2011,7 +2063,7 @@ function viewProductEditor(p){
     <div class="card"><div class="pad stack">
       <div><label>Nume produs</label><input type="text" id="pName" value="${escAttr(p.name)}" placeholder="ex. Balsam de buze — cătină, 15ml"></div>
       <div class="grid2">
-        <div><label>Preț de vânzare (lei)</label><input type="number" id="pPrice" min="0" step="0.5" value="${p.price||''}"></div>
+        <div><label>Preț de vânzare (lei)</label><input type="number" id="pPrice" min="0" step="0.5" value="${p.price||''}" onfocus="this.select()"></div>
         <div><label>Rețeta folosită</label>
           <select id="pRecipe">
             <option value="">— fără legătură —</option>
@@ -2020,8 +2072,8 @@ function viewProductEditor(p){
         </div>
       </div>
       <div class="grid2">
-        <div><label>Stoc produs finit (bucăți)</label><input type="number" id="pStockQty" min="0" step="1" value="${p.stockQty||0}"></div>
-        <div><label>Cost estimat / bucată (lei)</label><input type="number" id="pCostPerUnit" min="0" step="0.1" value="${p.costPerUnit||''}" placeholder="din tab Cost"></div>
+        <div><label>Stoc produs finit (bucăți)</label><input type="number" id="pStockQty" min="0" step="1" value="${p.stockQty||0}" onfocus="this.select()"></div>
+        <div><label>Cost estimat / bucată (lei)</label><input type="number" id="pCostPerUnit" min="0" step="0.1" value="${p.costPerUnit||''}" placeholder="din tab Cost" onfocus="this.select()"></div>
       </div>
       <div><label>Descriere / notițe</label><textarea id="pNotes" placeholder="ingrediente cheie, ambalaj, unde se vinde…">${escHtml(p.notes||"")}</textarea></div>
       <div class="row"><label style="margin:0"><input type="checkbox" id="pPublicVisible" style="width:auto;margin-right:6px" ${p.publicVisible?"checked":""}>Vizibil pe pagina publică</label></div>
@@ -2045,9 +2097,9 @@ function viewProductEditor(p){
   <div class="card" style="margin-top:16px"><div class="pad stack">
     <h3 style="font-size:14px">Înregistrează o vânzare</h3>
     <div class="grid3">
-      <div><label>Bucăți vândute</label><input type="number" id="saleQty" min="1" step="1" value="1"></div>
-      <div><label>Preț / bucată (lei)</label><input type="number" id="salePrice" min="0" step="0.5" value="${p.price||0}"></div>
-      <div><label>Cost / bucată (lei)</label><input type="number" id="saleCost" min="0" step="0.1" value="${p.costPerUnit||0}"></div>
+      <div><label>Bucăți vândute</label><input type="number" id="saleQty" min="1" step="1" value="1" onfocus="this.select()"></div>
+      <div><label>Preț / bucată (lei)</label><input type="number" id="salePrice" min="0" step="0.5" value="${p.price||0}" onfocus="this.select()"></div>
+      <div><label>Cost / bucată (lei)</label><input type="number" id="saleCost" min="0" step="0.1" value="${p.costPerUnit||0}" onfocus="this.select()"></div>
     </div>
     <button class="btn primary sm" id="registerSaleBtn">Înregistrează vânzarea (scade din stoc)</button>
     <p class="hint">Scade cantitatea din stocul produsului finit și adaugă intrarea la tab-ul „Rapoarte”, pentru calculul veniturilor/profitului.</p>
@@ -2518,7 +2570,7 @@ function wireEvents(){
     renderMain();
   };
   const saveStockBtn = document.getElementById("saveStockBtn");
-  if (saveStockBtn) saveStockBtn.onclick = ()=>{
+  if (saveStockBtn) saveStockBtn.onclick = async ()=>{
     const id = state.ingSelected;
     stock[id] = {
       qty: Number(document.getElementById("stockQty").value||0),
@@ -2529,7 +2581,8 @@ function wireEvents(){
     persistStock();
     const price = Number(document.getElementById("stockPrice").value||0);
     if (price>0) rememberPrice(id, price);
-    saveStockBtn.textContent = "Salvat ✓";
+    const result = await flushSaveNow();
+    saveStockBtn.textContent = result === "conflict" ? "Conflict — reîncarcă pagina" : result === "error" ? "Eroare — încearcă din nou" : "Salvat ✓";
     setTimeout(()=>{ if(saveStockBtn) saveStockBtn.textContent = "Salvează stoc & furnizor"; }, 1200);
   };
   const exportIngTemplateBtn = document.getElementById("exportIngTemplateBtn");
