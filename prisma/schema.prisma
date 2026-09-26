@@ -36,6 +36,24 @@ model User {
   subscriptionStatus   String    @default("none") // none | active | past_due | canceled
   currentPeriodEnd     DateTime?
 
+  // Cod de plată — generat o singură dată per client (ex: "HRB-K7F2QX"),
+  // stabil pe toată durata contului. Folosit ca referință UNICĂ la orice
+  // metodă de plată (transfer bancar acum; Stripe/Netopia pe viitor, prin
+  // metadata/descrierea comenzii) — ca să identifici fără ambiguitate cine a
+  // plătit, indiferent ce nume/email scrie clientul efectiv pe transfer.
+  // Vezi src/routes/billing.js (ensurePaymentCode) și panoul de admin.
+  paymentCode String? @unique
+
+  // "Declarația" de plată prin transfer bancar: clientul alege pe pagina de
+  // abonament pentru câte luni vrea să plătească, iar aplicația reține aici
+  // ce a declarat (fără să confirme că a plătit efectiv — asta o faci TU,
+  // manual, în panoul de admin, după ce vezi banii în extrasul de cont).
+  // Se resetează (null) după ce activezi manual abonamentul pe baza acestei
+  // declarații, ca să nu rămână "agățată" pentru reînnoirea următoare.
+  declaredMonths    Int?
+  declaredAmountRon Int?
+  declaredAt        DateTime?
+
   // Retenție date (art. 5 alin. (1) lit. e) GDPR — limitarea stocării): data
   // la care abonamentul a fost anulat (webhook Stripe customer.subscription.deleted).
   // Un job zilnic (src/retention.js) șterge definitiv contul dacă rămâne
