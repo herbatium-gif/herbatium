@@ -472,6 +472,33 @@ tbody tr{transition:background .12s ease}
 @media (max-width:860px){
   .pageTitle{font-size:19px}
 }
+
+/* ===== fix mobil: bara de sus (.topbar) ieșea din ecran pe telefon ===== */
+@media (max-width:860px){
+  body{overflow-x:hidden}
+  .topbar{
+    flex-wrap:wrap;
+    justify-content:center;
+    row-gap:6px;
+    padding:8px 12px;
+  }
+  .topbar .email{
+    flex:1 1 100%;
+    margin-right:0;
+    text-align:center;
+    font-size:11px;
+  }
+  .topbar .btn.sm{
+    padding:6px 10px;
+    font-size:11px;
+  }
+}
+@media (max-width:400px){
+  .topbar .btn.sm{
+    padding:5px 8px;
+    font-size:10px;
+  }
+}
 </style>
 </head>
 <body>
@@ -969,13 +996,15 @@ async function pushApiSave(){
 }
 
 async function openBillingPortal(){
+  const CARD_PORTAL_UNAVAILABLE_MSG =
+    "Portalul de facturare e disponibil doar pentru plățile cu cardul (Stripe sau Netopia, în funcție de ce metodă foloseai la abonare) — nu are legătură cu transferul bancar. Dacă plătești prin transfer bancar, gestionarea abonamentului (activare, reînnoire) se face direct de către noi, nu prin acest buton.";
   try{
     const res = await api("/billing/portal", {method:"POST"});
     const d = await res.json();
     if (d.url) window.location.href = d.url;
-    else alert("Nu am putut deschide portalul de facturare.");
+    else alert(CARD_PORTAL_UNAVAILABLE_MSG);
   }catch(e){
-    alert("Nu am putut deschide portalul de facturare.");
+    alert(CARD_PORTAL_UNAVAILABLE_MSG);
   }
 }
 async function doLogout(){

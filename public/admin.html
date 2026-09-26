@@ -43,6 +43,7 @@
     <span id="sendChangelogStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
   </div>
   <div id="errBox" class="errBox" style="display:none"></div>
+  <div id="legalStatusBanner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13.5px; line-height:1.5"></div>
 
   <h2 style="margin:32px 0 12px">Panou de activări licențe</h2>
   <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280">
@@ -52,11 +53,22 @@
     style="width:100%;max-width:420px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:12px">
   <table id="paymentsTable" style="display:none;margin-bottom:32px">
     <thead>
-      <tr><th>Cod plată</th><th>Client</th><th>CUI</th><th>Luni declarate</th><th>Sumă</th><th>Declarat la</th><th>Abonament curent</th><th>Acțiune</th></tr>
+      <tr><th>Cod plată</th><th>Client</th><th>CUI</th><th>Tip client</th><th>Luni declarate</th><th>Sumă</th><th>Declarat la</th><th>Abonament curent</th><th>Acțiune</th></tr>
     </thead>
     <tbody id="paymentsBody"></tbody>
   </table>
   <div id="paymentsEmpty" style="display:none;color:#6b7280;font-size:14px;margin-bottom:32px">Nicio plată declarată în așteptare.</div>
+
+  <h2 style="margin:32px 0 12px">Cerere scrisă de ștergere a datelor (Art. 17 GDPR)</h2>
+  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280">
+    Folosește DOAR după ce ai confirmat identitatea solicitantului (de regulă, cererea vine pe adresa de GDPR din e-mail). Șterge definitiv evidența anti-abuz (CUI/e-mail — prețul introductiv) și, dacă mai există, contul propriu-zis. Funcționează și dacă persoana nu mai are cont.
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; max-width:600px">
+    <input id="gdprEraseCui" type="text" placeholder="CUI (opțional dacă știi e-mailul)" style="flex:1; min-width:160px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
+    <input id="gdprEraseEmail" type="text" placeholder="E-mail (opțional dacă știi CUI-ul)" style="flex:1; min-width:200px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
+    <button class="btn sm" id="gdprEraseBtn">Șterge definitiv</button>
+  </div>
+  <div id="gdprEraseStatus" style="font-size:13px; color:#6b7280; margin-bottom:32px"></div>
 
   <table id="usersTable" style="display:none">
     <thead>
@@ -80,6 +92,15 @@ function fmtDate(s){
   const d = new Date(s);
   return d.toLocaleDateString("ro-RO");
 }
+// Escapare HTML — OBLIGATORIE pentru orice dată introdusă de utilizator
+// (email, denumire firmă, CUI, mesaj de feedback) înainte de a fi pusă în
+// innerHTML. Fără asta, un utilizator își poate înregistra contul cu un
+// email de forma "<img src=x onerror=...>@atac.com" (trece validarea de
+// bază din routes/auth.js, care nu interzice caractere HTML) și scriptul
+// rulează în sesiunea TA de admin, autentificată, când deschizi acest panou
+// — vezi app.html, care are exact aceeași funcție (escHtml) și o folosește
+// peste tot, din același motiv.
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 async function loadChangelogPreview(){
   try{
     const res = await fetch("/api/admin/changelog-latest", { credentials: "include" });
@@ -120,15 +141,15 @@ async function loadFeedback(){
       return;
     }
     document.getElementById("feedbackBody").innerHTML = items.map(f => `
-      <tr data-id="${f.id}">
+      <tr data-id="${esc(f.id)}">
         <td>${fmtDate(f.createdAt)}</td>
-        <td>${f.email}</td>
-        <td>${CATEGORY_LABEL[f.category] || f.category}</td>
-        <td style="max-width:320px;white-space:pre-wrap">${(f.message||"").replace(/</g,"&lt;")}</td>
-        <td>${f.page || "—"}</td>
+        <td>${esc(f.email)}</td>
+        <td>${esc(CATEGORY_LABEL[f.category] || f.category)}</td>
+        <td style="max-width:320px;white-space:pre-wrap">${esc(f.message)}</td>
+        <td>${esc(f.page) || "—"}</td>
         <td>
-          <select class="fbStatus" data-id="${f.id}">
-            ${["nou","citit","rezolvat"].map(s=>`<option value="${s}" ${f.status===s?"selected":""}>${STATUS_LABEL[s]}</option>`).join("")}
+          <select class="fbStatus" data-id="${esc(f.id)}">
+            ${["nou","citit","rezolvat"].map(s=>`<option value="${s}" ${f.status===s?"selected":""}>${esc(STATUS_LABEL[s])}</option>`).join("")}
           </select>
         </td>
       </tr>
@@ -148,6 +169,11 @@ async function loadFeedback(){
 }
 
 let ALL_PAYMENTS = [];
+// Flag global (nu per-client) — dacă oferta de 99 lei mai e activă undeva în
+// aplicație acum; vine din server (billing.js: isIntroPricePromoActive()),
+// ca panoul de admin să nu mai arate un badge "nou — 99 lei/luna 1" înșelător
+// după 10.10.2026.
+let INTRO_PROMO_ACTIVE = true;
 
 function renderPayments(list){
   const body = document.getElementById("paymentsBody");
@@ -165,19 +191,24 @@ function renderPayments(list){
 
   if (!list.length){
     // Există plăți, dar căutarea curentă nu găsește niciuna.
-    body.innerHTML = `<tr><td colspan="8" style="color:#9ca3af">Niciun rezultat pentru căutarea curentă.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="9" style="color:#9ca3af">Niciun rezultat pentru căutarea curentă.</td></tr>`;
     return;
   }
   body.innerHTML = list.map(u => `
-    <tr data-id="${u.id}">
-      <td style="font-family:monospace;font-weight:600">${u.paymentCode || "—"}</td>
-      <td>${u.email}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${u.businessName}</span>` : ""}</td>
-      <td>${u.cui || "—"}</td>
+    <tr data-id="${esc(u.id)}">
+      <td style="font-family:monospace;font-weight:600">${esc(u.paymentCode) || "—"}</td>
+      <td>${esc(u.email)}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${esc(u.businessName)}</span>` : ""}</td>
+      <td>${esc(u.cui) || "—"}</td>
+      <td>${u.hasEverSubscribed
+          ? `<span class="badge none">existent</span>`
+          : (INTRO_PROMO_ACTIVE
+              ? `<span class="badge active">nou — 99 lei/luna 1</span>`
+              : `<span class="badge active">nou</span>`)}</td>
       <td>${u.declaredMonths ? `${u.declaredMonths} ${u.declaredMonths===1?"lună":"luni"}` : "—"}</td>
       <td>${u.declaredAmountRon ? `${u.declaredAmountRon} RON` : "—"}</td>
       <td>${fmtDate(u.declaredAt)}</td>
-      <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
-      <td><button class="btn sm activatePaymentBtn" data-id="${u.id}" data-email="${u.email}" data-months="${u.declaredMonths || ""}">Activează${u.declaredMonths ? ` (${u.declaredMonths} luni)` : ""}</button></td>
+      <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
+      <td><button class="btn sm activatePaymentBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}" data-months="${esc(u.declaredMonths || "")}">Activează${u.declaredMonths ? ` (${esc(u.declaredMonths)} luni)` : ""}</button></td>
     </tr>
   `).join("");
   document.querySelectorAll(".activatePaymentBtn").forEach(btn => {
@@ -228,7 +259,8 @@ async function loadPaymentDeclarations(){
   try{
     const res = await fetch("/api/admin/payment-declarations", { credentials: "include" });
     if (!res.ok) return;
-    const { users } = await res.json();
+    const { users, introPromoActive } = await res.json();
+    if (typeof introPromoActive === "boolean") INTRO_PROMO_ACTIVE = introPromoActive;
     ALL_PAYMENTS = users;
     renderPayments(ALL_PAYMENTS);
   }catch(e){}
@@ -246,11 +278,58 @@ document.getElementById("paymentSearch").oninput = (e) => {
   renderPayments(filtered);
 };
 
+document.getElementById("gdprEraseBtn").onclick = async ()=>{
+  const cui = document.getElementById("gdprEraseCui").value.trim();
+  const email = document.getElementById("gdprEraseEmail").value.trim();
+  const status = document.getElementById("gdprEraseStatus");
+  if (!cui && !email){
+    status.textContent = "Completează cel puțin CUI-ul sau e-mailul.";
+    return;
+  }
+  if (!confirm(`Confirmi cererea de ștergere GDPR pentru ${cui || ""}${cui && email ? " / " : ""}${email || ""}? Operația e definitivă și ireversibilă.`)) return;
+  const btn = document.getElementById("gdprEraseBtn");
+  btn.disabled = true;
+  status.textContent = "Se procesează…";
+  try{
+    const res = await fetch("/api/admin/gdpr-erase", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ cui: cui || undefined, email: email || undefined }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || "eroare");
+    status.textContent = `Gata. Evidență anti-abuz ștearsă — CUI: ${d.historyResult.cuiDeleted}, e-mail: ${d.historyResult.emailDeleted}. Cont șters: ${d.accountDeleted || "nu exista niciunul"}.`;
+    document.getElementById("gdprEraseCui").value = "";
+    document.getElementById("gdprEraseEmail").value = "";
+    await loadPaymentDeclarations();
+  }catch(e){
+    status.textContent = "Cererea a eșuat. Încearcă din nou.";
+  }
+  btn.disabled = false;
+};
+
+async function loadLegalStatus(){
+  try{
+    const res = await fetch("/api/admin/legal-status", { credentials: "include" });
+    if (!res.ok) return;
+    const { missing } = await res.json();
+    const banner = document.getElementById("legalStatusBanner");
+    if (missing && missing.length){
+      banner.innerHTML = `⚠️ <strong>Datele firmei nu sunt complete</strong> — paginile publice de Termeni și Confidențialitate (/legal/...) afișează acum text „[completează: ...]” pentru: ${missing.map(m => esc(m.label)).join(", ")}. Completează ${missing.map(m => `<code>${esc(m.key)}</code>`).join(", ")} în variabilele de mediu din Railway înainte să trimiți linkul ăsta unui client real.`;
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
+  }catch(e){}
+}
+
 async function load(){
   const errBox = document.getElementById("errBox");
   loadChangelogPreview();
   loadFeedback();
   loadPaymentDeclarations();
+  loadLegalStatus();
   try{
     const [statsRes, usersRes] = await Promise.all([
       fetch("/api/admin/stats", { credentials: "include" }),
@@ -279,13 +358,13 @@ async function load(){
 
     const body = document.getElementById("usersBody");
     body.innerHTML = users.map(u => `
-      <tr data-id="${u.id}">
-        <td>${u.email}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${u.businessName}</span>` : ""}</td>
+      <tr data-id="${esc(u.id)}">
+        <td>${esc(u.email)}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${esc(u.businessName)}</span>` : ""}</td>
         <td>${fmtDate(u.createdAt)}</td>
-        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${u.subscriptionStatus}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
+        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
         <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? "membru echipă" : "client")}</td>
         <td>${u.publicPageEnabled ? "da" : "—"}</td>
-        <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${u.id}" data-email="${u.email}">Activează 30 zile</button>`}</td>
+        <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}">Activează 30 zile</button>`}</td>
       </tr>
     `).join("");
     document.getElementById("usersTable").style.display = "table";

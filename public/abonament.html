@@ -33,13 +33,8 @@
     <div class="sub" style="margin-bottom:8px">Sau plătește prin transfer bancar:</div>
 
     <label class="sub" for="btMonths" style="display:block; margin-bottom:4px">Pentru câte luni plătești?</label>
-    <select id="btMonths" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; margin-bottom:12px; font-size:14px">
-      <option value="1">1 lună</option>
-      <option value="2">2 luni</option>
-      <option value="3">3 luni</option>
-      <option value="6">6 luni</option>
-      <option value="12">12 luni</option>
-    </select>
+    <select id="btMonths" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; margin-bottom:4px; font-size:14px"></select>
+    <div class="sub" id="btPlansNote" style="margin-bottom:12px; font-size:12px"></div>
 
     <div style="font-size:14px; line-height:1.7; background:#f9fafb; border-radius:8px; padding:12px 14px">
       <div><strong>Titular:</strong> <span id="btHolder"></span></div>
@@ -47,6 +42,7 @@
       <div><strong>Sumă de plată:</strong> <span id="btAmount" style="font-weight:700">—</span></div>
       <div><strong>Detalii plată (obligatoriu, copiază exact):</strong> <span id="btCode" style="font-family:monospace; font-weight:700">—</span></div>
     </div>
+    <div class="sub" id="btIntroNote" style="margin-top:6px; font-size:13px; font-weight:600"></div>
     <div class="sub" style="margin-top:8px; font-size:13px">
       Important: scrie exact codul de mai sus la „Detalii plată" ale transferului — e cheia prin care identificăm plata ta, indiferent de contul bancar de pe care plătești.
       După ce confirmăm plata în extrasul de cont, activăm accesul manual, pentru exact durata aleasă (de regulă în aceeași zi, cel târziu a doua zi lucrătoare).
@@ -83,12 +79,27 @@ async function api(path, opts){
       document.getElementById("btIban").textContent = bt.iban;
       document.getElementById("bankTransferBox").style.display = "block";
 
+      // Construim selectorul de luni din planurile întoarse de server (sursă
+      // unică pentru discounturi — vezi MULTI_MONTH_DISCOUNTS în billing.js),
+      // ca reducerile să nu fie duplicate/hardcodate și aici.
+      const monthsSelect = document.getElementById("btMonths");
+      const plans = bt.plans || [{months:1, discountPct:0, perMonthRon: bt.amountRon}];
+      monthsSelect.innerHTML = plans.map(p => {
+        const label = p.months === 1 ? "1 lună" : `${p.months} luni`;
+        const discountLabel = p.discountPct > 0 ? ` (-${Math.round(p.discountPct*100)}%/lună, ${p.perMonthRon} RON/lună)` : "";
+        return `<option value="${p.months}">${label}${discountLabel}</option>`;
+      }).join("");
+      document.getElementById("btPlansNote").textContent = bt.introPromoActive
+        ? `Prima lună la ${bt.introPriceRon} lei — doar pentru clienți noi, ofertă valabilă până pe 10.10.2026. Restul lunilor din plan folosesc reducerea planului ales.`
+        : "Restul lunilor din plan folosesc reducerea planului ales.";
+
       // Completează automat suma + codul de plată, pe baza numărului de luni
       // ales — câmpurile sunt doar de afișare (<span>), nu se pot edita.
       async function declareMonths(){
         const months = Number(document.getElementById("btMonths").value);
         document.getElementById("btAmount").textContent = "Se calculează…";
         document.getElementById("btCode").textContent = "—";
+        document.getElementById("btIntroNote").textContent = "";
         try{
           const res = await api("/api/billing/bank-transfer/declare", {
             method: "POST",
@@ -98,8 +109,13 @@ async function api(path, opts){
           const d = await res.json();
           document.getElementById("btAmount").textContent = d.amountRon + " RON";
           document.getElementById("btCode").textContent = d.code;
+          document.getElementById("btIntroNote").textContent = !d.introPromoActive
+            ? "Oferta de preț introductiv (99 lei) s-a încheiat pe 10.10.2026 — suma de mai sus e prețul normal."
+            : d.introApplied
+              ? `Include prima lună la ${bt.introPriceRon} lei (preț de bun-venit, client nou).`
+              : "Preț normal pentru toate lunile — prețul de bun-venit e valabil doar pentru clienți noi.";
         }catch(e){
-          document.getElementById("btAmount").textContent = (months * bt.amountRon) + " RON (estimat)";
+          document.getElementById("btAmount").textContent = "eroare — reîncarcă pagina";
           document.getElementById("btCode").textContent = "eroare — reîncarcă pagina";
         }
       }
