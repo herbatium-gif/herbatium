@@ -3,8 +3,92 @@ const prisma = require("../db");
 const stripe = require("../stripe");
 const { requireAuth, isSubscriptionActive } = require("../auth");
 const { sendCancellationRetentionNotice } = require("../retention");
+const { sendEmail } = require("../notify");
 
 const router = express.Router();
+
+// Email-ul TĂU (administrator), unde primești notificare de fiecare dată când
+// un client declară o plată prin transfer bancar — ca să știi să intri în
+// panoul de admin și să activezi contul. Folosește ADMIN_NOTIFY_EMAIL dacă e
+// setat separat, altfel cade pe ADMIN_EMAIL (același cont admin din
+// src/seedAdmin.js) — deci în multe cazuri nu trebuie să adaugi nimic nou în
+// .env, funcționează direct cu ce ai deja configurat.
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
+
+// Trimite notificarea de "plată declarată" către admin — best-effort: dacă
+// trimiterea eșuează (sau RESEND_API_KEY nu e setat), doar loghează eroarea,
+// nu blochează răspunsul către client (clientul tot vede codul/suma generate).
+async function notifyAdminOfDeclaredPayment(user, { months, amountRon, code }) {
+  if (!ADMIN_NOTIFY_EMAIL) {
+    console.warn(
+      "[billing] Niciun ADMIN_NOTIFY_EMAIL/ADMIN_EMAIL setat — nu pot trimite notificarea de plată declarată."
+    );
+    return;
+  }
+  const html = `
+    <h2 style="font-family:sans-serif">Plată declarată — transfer bancar</h2>
+    <p style="font-family:sans-serif;font-size:15px;line-height:1.6">
+      Un client a declarat că plătește prin transfer bancar. Verifică extrasul de cont pentru suma și codul de mai jos, apoi activează-i contul din panoul de admin.
+    </p>
+    <table style="font-family:sans-serif;font-size:14px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Client:</td><td style="font-weight:600">${user.email}</td></tr>
+      ${user.businessName ? `<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Firmă:</td><td>${user.businessName}</td></tr>` : ""}
+      ${user.cui ? `<tr><td style="padding:4px 12px 4px 0;color:#6b7280">CUI:</td><td>${user.cui}</td></tr>` : ""}
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Luni declarate:</td><td>${months} ${months === 1 ? "lună" : "luni"}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Sumă așteptată:</td><td style="font-weight:600">${amountRon} RON</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Cod de verificare:</td><td style="font-family:monospace;font-weight:700;font-size:16px">${code}</td></tr>
+    </table>
+    <p style="font-family:sans-serif;color:#888;font-size:12px;margin-top:16px">
+      Notificare automată Herbatium — trimisă la fiecare declarare/modificare a duratei alese de un client pe pagina de abonament.
+    </p>
+  `;
+  const r = await sendEmail(ADMIN_NOTIFY_EMAIL, `Plată declarată: ${user.email} — cod ${code}`, html);
+  if (!r.ok && !r.skipped) {
+    console.error("[billing] Notificarea de plată declarată nu a putut fi trimisă către admin.");
+  }
+}
+
+// ============================================================================
+// COD DE PLATĂ — identificator unic per client, valabil pentru orice metodă
+// de plată (transfer bancar acum; Stripe/Netopia includ acest cod în
+// metadata/descriere, dacă sunt reactivate — vezi mai jos la /checkout).
+// Scop: elimini ambiguitatea „ce nume/email a scris clientul pe transfer" —
+// codul e generat de aplicație, stabil, și nu se poate confunda cu numele
+// firmei, alt email, sau titularul real al contului bancar.
+// ============================================================================
+const PAYMENT_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // fără 0/O, 1/I/L — evită confuzia la citire/scriere manuală
+
+function generatePaymentCode() {
+  let code = "HRB-";
+  for (let i = 0; i < 6; i++) {
+    code += PAYMENT_CODE_CHARS[Math.floor(Math.random() * PAYMENT_CODE_CHARS.length)];
+  }
+  return code;
+}
+
+// Generează și salvează un cod de plată pentru user, dacă nu are deja unul.
+// Reîncearcă la coliziune (extrem de improbabilă, dar codul e scurt) — eroare
+// Prisma P2002 = unique constraint violation.
+async function ensurePaymentCode(user) {
+  if (user.paymentCode) return user.paymentCode;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: { paymentCode: generatePaymentCode() },
+      });
+      return updated.paymentCode;
+    } catch (e) {
+      if (e.code === "P2002") continue; // coliziune de cod — reîncearcă cu altul
+      throw e;
+    }
+  }
+  throw new Error("payment_code_generation_failed");
+}
+
+function getMonthlyPriceRon() {
+  return Number(process.env.BANK_TRANSFER_AMOUNT_RON) || 130;
+}
 
 // Pornește plata: creează o sesiune Stripe Checkout pentru abonamentul lunar
 // și întoarce URL-ul către care browser-ul utilizatorului trebuie redirecționat.
@@ -12,11 +96,16 @@ router.post("/checkout", requireAuth, async (req, res) => {
   try {
     const user = req.user;
 
+    // Cod de plată — inclus și în metadata Stripe, ca să poți identifica
+    // ușor plata (căutare în Stripe Dashboard) cu ACELAȘI cod folosit la
+    // transfer bancar, indiferent de metoda de plată aleasă.
+    const paymentCode = await ensurePaymentCode(user);
+
     let stripeCustomerId = user.stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: { userId: user.id },
+        metadata: { userId: user.id, paymentCode },
       });
       stripeCustomerId = customer.id;
       await prisma.user.update({
@@ -31,9 +120,9 @@ router.post("/checkout", requireAuth, async (req, res) => {
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       success_url: `${process.env.APP_URL}/app.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/abonament.html?checkout=cancel`,
-      metadata: { userId: user.id },
+      metadata: { userId: user.id, paymentCode },
       subscription_data: {
-        metadata: { userId: user.id },
+        metadata: { userId: user.id, paymentCode },
       },
     };
 
@@ -129,6 +218,75 @@ router.get("/price", async (req, res) => {
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: "price_unavailable" });
+  }
+});
+
+// Date pentru plata prin transfer bancar (alternativă manuală la Stripe,
+// pentru cazul în care Stripe nu e încă activat live sau clientul preferă
+// transfer direct). Complet publică (fără autentificare), la fel ca /price,
+// fiindcă e afișată pe pagina de abonament înainte de login. IBAN-ul NU e
+// scris în cod — vine din variabila de mediu BANK_TRANSFER_IBAN, setată în
+// Railway direct de tine (nu de Claude — e dată bancară).
+router.get("/bank-transfer-info", async (req, res) => {
+  if (!process.env.BANK_TRANSFER_IBAN) {
+    return res.status(404).json({ error: "not_configured" });
+  }
+  res.json({
+    iban: process.env.BANK_TRANSFER_IBAN,
+    holder: process.env.BANK_TRANSFER_HOLDER || "NICOALE SILVIA PERSOANĂ FIZICĂ AUTORIZATĂ",
+    bankName: process.env.BANK_TRANSFER_BANK_NAME || "",
+    amountRon: getMonthlyPriceRon(),
+  });
+});
+
+// "Declară" intenția de plată prin transfer bancar: clientul alege pentru
+// câte luni vrea să plătească, iar noi (1) îi asigurăm un cod de plată
+// stabil (îl generăm dacă nu are deja unul) și (2) reținem ce a ales, ca să
+// apară în panoul de admin exact ce se așteaptă (nu doar "cineva a plătit
+// ceva"). NU confirmă nicio plată reală — doar pregătește datele pentru ea.
+// Apelat automat de abonament.html de fiecare dată când clientul schimbă
+// selectorul de luni, ca suma și codul să se completeze fără intervenție.
+router.post("/bank-transfer/declare", requireAuth, async (req, res) => {
+  const months = Number((req.body || {}).months);
+  if (!Number.isInteger(months) || months < 1 || months > 12) {
+    return res.status(400).json({ error: "months_invalid" });
+  }
+  try {
+    const code = await ensurePaymentCode(req.user);
+    const amountRon = months * getMonthlyPriceRon();
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { declaredMonths: months, declaredAmountRon: amountRon, declaredAt: new Date() },
+    });
+    res.json({ code, months, amountRon });
+  } catch (e) {
+    console.error("[billing] declarare plată prin transfer bancar eșuată:", e.message);
+    res.status(500).json({ error: "declare_failed" });
+  }
+});
+
+// Notificare EXPLICITĂ către admin — apelată doar când clientul apasă
+// "Am făcut transferul" (nu automat la fiecare schimbare a selectorului de
+// luni, ca să nu primești un email de fiecare dată când cineva doar
+// deschide pagina de abonament). Necesită o declarație existentă (clientul
+// trebuie să fi ales deja o durată — vezi /bank-transfer/declare).
+router.post("/bank-transfer/notify-paid", requireAuth, async (req, res) => {
+  const user = req.user;
+  if (!user.paymentCode || !user.declaredMonths || !user.declaredAmountRon) {
+    return res.status(400).json({ error: "no_declaration" });
+  }
+  try {
+    await notifyAdminOfDeclaredPayment(user, {
+      months: user.declaredMonths,
+      amountRon: user.declaredAmountRon,
+      code: user.paymentCode,
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("[billing] Notificarea explicită de plată eșuată:", e.message);
+    // Nu blocăm clientul din cauza unei erori de email — el tot a "confirmat"
+    // plata; doar tu ai putea afla mai târziu prin panoul de admin oricum.
+    res.json({ ok: true, emailWarning: true });
   }
 });
 

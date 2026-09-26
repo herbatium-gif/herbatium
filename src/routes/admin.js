@@ -27,9 +27,95 @@ router.get("/users", async (req, res) => {
       teamOwnerId: true,
       publicPageEnabled: true,
       businessName: true,
+      cui: true,
+      paymentCode: true,
+      declaredMonths: true,
+      declaredAmountRon: true,
+      declaredAt: true,
     },
   });
   res.json({ users });
+});
+
+// Plăți declarate (transfer bancar) care încă așteaptă activare manuală —
+// panoul principal de lucru: aici vezi exact cine a spus că plătește, pentru
+// câte luni, și cu ce cod, ca să confirmi în extrasul de cont și să activezi
+// fără nicio ambiguitate.
+router.get("/payment-declarations", async (req, res) => {
+  const users = await prisma.user.findMany({
+    where: { declaredAt: { not: null } },
+    orderBy: { declaredAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      businessName: true,
+      cui: true,
+      paymentCode: true,
+      declaredMonths: true,
+      declaredAmountRon: true,
+      declaredAt: true,
+      subscriptionStatus: true,
+      currentPeriodEnd: true,
+    },
+  });
+  res.json({ users });
+});
+
+// Activare/extindere MANUALĂ a abonamentului unui cont — pentru plăți primite
+// prin transfer bancar (fără procesator de plăți). Verifică TU, în extrasul
+// de cont, că a venit plata (cu referința = email-ul contului), abia apoi
+// apeși acest buton. Nu are nicio legătură cu Stripe — dar folosește aceleași
+// două câmpuri (subscriptionStatus, currentPeriodEnd) pe care le citește restul
+// aplicației (vezi isSubscriptionActive din src/auth.js), deci accesul
+// funcționează identic, indiferent cum a fost plătit abonamentul.
+router.post("/users/:id/activate-manual", async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "not_found" });
+
+  // Zile explicite (override manual, pentru cazuri speciale — sumă parțială,
+  // client fără nicio declarație în aplicație etc.) — dacă lipsesc, folosim
+  // AUTOMAT ce a declarat clientul pe pagina de abonament (luni × 30 zile).
+  // Așa activezi exact cât a plătit, fără să calculezi tu manual sau să
+  // greșești un număr.
+  let days = Number((req.body || {}).days);
+  if (!Number.isFinite(days) || days <= 0) {
+    if (!user.declaredMonths) {
+      return res.status(400).json({ error: "days_required_no_declaration" });
+    }
+    days = user.declaredMonths * 30;
+  }
+  if (days <= 0 || days > 366) {
+    return res.status(400).json({ error: "days_invalid" });
+  }
+
+  const now = new Date();
+  // Dacă mai are acces neexpirat, extinde de la data expirării curente (nu de
+  // la azi) — ca să nu piardă zile plătite dacă activezi cu puțin timp înainte
+  // să expire abonamentul anterior.
+  const base =
+    user.currentPeriodEnd && new Date(user.currentPeriodEnd) > now ? new Date(user.currentPeriodEnd) : now;
+  const newPeriodEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      subscriptionStatus: "active",
+      currentPeriodEnd: newPeriodEnd,
+      canceledAt: null,
+      // Curățăm declarația — a fost "consumată" prin această activare. Codul
+      // de plată (paymentCode) rămâne neschimbat, e stabil pe cont, se
+      // reutilizează la următoarea reînnoire.
+      declaredMonths: null,
+      declaredAmountRon: null,
+      declaredAt: null,
+    },
+  });
+
+  console.log(
+    `[admin] Abonament activat manual pentru ${updated.email} (${days} zile) — acces până la ${newPeriodEnd.toISOString()}, activat de ${req.user.email}`
+  );
+
+  res.json({ ok: true, email: updated.email, currentPeriodEnd: updated.currentPeriodEnd, daysGranted: days });
 });
 
 // Statistici sumare pentru panoul de administrare.
