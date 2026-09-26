@@ -54,6 +54,15 @@ model User {
   declaredAmountRon Int?
   declaredAt        DateTime?
 
+  // Marchează dacă acest cont a avut VREODATĂ un abonament activ — prin
+  // Stripe SAU prin activare manuală (transfer bancar) — indiferent dacă
+  // între timp a fost suspendat/anulat și a reluat. Se setează pe true o
+  // singură dată, la prima activare reușită, și NU se mai resetează
+  // niciodată. Folosit ca să decidem cine mai e "client nou" (are dreptul la
+  // prima lună la 99 lei — vezi computeBankTransferAmount în billing.js) și
+  // cine nu (a mai plătit cel puțin o dată).
+  hasEverSubscribed Boolean @default(false)
+
   // Retenție date (art. 5 alin. (1) lit. e) GDPR — limitarea stocării): data
   // la care abonamentul a fost anulat (webhook Stripe customer.subscription.deleted).
   // Un job zilnic (src/retention.js) șterge definitiv contul dacă rămâne
@@ -91,6 +100,33 @@ model User {
 
   data     UserData?
   feedback Feedback[]
+}
+
+// Istoric al firmelor (CUI) și, separat, al adreselor de e-mail care au
+// avut vreodată un abonament plătit — protecție de rezervă pentru prețul
+// introductiv de 99 lei. Motiv: politica de retenție (src/retention.js)
+// ȘTERGE DEFINITIV contul (User) la 30 de zile după anulare, dacă nu se
+// reabonează — inclusiv User.hasEverSubscribed. Fără aceste tabele separate,
+// un fost client al cărui cont a fost șters ar putea recrea un cont nou (cu
+// alt CUI, dar același e-mail, sau invers) și ar primi din nou, din
+// greșeală, prețul de bun-venit. NU au nicio relație Prisma cu User, deci NU
+// sunt afectate de ștergerea contului.
+//
+// IMPORTANT — retenție proprie, LIMITATĂ (nu "pentru totdeauna"): conform
+// principiului limitării stocării (art. 5 alin. (1) lit. e) GDPR) și
+// Politicii de confidențialitate (secțiunea 3), aceste rânduri se șterg
+// definitiv după INTRO_HISTORY_RETENTION_YEARS ani de la ULTIMA activare
+// (vezi src/retention.js — purgeIntroPriceHistory, rulează zilnic).
+// lastActivatedAt se actualizează la FIECARE activare (nu doar la prima),
+// deci fereastra de protecție se reînnoiește cât timp clientul rămâne activ.
+model IntroPriceHistory {
+  cui             String   @id
+  lastActivatedAt DateTime @default(now())
+}
+
+model IntroPriceHistoryEmail {
+  email           String   @id
+  lastActivatedAt DateTime @default(now())
 }
 
 // Feedback trimis din aplicație (buton "Feedback" din topbar) — folosit doar
