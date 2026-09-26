@@ -5,6 +5,24 @@ const { pageShell, renderProducerBody } = require("./catalog");
 
 const router = express.Router();
 
+// Acceptă doar linkuri http/https reale — altfel un cont ar putea salva
+// "javascript:..." ca "link Instagram" (sau orice alt câmp), care ar rula
+// la click, pe propria lui pagină publică (catalog.js îl pune direct în
+// href="..."). Orice altă schemă (javascript:, data:, vbscript: etc.) sau
+// text care nu e un URL valid e respins ca link — câmpul rămâne gol, nu
+// blocăm restul salvării.
+function safePublicUrl(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return null;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return u.toString();
+  } catch (e) {
+    return null;
+  }
+}
+
 function slugify(s) {
   return String(s || "")
     .toLowerCase()
@@ -76,11 +94,11 @@ router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
         slug: publicPageEnabled ? slug : req.user.slug, // păstrăm slug-ul chiar dacă e dezactivată temporar
         businessName: businessName || null,
         bio: bio || null,
-        instagramUrl: instagramUrl || null,
-        bresloUrl: bresloUrl || null,
-        etsyUrl: etsyUrl || null,
-        websiteUrl: websiteUrl || null,
-        facebookUrl: facebookUrl || null,
+        instagramUrl: safePublicUrl(instagramUrl),
+        bresloUrl: safePublicUrl(bresloUrl),
+        etsyUrl: safePublicUrl(etsyUrl),
+        websiteUrl: safePublicUrl(websiteUrl),
+        facebookUrl: safePublicUrl(facebookUrl),
         catalogTemplate: safeTemplate,
       },
     });
@@ -94,7 +112,15 @@ router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
 // încă) + produsele reale bifate "vizibil public" din contul utilizatorului.
 router.post("/preview", requireAuth, requireActiveSubscription, async (req, res) => {
   try {
-    const draft = req.body || {};
+    const draft = { ...(req.body || {}) };
+    // Aceeași filtrare de protocol ca la salvarea reală (mai sus) — altfel
+    // previzualizarea ar rula un eventual "javascript:..." direct în pagina
+    // curentă a utilizatorului, chiar înainte de a apăsa "Salvează".
+    draft.instagramUrl = safePublicUrl(draft.instagramUrl);
+    draft.bresloUrl = safePublicUrl(draft.bresloUrl);
+    draft.etsyUrl = safePublicUrl(draft.etsyUrl);
+    draft.websiteUrl = safePublicUrl(draft.websiteUrl);
+    draft.facebookUrl = safePublicUrl(draft.facebookUrl);
     const data = await prisma.userData.findUnique({ where: { userId: effectiveDataOwnerId(req.user) } });
     const products = ((data && data.products) || []).filter((p) => p && p.publicVisible);
     const body = renderProducerBody(draft, products, { noBackLink: true });

@@ -4,9 +4,12 @@
 // informații despre conturi, utile pentru administrarea aplicației.
 const express = require("express");
 const prisma = require("../db");
+const stripe = require("../stripe");
 const { requireAuth, requireAdmin } = require("../auth");
 const { sendEmail } = require("../notify");
+const { markClientAsEverSubscribed, eraseIntroPriceHistoryFor, isIntroPricePromoActive } = require("./billing");
 const { CHANGELOG, CURRENT_VERSION } = require("../changelog");
+const { missingCompanyFields } = require("../legalConfig");
 
 const router = express.Router();
 
@@ -32,9 +35,13 @@ router.get("/users", async (req, res) => {
       declaredMonths: true,
       declaredAmountRon: true,
       declaredAt: true,
+      hasEverSubscribed: true,
     },
   });
-  res.json({ users });
+  // introPromoActive: flag global (nu per-utilizator) — spune panoului de admin
+  // dacă oferta de 99 lei mai există deloc acum, ca să nu afișeze un badge
+  // "nou — 99 lei/luna 1" înșelător după 10.10.2026 (vezi billing.js).
+  res.json({ users, introPromoActive: isIntroPricePromoActive() });
 });
 
 // Plăți declarate (transfer bancar) care încă așteaptă activare manuală —
@@ -56,9 +63,10 @@ router.get("/payment-declarations", async (req, res) => {
       declaredAt: true,
       subscriptionStatus: true,
       currentPeriodEnd: true,
+      hasEverSubscribed: true,
     },
   });
-  res.json({ users });
+  res.json({ users, introPromoActive: isIntroPricePromoActive() });
 });
 
 // Activare/extindere MANUALĂ a abonamentului unui cont — pentru plăți primite
@@ -102,6 +110,11 @@ router.post("/users/:id/activate-manual", async (req, res) => {
       subscriptionStatus: "active",
       currentPeriodEnd: newPeriodEnd,
       canceledAt: null,
+      // Marchează definitiv contul ca "a mai avut abonament" — de acum
+      // înainte NU mai e eligibil pentru prețul introductiv de 99 lei la
+      // nicio reînnoire viitoare, chiar dacă suspendă și revine. Vezi
+      // isEligibleForIntroPrice în src/routes/billing.js.
+      hasEverSubscribed: true,
       // Curățăm declarația — a fost "consumată" prin această activare. Codul
       // de plată (paymentCode) rămâne neschimbat, e stabil pe cont, se
       // reutilizează la următoarea reînnoire.
@@ -110,12 +123,84 @@ router.post("/users/:id/activate-manual", async (req, res) => {
       declaredAt: null,
     },
   });
+  // Vezi comentariul de mai sus + IntroPriceHistory (prisma/schema.prisma):
+  // înregistrăm CUI-ul permanent, independent de contul (User) care s-ar
+  // putea șterge ulterior prin politica de retenție.
+  await markClientAsEverSubscribed(updated);
 
   console.log(
     `[admin] Abonament activat manual pentru ${updated.email} (${days} zile) — acces până la ${newPeriodEnd.toISOString()}, activat de ${req.user.email}`
   );
 
   res.json({ ok: true, email: updated.email, currentPeriodEnd: updated.currentPeriodEnd, daysGranted: days });
+});
+
+// Procesează o cerere SCRISĂ de ștergere (Art. 17 GDPR) primită direct (de
+// obicei pe adresa de GDPR), pentru CUI și/sau e-mail — folosită manual de
+// admin, DUPĂ ce a confirmat identitatea solicitantului. Funcționează și
+// dacă persoana nu mai are cont (a fost deja șters, automat sau de ea
+// însăși) — scopul e explicit să șteargă evidența de rezervă
+// (IntroPriceHistory/IntroPriceHistoryEmail), care altfel supraviețuiește
+// contului. Dacă a rămas totuși un cont activ pe acel CUI/e-mail, îl șterge
+// și pe acela (cu tot ce implică ștergerea unui cont — vezi /account.js
+// pentru fluxul echivalent de auto-ștergere).
+router.post("/gdpr-erase", async (req, res) => {
+  const cui = String((req.body || {}).cui || "").trim() || null;
+  const email = String((req.body || {}).email || "").trim() || null;
+  if (!cui && !email) {
+    return res.status(400).json({ error: "cui_or_email_required" });
+  }
+
+  const historyResult = await eraseIntroPriceHistoryFor({ cui, email });
+
+  let accountDeleted = null;
+  const where = [];
+  if (cui) where.push({ cui });
+  if (email) where.push({ email });
+  if (where.length) {
+    const existing = await prisma.user.findFirst({ where: { OR: where } });
+    if (existing) {
+      if (existing.stripeSubscriptionId) {
+        try {
+          await stripe.subscriptions.cancel(existing.stripeSubscriptionId);
+        } catch (e) {
+          console.error("[admin] Nu am putut anula abonamentul Stripe la ștergerea GDPR:", e.message);
+        }
+      }
+      const teamMembers = !existing.teamOwnerId
+        ? await prisma.user.findMany({ where: { teamOwnerId: existing.id }, select: { email: true } })
+        : [];
+      await prisma.feedback.updateMany({
+        where: { userId: existing.id },
+        data: { userId: null, email: "(cont șters)" },
+      });
+      // Membrii de echipă (dacă există) rămân în bază, dar teamOwnerId devine
+      // automat null (onDelete: SetNull) — își pierd accesul la datele
+      // partajate, dar contul lor propriu nu e afectat. Cererea de ștergere
+      // a titularului principal are prioritate; anunță-i separat, manual.
+      await prisma.user.delete({ where: { id: existing.id } });
+      accountDeleted = existing.email;
+      if (teamMembers.length) {
+        console.warn(
+          `[admin] Contul șters (${existing.email}) avea membri de echipă activi — anunță-i manual: ${teamMembers.map((m) => m.email).join(", ")}`
+        );
+      }
+    }
+  }
+
+  console.log(
+    `[admin] Cerere GDPR de ștergere procesată de ${req.user.email} — CUI: ${cui || "—"}, e-mail: ${email || "—"}, cont găsit și șters: ${accountDeleted || "nu"}.`
+  );
+
+  res.json({ ok: true, historyResult, accountDeleted });
+});
+
+// Verificare rapidă: sunt completate datele firmei (COMPANY_*) în .env/Railway?
+// Fără ele, paginile publice /legal/termeni și /legal/confidentialitate arată
+// text placeholder vizibil ("[completează: ...]") — practic nu identifică
+// operatorul, ceea ce le face inutile juridic dacă publici aplicația așa.
+router.get("/legal-status", (req, res) => {
+  res.json({ missing: missingCompanyFields() });
 });
 
 // Statistici sumare pentru panoul de administrare.

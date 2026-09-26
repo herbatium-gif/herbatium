@@ -2,7 +2,7 @@ const express = require("express");
 const prisma = require("../db");
 const stripe = require("../stripe");
 const { requireAuth, isSubscriptionActive } = require("../auth");
-const { sendCancellationRetentionNotice } = require("../retention");
+const { sendCancellationRetentionNotice, INTRO_HISTORY_RETENTION_YEARS } = require("../retention");
 const { sendEmail } = require("../notify");
 
 const router = express.Router();
@@ -90,6 +90,163 @@ function getMonthlyPriceRon() {
   return Number(process.env.BANK_TRANSFER_AMOUNT_RON) || 130;
 }
 
+// ============================================================================
+// PRAGURI DE DISCOUNT pentru plata în avans pe mai multe luni (transfer
+// bancar). Reducerea se aplică la FIECARE lună din plan (nu doar la o
+// singură lună) — ex: 12 luni => fiecare lună costă cu 15% mai puțin decât
+// prețul normal. Doar aceste 4 durate sunt permise (vezi validarea de mai
+// jos) — dacă vrei alte durate, adaugă-le aici.
+// ============================================================================
+const MULTI_MONTH_DISCOUNTS = { 1: 0, 3: 0.05, 6: 0.10, 12: 0.15 };
+
+// Preț introductiv — prima lună, DOAR pentru clienți noi eligibili (vezi
+// isEligibleForIntroPrice mai jos). Se aplică la fel indiferent de planul
+// ales (1/3/6/12 luni): doar prima lună a primei plăți e la acest preț,
+// restul lunilor din plan sunt la prețul normal (cu discountul planului).
+const INTRO_PRICE_RON = 99;
+
+// Oferta de preț introductiv e o promoție cu termen limită, cerută explicit:
+// valabilă doar până la 23:59:59, ora României, pe 10 octombrie 2026. DUPĂ
+// acest moment, NIMENI nu mai primește 99 lei — nici clienții noi, nici
+// vechi — indiferent de restul verificărilor de eligibilitate de mai jos.
+// Nu se mai reactivează de la sine — dacă se va relansa vreodată, necesită
+// o schimbare explicită aici, nu doar trecerea timpului.
+const INTRO_PRICE_PROMO_DEADLINE = new Date("2026-10-11T00:00:00+03:00");
+
+function isIntroPricePromoActive() {
+  return new Date() < INTRO_PRICE_PROMO_DEADLINE;
+}
+
+// "Client nou" = cont care nu a avut NICIODATĂ un abonament activ înainte,
+// nici prin Stripe, nici prin activare manuală — vezi User.hasEverSubscribed
+// (prisma/schema.prisma). Odată ce acest flag devine true, rămâne true
+// pentru totdeauna: un client care a avut abonament, l-a suspendat/anulat și
+// a revenit NU mai e considerat "nou" și NU mai primește prima lună la 99
+// lei, chiar dacă a stat o perioadă lungă fără abonament activ.
+//
+// A DOUA/A TREIA VERIFICARE, de rezervă: politica de retenție
+// (src/retention.js) ȘTERGE DEFINITIV contul la 30 de zile după anulare,
+// dacă nu se reabonează — inclusiv câmpul hasEverSubscribed de mai sus. Ca
+// un fost client să nu poată recrea un cont nou (cu alt CUI dar același
+// e-mail, sau invers) și să prindă din nou prețul de bun venit, verificăm
+// și cele două tabele separate IntroPriceHistory (după CUI) și
+// IntroPriceHistoryEmail (după e-mail, normalizat) — niciunul legat de
+// User, deci nu se șterg odată cu contul. Fiecare verificare respectă
+// fereastra de retenție proprie (INTRO_HISTORY_RETENTION_YEARS ani de la
+// ULTIMA activare) — vezi Politica de confidențialitate, secțiunea 3.
+function introHistoryCutoffDate() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - INTRO_HISTORY_RETENTION_YEARS);
+  return d;
+}
+
+function normalizeEmailForHistory(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+async function isEligibleForIntroPrice(user) {
+  if (!isIntroPricePromoActive()) return false;
+  if (user.hasEverSubscribed) return false;
+  const cutoff = introHistoryCutoffDate();
+  if (user.cui) {
+    const priorCui = await prisma.introPriceHistory.findFirst({
+      where: { cui: user.cui, lastActivatedAt: { gte: cutoff } },
+    });
+    if (priorCui) return false;
+  }
+  const normalizedEmail = normalizeEmailForHistory(user.email);
+  if (normalizedEmail) {
+    const priorEmail = await prisma.introPriceHistoryEmail.findFirst({
+      where: { email: normalizedEmail, lastActivatedAt: { gte: cutoff } },
+    });
+    if (priorEmail) return false;
+  }
+  return true;
+}
+
+// Înregistrează/reîmprospătează definitiv CUI-ul ȘI e-mailul clientului ca
+// "a avut vreodată abonament" — apelată la FIECARE activare reușită
+// (manuală sau Stripe), pe lângă setarea hasEverSubscribed pe User.
+// Idempotent (cui/email sunt chei primare — se face upsert, cu
+// reîmprospătarea datei la fiecare activare) și best-effort: dacă eșuează,
+// nu blocăm activarea propriu-zisă.
+async function markClientAsEverSubscribed(user) {
+  const now = new Date();
+  if (user.cui) {
+    try {
+      await prisma.introPriceHistory.upsert({
+        where: { cui: user.cui },
+        update: { lastActivatedAt: now },
+        create: { cui: user.cui, lastActivatedAt: now },
+      });
+    } catch (e) {
+      console.error("[billing] Nu am putut înregistra CUI-ul în istoricul de plăți:", e.message);
+    }
+  }
+  const normalizedEmail = normalizeEmailForHistory(user.email);
+  if (normalizedEmail) {
+    try {
+      await prisma.introPriceHistoryEmail.upsert({
+        where: { email: normalizedEmail },
+        update: { lastActivatedAt: now },
+        create: { email: normalizedEmail, lastActivatedAt: now },
+      });
+    } catch (e) {
+      console.error("[billing] Nu am putut înregistra e-mailul în istoricul de plăți:", e.message);
+    }
+  }
+}
+
+// Șterge definitiv rândurile din IntroPriceHistory / IntroPriceHistoryEmail
+// pentru un CUI și/sau e-mail dat — folosită DOAR când persoana își exercită
+// activ dreptul la ștergere (Art. 17 GDPR), fie prin auto-ștergerea contului
+// din aplicație (src/routes/account.js), fie printr-o cerere scrisă
+// procesată manual de admin (src/routes/admin.js). NU se apelează la
+// ștergerea automată după 30 de zile de inactivitate (src/retention.js) —
+// acolo persoana nu a cerut nimic activ, deci evidența anti-abuz rămâne
+// (până expiră singură, după INTRO_HISTORY_RETENTION_YEARS ani) — vezi
+// analiza din Politica de confidențialitate, secțiunea 3, pentru motivul
+// acestei distincții (pragul "motive legitime imperioase" de la Art. 21
+// GDPR, aplicabil doar unei opoziții/cereri explicite).
+async function eraseIntroPriceHistoryFor({ cui, email }) {
+  const result = { cuiDeleted: 0, emailDeleted: 0 };
+  if (cui) {
+    try {
+      const r = await prisma.introPriceHistory.deleteMany({ where: { cui } });
+      result.cuiDeleted = r.count;
+    } catch (e) {
+      console.error("[billing] Ștergerea CUI din istoricul preț introductiv a eșuat:", e.message);
+    }
+  }
+  const normalizedEmail = normalizeEmailForHistory(email);
+  if (normalizedEmail) {
+    try {
+      const r = await prisma.introPriceHistoryEmail.deleteMany({ where: { email: normalizedEmail } });
+      result.emailDeleted = r.count;
+    } catch (e) {
+      console.error("[billing] Ștergerea e-mailului din istoricul preț introductiv a eșuat:", e.message);
+    }
+  }
+  return result;
+}
+
+// Calculează suma totală de plată pentru transfer bancar, pe baza numărului
+// de luni alese și a istoricului clientului (nou vs. existent). Suma e
+// întotdeauna un număr întreg de lei (rotunjit per lună, apoi înmulțit),
+// fiindcă se salvează într-un câmp Int în baza de date.
+async function computeBankTransferAmount(months, user) {
+  const discount = MULTI_MONTH_DISCOUNTS[months];
+  if (discount === undefined) {
+    throw new Error("months_invalid");
+  }
+  const perMonthPrice = Math.round(getMonthlyPriceRon() * (1 - discount));
+  if (await isEligibleForIntroPrice(user)) {
+    // Prima lună la 99 lei, restul (months - 1) luni la prețul planului.
+    return INTRO_PRICE_RON + perMonthPrice * (months - 1);
+  }
+  return perMonthPrice * months;
+}
+
 // Pornește plata: creează o sesiune Stripe Checkout pentru abonamentul lunar
 // și întoarce URL-ul către care browser-ul utilizatorului trebuie redirecționat.
 router.post("/checkout", requireAuth, async (req, res) => {
@@ -144,7 +301,13 @@ router.post("/checkout", requireAuth, async (req, res) => {
     // cineva să înființeze o firmă/PFA nouă, cu CUI nou, ca să prindă din
     // nou promoția — dar asta are un cost și un efort real, nu doar un
     // e-mail nou, așa că riscul practic e mult redus.)
-    if (process.env.STRIPE_INTRO_PROMO_CODE_ID) {
+    // La fel ca la transfer bancar: promoția introductivă nu se mai aplică
+    // NICIODATĂ după termenul limită (10.10.2026), indiferent dacă a rămas
+    // configurat un STRIPE_INTRO_PROMO_CODE_ID valid în Stripe — verificarea
+    // se face aici, în cod, nu doar prin ștergerea manuală a codului din
+    // Stripe Dashboard (ca să nu depindă de a nu uita acel pas dacă Stripe
+    // e reactivat vreodată după această dată).
+    if (process.env.STRIPE_INTRO_PROMO_CODE_ID && isIntroPricePromoActive()) {
       try {
         const session = await stripe.checkout.sessions.create({
           ...sessionParams,
@@ -202,7 +365,7 @@ router.get("/price", async (req, res) => {
     // eligibil pentru ea — eligibilitatea reală se verifică abia la
     // checkout (mai sus); dacă nu mai e eligibil, plătește direct prețul
     // normal, fără să vadă o eroare.
-    if (process.env.STRIPE_INTRO_PROMO_CODE_ID) {
+    if (process.env.STRIPE_INTRO_PROMO_CODE_ID && isIntroPricePromoActive()) {
       try {
         const promo = await stripe.promotionCodes.retrieve(process.env.STRIPE_INTRO_PROMO_CODE_ID);
         const coupon = promo.coupon;
@@ -231,11 +394,27 @@ router.get("/bank-transfer-info", async (req, res) => {
   if (!process.env.BANK_TRANSFER_IBAN) {
     return res.status(404).json({ error: "not_configured" });
   }
+  const normalPrice = getMonthlyPriceRon();
   res.json({
     iban: process.env.BANK_TRANSFER_IBAN,
     holder: process.env.BANK_TRANSFER_HOLDER || "NICOALE SILVIA PERSOANĂ FIZICĂ AUTORIZATĂ",
     bankName: process.env.BANK_TRANSFER_BANK_NAME || "",
-    amountRon: getMonthlyPriceRon(),
+    amountRon: normalPrice, // preț normal/lună (fără discount) — păstrat pentru compatibilitate
+    introPriceRon: INTRO_PRICE_RON,
+    introPromoActive: isIntroPricePromoActive(),
+    introPromoDeadline: INTRO_PRICE_PROMO_DEADLINE.toISOString(),
+    // Planurile disponibile, cu discountul și prețul/lună rezultat — pagina
+    // de abonament construiește selectorul de luni din astea, ca discountul
+    // să fie definit într-un SINGUR loc (aici), nu și în front-end.
+    plans: Object.keys(MULTI_MONTH_DISCOUNTS).map((k) => {
+      const months = Number(k);
+      const discountPct = MULTI_MONTH_DISCOUNTS[months];
+      return {
+        months,
+        discountPct,
+        perMonthRon: Math.round(normalPrice * (1 - discountPct)),
+      };
+    }),
   });
 });
 
@@ -248,17 +427,18 @@ router.get("/bank-transfer-info", async (req, res) => {
 // selectorul de luni, ca suma și codul să se completeze fără intervenție.
 router.post("/bank-transfer/declare", requireAuth, async (req, res) => {
   const months = Number((req.body || {}).months);
-  if (!Number.isInteger(months) || months < 1 || months > 12) {
+  if (!Number.isInteger(months) || !(months in MULTI_MONTH_DISCOUNTS)) {
     return res.status(400).json({ error: "months_invalid" });
   }
   try {
     const code = await ensurePaymentCode(req.user);
-    const amountRon = months * getMonthlyPriceRon();
+    const amountRon = await computeBankTransferAmount(months, req.user);
+    const introApplied = await isEligibleForIntroPrice(req.user);
     await prisma.user.update({
       where: { id: req.user.id },
       data: { declaredMonths: months, declaredAmountRon: amountRon, declaredAt: new Date() },
     });
-    res.json({ code, months, amountRon });
+    res.json({ code, months, amountRon, introApplied, introPromoActive: isIntroPricePromoActive() });
   } catch (e) {
     console.error("[billing] declarare plată prin transfer bancar eșuată:", e.message);
     res.status(500).json({ error: "declare_failed" });
@@ -321,7 +501,7 @@ async function webhookHandler(req, res) {
         const userId = session.metadata && session.metadata.userId;
         if (userId && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          await prisma.user.update({
+          const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
               stripeCustomerId: session.customer,
@@ -329,8 +509,10 @@ async function webhookHandler(req, res) {
               subscriptionStatus: subscription.status, // de regulă "active"
               currentPeriodEnd: new Date(subscription.current_period_end * 1000),
               canceledAt: null, // abonare nouă sau reabonare — anulează ceasul de retenție/ștergere
+              hasEverSubscribed: true, // de acum nu mai e eligibil pentru prețul introductiv de 99 lei
             },
           });
+          await markClientAsEverSubscribed(updatedUser);
         }
         break;
       }
@@ -343,14 +525,16 @@ async function webhookHandler(req, res) {
           const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
           const userId = subscription.metadata && subscription.metadata.userId;
           if (userId) {
-            await prisma.user.update({
+            const updatedUser = await prisma.user.update({
               where: { id: userId },
               data: {
                 subscriptionStatus: subscription.status,
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
                 canceledAt: null, // plată reușită (inițială sau reînnoire) — nu e un cont anulat
+                hasEverSubscribed: true,
               },
             });
+            await markClientAsEverSubscribed(updatedUser);
           }
         }
         break;
@@ -419,4 +603,10 @@ async function webhookHandler(req, res) {
   }
 }
 
-module.exports = { router, webhookHandler };
+module.exports = {
+  router,
+  webhookHandler,
+  markClientAsEverSubscribed,
+  eraseIntroPriceHistoryFor,
+  isIntroPricePromoActive,
+};

@@ -4,6 +4,7 @@ const path = require("path");
 const prisma = require("../db");
 const stripe = require("../stripe");
 const { requireAuth, verifyPassword, clearAuthCookie, effectiveDataOwnerId } = require("../auth");
+const { eraseIntroPriceHistoryFor } = require("./billing");
 
 const router = express.Router();
 const UPLOAD_ROOT = path.join(__dirname, "..", "..", "uploads");
@@ -136,6 +137,18 @@ router.delete("/", requireAuth, async (req, res) => {
 
   // UserData e legat cu onDelete: Cascade — se șterge automat odată cu User.
   await prisma.user.delete({ where: { id: u.id } });
+
+  // Aceasta e o exercitare ACTIVĂ a dreptului la ștergere (persoana a apăsat
+  // explicit "Șterge contul" și și-a confirmat parola) — spre deosebire de
+  // ștergerea automată după 30 de zile de inactivitate (src/retention.js),
+  // unde persoana nu a cerut nimic. Într-o cerere activă, interesul legitim
+  // de a preveni reutilizarea prețului introductiv NU justifică păstrarea
+  // datelor peste voința ei explicită (Art. 17/21 GDPR) — vezi Politica de
+  // confidențialitate, secțiunea 3. Ștergem deci și evidența de rezervă
+  // (CUI/e-mail), nu doar contul. Efect practic: dacă această persoană
+  // revine vreodată cu un cont nou, VA fi din nou eligibilă pentru prețul
+  // introductiv — o acceptăm ca preț corect al respectării cererii ei.
+  await eraseIntroPriceHistoryFor({ cui: u.cui, email: u.email });
 
   // Curăță pozele încărcate de acest cont (doar dacă era cont principal —
   // un membru de echipă nu are folder propriu, vezi photos.js).
