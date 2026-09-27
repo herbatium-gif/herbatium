@@ -16,4 +16,26 @@ function companyVars() {
     BRAND: "Herbatium",
   };
 }
-module.exports = { companyVars };
+// Verificare pentru panoul de admin (GET /api/admin/legal-status): ce câmpuri
+// COMPANY_* NU sunt încă setate în .env/Railway — adică încă arată
+// placeholder-ul vizibil de mai sus în loc de o valoare reală. Fără asta,
+// paginile publice /legal/termeni și /legal/confidentialitate nu identifică
+// real operatorul (art. 13 GDPR, obligatoriu). COMPANY_REG e exclus din
+// verificare — e opțional, doar pentru SRL (o firmă PFA nu are număr de
+// Registrul Comerțului, deci ar apărea mereu ca "lipsă", fals).
+function missingCompanyFields() {
+  const v = companyVars();
+  const checks = [
+    { key: "COMPANY_NAME", label: "Denumirea firmei/PFA", value: v.FIRMA },
+    { key: "COMPANY_CUI", label: "CUI/CIF", value: v.CUI },
+    { key: "COMPANY_ADDRESS", label: "Adresa sediului", value: v.ADRESA },
+    { key: "COMPANY_PHONE", label: "Telefon de contact", value: v.TELEFON },
+    { key: "COMPANY_EMAIL", label: "E-mail de contact", value: v.EMAIL },
+    { key: "COMPANY_GDPR_EMAIL", label: "E-mail GDPR", value: v.EMAIL_GDPR },
+  ];
+  return checks
+    .filter((c) => /^\[completează|@exemplu\.ro$/.test(c.value))
+    .map((c) => ({ key: c.key, label: c.label }));
+}
+
+module.exports = { companyVars, missingCompanyFields };

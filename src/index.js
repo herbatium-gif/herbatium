@@ -27,12 +27,61 @@ const app = express();
 // recunoască corect conexiunile HTTPS (cookie-ul de autentificare "secure").
 app.set("trust proxy", 1);
 
-// Headere de securitate de bază (X-Content-Type-Options, X-Frame-Options,
-// Referrer-Policy etc.). CSP e dezactivat explicit: app.html/login.html/etc.
-// folosesc <script>/<style> inline masiv (SPA cu HTML generat dinamic) — un
-// CSP implicit ar bloca aplicația să ruleze. Dacă se rescrie front-end-ul
-// fără inline scripts, CSP poate fi reactivat aici.
-app.use(helmet({ contentSecurityPolicy: false }));
+// Headere de securitate (X-Content-Type-Options, X-Frame-Options,
+// Referrer-Policy etc.) + Content-Security-Policy.
+//
+// app.html/login.html/admin.html/etc. folosesc <script>/<style> inline masiv
+// (SPA cu HTML generat dinamic), deci script-src/style-src trebuie să
+// permită 'unsafe-inline' — un CSP standard (fără 'unsafe-inline') ar bloca
+// aplicația să ruleze. Asta înseamnă că acest CSP NU blochează o eventuală
+// injecție de <script> inline (XSS) dacă una ar exista undeva — pentru asta
+// ar fi nevoie de o rescriere a front-end-ului fără inline scripts (folosind
+// nonce-uri sau fișiere .js separate), care e un proiect separat.
+//
+// Ce CHIAR blochează, verificat pe codul din acest repo (toate paginile din
+// /public sunt 100% same-origin — niciun <script src="http...">/<link
+// href="http...">, fonturile sunt auto-găzduite, niciun fetch()/XHR către alt
+// domeniu):
+//  - încărcarea de resurse (script/stil/font/imagine) de pe orice alt
+//    domeniu decât herbatium.ro, chiar dacă un atacator ar reuși să
+//    injecteze un tag care le cere;
+//  - trimiterea de date către alt domeniu (connect-src 'self') — limitează
+//    exfiltrarea de date printr-un eventual fetch()/XHR injectat;
+//  - object-src 'none' — blochează <object>/<embed> (Flash și alte
+//    plugin-uri vechi, vector clasic de atac);
+//  - frame-ancestors 'none' — pagina nu poate fi pusă într-un <iframe> pe alt
+//    site (protecție clickjacking pe login/admin);
+//  - base-uri 'self' — blochează un <base href="..."> injectat, care ar
+//    putea redirecționa toate linkurile/resursele relative către alt domeniu.
+// img-src permite și "data:" — codul QR de 2FA (routes/twofactor.js) e
+// afișat ca <img src="data:image/png;base64,...">, generat de server.
+//
+// scriptSrcAttr: 'unsafe-inline' — app.html generează zeci de câmpuri de
+// input cu atributul onfocus="this.select()" (selectează tot textul la
+// focus, ca să poți retasta direct o valoare fără s-o ștergi manual întâi).
+// Helmet dezactivează implicit acest tip de atribut (script-src-attr 'none')
+// separat de scriptSrc de mai jos — fără linia asta, TOATE aceste câmpuri
+// s-ar fi rupt silențios la activarea CSP. Verificat direct în cod (grep pe
+// toate paginile din /public), nu presupus.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+        fontSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+  })
+);
 
 // Webhook-ul Stripe are nevoie de body-ul brut (nesparsat) ca să verifice
 // semnătura — de-asta ruta asta trebuie declarată ÎNAINTE de express.json().
