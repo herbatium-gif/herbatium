@@ -98,6 +98,23 @@ model User {
   // Stripe (are mereu acces la aplicație) și poate vedea panoul /admin.html.
   isAdmin Boolean @default(false)
 
+  // Blocare temporară a contului după prea multe parole greșite consecutive —
+  // protecție SUPLIMENTARĂ față de rate-limiting-ul pe IP din routes/auth.js
+  // (acela taie un IP; asta protejează un cont anume, indiferent de la câte
+  // adrese IP diferite se încearcă). Vezi recordFailedLogin/isAccountLocked
+  // din src/auth.js. Se resetează automat la orice login reușit.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // Autentificare în doi factori (TOTP — compatibil Google Authenticator,
+  // Authy, 1Password etc.). Momentan disponibilă doar pentru conturi cu
+  // isAdmin:true (vezi src/routes/twofactor.js) — clienții obișnuiți nu-l văd
+  // și nu sunt afectați. twoFactorSecret nu e niciodată trimis către client
+  // după activare; twoFactorBackupCodes sunt hash-uite (bcrypt), nu în clar.
+  twoFactorEnabled     Boolean @default(false)
+  twoFactorSecret      String?
+  twoFactorBackupCodes Json?   @default("[]")
+
   data     UserData?
   feedback Feedback[]
 }
