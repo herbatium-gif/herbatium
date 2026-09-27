@@ -28,8 +28,14 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: 8 * 1024 * 1024 }, // 8MB per poză
+  // Doar formate raster (fotografii reale) — NU si "image/svg+xml". Un SVG
+  // poate contine <script>/onload="..." care ruleaza daca fisierul e deschis
+  // direct in browser (nu ca <img>, ci navigat direct la link) — un vizitator
+  // care deschide acel link ar rula cod arbitrar in contextul herbatium.ro
+  // (XSS stocat). Pozele de produs sunt fotografii, nu au nevoie de format
+  // vectorial, deci excluderea SVG nu limiteaza nicio functionalitate reala.
   fileFilter: (req, file, cb) => {
-    if (!/^image\//.test(file.mimetype)) return cb(new Error("not_an_image"));
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) return cb(new Error("not_an_image"));
     cb(null, true);
   },
 });
