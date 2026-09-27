@@ -19,8 +19,7 @@ function shell(title, bodyHtml) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} — Herbatium</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
 <style>
   body{display:block;padding:0;background-image:none}
@@ -112,8 +111,6 @@ function confidentialitate(v) {
     <tr><th>Furnizor</th><th>Ce face</th><th>Unde</th></tr>
     <tr><td>Railway Corporation</td><td>serverul aplicației și baza de date (PostgreSQL)</td><td>UE — europe-west4 (Amsterdam, Olanda)</td></tr>
     <tr><td>Stripe Payments Europe Ltd.</td><td>procesarea plăților cu cardul / abonamentul</td><td>UE (Irlanda), cu posibile transferuri către Stripe Inc. (SUA) pe bază de garanții adecvate</td></tr>
-    <tr><td>Resend (dacă activezi notificările e-mail)</td><td>trimite e-mailul de rezumat zilnic</td><td>[completează — verifică regiunea de procesare a furnizorului]</td></tr>
-    <tr><td>Google Fonts</td><td>livrează fonturile folosite în interfață (adresa IP e trimisă către Google la încărcarea paginii)</td><td>SUA/global — vezi <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politica Google</a></td></tr>
     <tr><td>Autorități publice (ANAF, instanțe)</td><td>doar când legea ne obligă</td><td>România</td></tr>
   </table>
   <p>Stripe acționează și ca operator independent pentru datele de plată, conform propriei politici de confidențialitate.</p>
@@ -210,7 +207,7 @@ function cookies(v) {
     <tr><th>Nume</th><th>Tip</th><th>Scop</th><th>Durată</th></tr>
     <tr><td><code>formulator_token</code></td><td>cookie strict necesar (HttpOnly, Secure)</td><td>te ține autentificat</td><td>30 de zile sau până la deconectare</td></tr>
   </table>
-  <p>Fonturile („Plus Jakarta Sans", „IBM Plex Mono") sunt încărcate de la Google Fonts — la deschiderea paginii, browserul tău face o cerere către serverele Google, care primesc adresa ta IP. Nu setăm noi cookie-uri prin acest serviciu; consultă <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politica de confidențialitate Google</a> pentru detalii despre prelucrarea lor.</p>
+  <p>Fonturile („Plus Jakarta Sans", „IBM Plex Mono") sunt găzduite direct de serverul nostru — nu se face nicio cerere către servere externe pentru a le încărca, deci nu se transmite nicio informație către terți prin acest mecanism.</p>
   <p>La plată ești redirecționat pe pagina securizată Stripe, care își folosește propriile cookie-uri pentru prevenirea fraudei, conform <a href="https://stripe.com/ro/privacy" target="_blank" rel="noopener">politicii Stripe</a>.</p>
   <p>Poți șterge oricând cookie-urile din setările browserului. Dacă ștergi <code>formulator_token</code>, vei fi deconectat.</p>
   `;
