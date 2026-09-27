@@ -65,8 +65,7 @@ function pageShell(title, body, templateId) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?${t.googleFonts}&display=swap">
+<link rel="stylesheet" href="/fonts-catalog.css">
 <style>
 :root{
   --bg:${t.bg};--surface:${t.surface};--surface-2:${t.surface2};
