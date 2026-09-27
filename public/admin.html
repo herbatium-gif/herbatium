@@ -42,6 +42,22 @@
     <button class="btn sm" id="sendChangelogBtn">Trimite email de noutăți tuturor utilizatorilor</button>
     <span id="sendChangelogStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
   </div>
+  <div class="statCard" id="securityCard" style="margin-bottom:20px;min-width:auto">
+    <div class="lbl" style="margin-bottom:6px">Securitate cont administrator — autentificare în doi factori (2FA)</div>
+    <div id="twofaStatus" style="font-size:14px;margin-bottom:10px">Se încarcă…</div>
+    <button class="btn sm" id="twofaEnableBtn" style="display:none">Activează 2FA</button>
+    <button class="btn sm" id="twofaDisableBtn" style="display:none;background:#dc2626;border-color:#dc2626">Dezactivează 2FA</button>
+    <div id="twofaSetupBox" style="display:none;margin-top:12px">
+      <img id="twofaQr" alt="Cod QR 2FA" style="display:block;margin-bottom:8px;border:1px solid #e5e7eb;border-radius:8px" width="200" height="200">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:8px;max-width:480px">
+        Scanează codul de mai sus cu o aplicație de autentificare (Google Authenticator, Authy, 1Password etc.), apoi introdu codul de 6 cifre afișat acolo, ca să confirmi:
+      </div>
+      <input id="twofaConfirmCode" type="text" inputmode="numeric" placeholder="123456" style="padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;width:140px;margin-right:8px">
+      <button class="btn sm" id="twofaConfirmBtn">Confirmă și activează</button>
+    </div>
+    <div id="twofaBackupBox" style="display:none;margin-top:12px;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;font-size:13.5px;line-height:1.6"></div>
+    <div id="twofaMsg" style="font-size:13px;color:#6b7280;margin-top:8px"></div>
+  </div>
   <div id="errBox" class="errBox" style="display:none"></div>
   <div id="legalStatusBanner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13.5px; line-height:1.5"></div>
 
@@ -324,8 +340,105 @@ async function loadLegalStatus(){
   }catch(e){}
 }
 
+// ===== 2FA (autentificare în doi factori) — doar contul de admin =====
+async function loadTwofaStatus(){
+  const statusEl = document.getElementById("twofaStatus");
+  const enableBtn = document.getElementById("twofaEnableBtn");
+  const disableBtn = document.getElementById("twofaDisableBtn");
+  try{
+    const res = await fetch("/api/2fa/status", { credentials: "include" });
+    if (!res.ok) throw new Error("eroare");
+    const { enabled } = await res.json();
+    if (enabled){
+      statusEl.innerHTML = `<span class="badge active">activat</span> Contul tău de administrator e protejat cu 2FA.`;
+      enableBtn.style.display = "none";
+      disableBtn.style.display = "inline-block";
+    } else {
+      statusEl.innerHTML = `<span class="badge none">dezactivat</span> Recomandăm activarea — protejează accesul chiar dacă cineva ar afla parola.`;
+      enableBtn.style.display = "inline-block";
+      disableBtn.style.display = "none";
+    }
+  }catch(e){
+    statusEl.textContent = "Nu am putut încărca starea 2FA.";
+  }
+}
+
+document.getElementById("twofaEnableBtn").onclick = async ()=>{
+  const btn = document.getElementById("twofaEnableBtn");
+  const msg = document.getElementById("twofaMsg");
+  btn.disabled = true;
+  msg.textContent = "";
+  try{
+    const res = await fetch("/api/2fa/setup", { method: "POST", credentials: "include" });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || "eroare");
+    document.getElementById("twofaQr").src = d.qrDataUrl;
+    document.getElementById("twofaSetupBox").style.display = "block";
+  }catch(e){
+    msg.textContent = "Nu am putut porni configurarea 2FA. Încearcă din nou.";
+  }
+  btn.disabled = false;
+};
+
+document.getElementById("twofaConfirmBtn").onclick = async ()=>{
+  const btn = document.getElementById("twofaConfirmBtn");
+  const msg = document.getElementById("twofaMsg");
+  const code = document.getElementById("twofaConfirmCode").value.trim();
+  if (!code){ msg.textContent = "Introdu codul din aplicația de autentificare."; return; }
+  btn.disabled = true;
+  msg.textContent = "Se verifică…";
+  try{
+    const res = await fetch("/api/2fa/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ code }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || "eroare");
+    document.getElementById("twofaSetupBox").style.display = "none";
+    const backupBox = document.getElementById("twofaBackupBox");
+    backupBox.innerHTML = `
+      <strong>2FA activat.</strong> Salvează ACUM aceste coduri de rezervă (le vezi o singură dată) —
+      folosește unul dacă pierzi telefonul cu aplicația de autentificare:<br><br>
+      <div style="font-family:monospace;font-size:15px;line-height:1.8">${d.backupCodes.map(esc).join("<br>")}</div>
+    `;
+    backupBox.style.display = "block";
+    msg.textContent = "";
+    await loadTwofaStatus();
+  }catch(e){
+    msg.textContent = "Cod incorect sau expirat. Încearcă din nou.";
+  }
+  btn.disabled = false;
+};
+
+document.getElementById("twofaDisableBtn").onclick = async ()=>{
+  const password = prompt("Pentru a dezactiva 2FA, confirmă parola contului tău de administrator:");
+  if (!password) return;
+  const btn = document.getElementById("twofaDisableBtn");
+  const msg = document.getElementById("twofaMsg");
+  btn.disabled = true;
+  try{
+    const res = await fetch("/api/2fa/disable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ password }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || "eroare");
+    document.getElementById("twofaBackupBox").style.display = "none";
+    msg.textContent = "2FA dezactivat.";
+    await loadTwofaStatus();
+  }catch(e){
+    msg.textContent = "Parolă incorectă sau eroare — 2FA rămâne activat.";
+  }
+  btn.disabled = false;
+};
+
 async function load(){
   const errBox = document.getElementById("errBox");
+  loadTwofaStatus();
   loadChangelogPreview();
   loadFeedback();
   loadPaymentDeclarations();
@@ -357,23 +470,38 @@ async function load(){
     `;
 
     const body = document.getElementById("usersBody");
-    body.innerHTML = users.map(u => `
+    body.innerHTML = users.map(u => {
+      // Contul poate avea deja acces activ (plătit prin card/Netopia, sau
+      // activat manual anterior) — butonul de mai jos rămâne disponibil în
+      // continuare, ca admin poți oricând să mai adaugi 30 de zile (ex. un
+      // nou transfer bancar primit), fără să pierzi zilele deja plătite
+      // (vezi routes/admin.js: extinde de la data expirării curente, nu
+      // resetează). Doar eticheta se schimbă, ca să fie clar că e o
+      // EXTINDERE, nu o (re)activare de la zero.
+      const hasActiveAccess = u.subscriptionStatus === "active" && u.currentPeriodEnd && new Date(u.currentPeriodEnd) > new Date();
+      const btnLabel = hasActiveAccess ? "Extinde cu 30 zile" : "Activează 30 zile";
+      return `
       <tr data-id="${esc(u.id)}">
         <td>${esc(u.email)}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${esc(u.businessName)}</span>` : ""}</td>
         <td>${fmtDate(u.createdAt)}</td>
         <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
         <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? "membru echipă" : "client")}</td>
         <td>${u.publicPageEnabled ? "da" : "—"}</td>
-        <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}">Activează 30 zile</button>`}</td>
+        <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}" data-active="${hasActiveAccess ? "1" : "0"}" data-label="${esc(btnLabel)}">${esc(btnLabel)}</button>`}</td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
     document.getElementById("usersTable").style.display = "table";
 
     document.querySelectorAll(".activateBtn").forEach(btn => {
       btn.onclick = async () => {
-        if (!confirm(`Ai confirmat în extrasul de cont că ${btn.dataset.email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.`)) return;
+        const isExtend = btn.dataset.active === "1";
+        const confirmMsg = isExtend
+          ? `${btn.dataset.email} are deja acces activ. Ai confirmat în extrasul de cont un transfer bancar NOU? Se adaugă 30 de zile suplimentare, peste perioada rămasă (nu se pierde nimic din ce are deja).`
+          : `Ai confirmat în extrasul de cont că ${btn.dataset.email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.`;
+        if (!confirm(confirmMsg)) return;
         btn.disabled = true;
-        btn.textContent = "Se activează…";
+        btn.textContent = "Se procesează…";
         try {
           const res = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
             method: "POST",
@@ -384,9 +512,9 @@ async function load(){
           if (!res.ok) throw new Error("eroare");
           await load();
         } catch (e) {
-          alert("Activarea a eșuat. Încearcă din nou.");
+          alert("Operația a eșuat. Încearcă din nou.");
           btn.disabled = false;
-          btn.textContent = "Activează 30 zile";
+          btn.textContent = btn.dataset.label || "Activează 30 zile";
         }
       };
     });
