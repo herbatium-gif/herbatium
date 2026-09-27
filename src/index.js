@@ -15,6 +15,7 @@ const accountRoutes = require("./routes/account");
 const adminRoutes = require("./routes/admin");
 const changelogRoutes = require("./routes/changelog");
 const feedbackRoutes = require("./routes/feedback");
+const twofactorRoutes = require("./routes/twofactor"); // 2FA — doar contul de admin
 const { router: billingRoutes, webhookHandler } = require("./routes/billing");
 const { scheduleDailyDigest } = require("./notify");
 const { scheduleRetentionCleanup } = require("./retention");
@@ -51,6 +52,7 @@ app.use("/api/account", accountRoutes); // GDPR — export date (art. 15/20) + �
 app.use("/api/admin", adminRoutes); // panou de administrator platformă — doar contul isAdmin
 app.use("/api/changelog", changelogRoutes); // noutăți aplicație, afișate în tab-ul "Noutăți"
 app.use("/api/feedback", feedbackRoutes); // feedback trimis din aplicație, de la utilizatori
+app.use("/api/2fa", twofactorRoutes); // autentificare în doi factori — doar contul de admin
 app.use("/catalog", catalogRoutes); // public, fără autentificare — pagina de catalog + director
 app.use("/legal", legalRoutes); // public — Termeni, Confidențialitate, Cookie-uri, DPA
 

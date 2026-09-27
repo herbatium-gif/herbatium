@@ -5,6 +5,42 @@ const prisma = require("./db");
 const COOKIE_NAME = "formulator_token";
 const TOKEN_TTL = "30d";
 
+// ===== Blocare cont după parole greșite repetate =====
+// Protecție SUPLIMENTARĂ față de rate-limiting-ul pe IP din routes/auth.js
+// (authLimiter taie un IP anume; asta protejează un CONT anume, indiferent de
+// la câte adrese IP diferite se încearcă parola — ex. un atacator cu multe
+// adrese IP/proxy-uri, care altfel ar ocoli limita pe IP).
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
+// Verifică dacă un cont e blocat ACUM (lockedUntil e în viitor).
+function isAccountLocked(user) {
+  return !!(user.lockedUntil && new Date(user.lockedUntil).getTime() > Date.now());
+}
+
+// Apelată după o parolă greșită: incrementează contorul și, dacă a atins
+// pragul, blochează contul pentru LOCKOUT_MINUTES. Întoarce userul actualizat
+// (cu noile valori), util pentru mesajul de răspuns către client.
+async function recordFailedLogin(user) {
+  const attempts = (user.failedLoginAttempts || 0) + 1;
+  const data = { failedLoginAttempts: attempts };
+  if (attempts >= MAX_FAILED_ATTEMPTS) {
+    data.lockedUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
+  }
+  return prisma.user.update({ where: { id: user.id }, data });
+}
+
+// Apelată la orice login reușit (parolă corectă, indiferent dacă mai urmează
+// și un pas de 2FA) — resetează contorul, ca un login legitim să nu rămână
+// "aproape blocat" din încercări vechi, greșite, uitate.
+async function resetFailedLogin(user) {
+  if (!user.failedLoginAttempts && !user.lockedUntil) return user;
+  return prisma.user.update({
+    where: { id: user.id },
+    data: { failedLoginAttempts: 0, lockedUntil: null },
+  });
+}
+
 function hashPassword(plain) {
   return bcrypt.hash(plain, 12);
 }
@@ -99,4 +135,9 @@ module.exports = {
   requireAdmin,
   effectiveDataOwnerId,
   isSubscriptionActive,
+  isAccountLocked,
+  recordFailedLogin,
+  resetFailedLogin,
+  MAX_FAILED_ATTEMPTS,
+  LOCKOUT_MINUTES,
 };
