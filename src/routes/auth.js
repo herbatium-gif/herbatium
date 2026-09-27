@@ -11,12 +11,21 @@ const {
   requireAuth,
   requireActiveSubscription,
   isSubscriptionActive,
+  isAccountLocked,
+  recordFailedLogin,
+  resetFailedLogin,
+  LOCKOUT_MINUTES,
 } = require("../auth");
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITE_TTL = "7d";
+// Token temporar emis DUPĂ parola corectă, dar ÎNAINTE de a acorda accesul,
+// pentru conturile cu 2FA activat (doar admin — vezi routes/twofactor.js).
+// Nu e cookie-ul de sesiune (formulator_token) — nu dă acces la nimic altceva
+// decât la pasul următor, "introdu codul din aplicația de autentificare".
+const TWOFA_PENDING_TTL = "10m";
 
 // Normalizează un CUI introdus de utilizator: scoate spații/liniuțe, prefixul
 // "RO" (dacă firma e plătitoare de TVA) și păstrează doar cifrele.
@@ -128,9 +137,38 @@ router.post("/login", authLimiter, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(401).json({ error: "invalid_credentials" });
 
-    const ok = await verifyPassword(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ error: "invalid_credentials" });
+    // Blocare pe cont (independentă de rate-limiting-ul pe IP de mai sus) —
+    // vezi src/auth.js. Verificăm ÎNAINTE de a compara parola, ca un cont
+    // blocat să nu mai poată fi "testat" deloc cât timp e blocat.
+    if (isAccountLocked(user)) {
+      const minutesLeft = Math.max(1, Math.ceil((new Date(user.lockedUntil).getTime() - Date.now()) / 60000));
+      return res.status(423).json({ error: "account_locked", minutesLeft });
+    }
 
+    const ok = await verifyPassword(password, user.passwordHash);
+    if (!ok) {
+      const updated = await recordFailedLogin(user);
+      if (isAccountLocked(updated)) {
+        return res.status(423).json({ error: "account_locked", minutesLeft: LOCKOUT_MINUTES });
+      }
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
+
+    // Parolă corectă. Contul de admin cu 2FA activat mai are un pas de făcut
+    // — nu se acordă cookie-ul de sesiune încă, doar un token temporar care
+    // dovedește "am trecut de parolă", valabil 10 minute, folosit de
+    // POST /api/2fa/login-verify. Clienții obișnuiți (2FA indisponibil pentru
+    // ei) trec direct mai jos, exact ca înainte.
+    if (user.isAdmin && user.twoFactorEnabled) {
+      const pendingToken = jwt.sign(
+        { purpose: "2fa_pending", uid: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: TWOFA_PENDING_TTL }
+      );
+      return res.json({ ok: true, twoFactorRequired: true, pendingToken });
+    }
+
+    await resetFailedLogin(user);
     const token = signToken(user.id);
     setAuthCookie(res, token);
     res.json({ ok: true, email: user.email });
