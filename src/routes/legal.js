@@ -111,6 +111,7 @@ function confidentialitate(v) {
     <tr><th>Furnizor</th><th>Ce face</th><th>Unde</th></tr>
     <tr><td>Railway Corporation</td><td>serverul aplicației și baza de date (PostgreSQL)</td><td>UE — europe-west4 (Amsterdam, Olanda)</td></tr>
     <tr><td>Stripe Payments Europe Ltd.</td><td>procesarea plăților cu cardul / abonamentul</td><td>UE (Irlanda), cu posibile transferuri către Stripe Inc. (SUA) pe bază de garanții adecvate</td></tr>
+    <tr><td>Resend</td><td>trimiterea e-mailurilor tranzacționale (rezumat zilnic stoc/expirări, notificare de plată declarată, notificare de anulare/retenție, noutăți aplicație)</td><td>SUA — date stocate integral acolo (conținutul mesajelor, jurnalele de livrare), pe bază de clauze contractuale standard și participarea Resend la EU-U.S. Data Privacy Framework</td></tr>
     <tr><td>Autorități publice (ANAF, instanțe)</td><td>doar când legea ne obligă</td><td>România</td></tr>
   </table>
   <p>Stripe acționează și ca operator independent pentru datele de plată, conform propriei politici de confidențialitate.</p>
