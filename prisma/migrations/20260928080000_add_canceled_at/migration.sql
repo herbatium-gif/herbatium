@@ -1,0 +1,14 @@
+-- Reparare descoperită în timpul testării locale a funcției PIF: coloana
+-- "User.canceledAt" (folosită de src/retention.js pentru a decide după câte
+-- zile se șterge definitiv un cont anulat, conform art. 5 alin. (1) lit. e)
+-- GDPR) există în schema.prisma încă de la introducerea retenției, dar
+-- NU a fost inclusă în nicio migrare anterioară — inclusiv migrarea de
+-- reparare precedentă (20260927224800_repair_missing_columns_and_tables)
+-- a omis-o. Confirmat sistematic cu
+-- `prisma migrate diff --from-migrations ... --to-schema-datamodel ...`
+-- pe o bază creată de la zero din toate migrările existente: aceasta era
+-- SINGURA diferență rămasă față de schema.prisma.
+--
+-- Idempotentă (IF NOT EXISTS) — sigură atât pe o bază nouă cât și pe
+-- producție, indiferent dacă acolo coloana a fost adăugată vreodată manual.
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "canceledAt" TIMESTAMP(3);
