@@ -390,7 +390,7 @@ router.get("/price", async (req, res) => {
 // fiindcă e afișată pe pagina de abonament înainte de login. IBAN-ul NU e
 // scris în cod — vine din variabila de mediu BANK_TRANSFER_IBAN, setată în
 // Railway direct de tine (nu de Claude — e dată bancară).
-router.get("/bank-transfer-info", async (req, res) => {
+router.get("/bank-transfer-info", requireAuth, async (req, res) => {
   if (!process.env.BANK_TRANSFER_IBAN) {
     return res.status(404).json({ error: "not_configured" });
   }
