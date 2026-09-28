@@ -17,6 +17,8 @@ router.get("/", requireAuth, requireActiveSubscription, async (req, res) => {
       costState: {},
       sales: [],
       lyeState: {},
+      pifRecords: {},
+      packagingRecords: {},
       updatedAt: null,
     }
   );
@@ -34,7 +36,7 @@ router.get("/", requireAuth, requireActiveSubscription, async (req, res) => {
 // suprascriem — clientul afișează un avertisment vizibil în loc să piardă
 // date fără să știe.
 router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
-  const { recipes, batches, customIngredients, products, ingredientPrices, stock, costState, sales, lyeState, expectedUpdatedAt } =
+  const { recipes, batches, customIngredients, products, ingredientPrices, stock, costState, sales, lyeState, pifRecords, packagingRecords, expectedUpdatedAt } =
     req.body || {};
   const ownerId = effectiveDataOwnerId(req.user);
 
@@ -64,6 +66,8 @@ router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
       costState: costState ?? {},
       sales: sales ?? [],
       lyeState: lyeState ?? {},
+      pifRecords: pifRecords ?? {},
+      packagingRecords: packagingRecords ?? {},
     },
     create: {
       userId: ownerId,
@@ -76,6 +80,8 @@ router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
       costState: costState ?? {},
       sales: sales ?? [],
       lyeState: lyeState ?? {},
+      pifRecords: pifRecords ?? {},
+      packagingRecords: packagingRecords ?? {},
     },
   });
   res.json({ ok: true, updatedAt: updated.updatedAt });

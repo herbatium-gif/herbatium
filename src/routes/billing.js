@@ -87,7 +87,7 @@ async function ensurePaymentCode(user) {
 }
 
 function getMonthlyPriceRon() {
-  return Number(process.env.BANK_TRANSFER_AMOUNT_RON) || 130;
+  return Number(process.env.BANK_TRANSFER_AMOUNT_RON) || 200;
 }
 
 // ============================================================================
@@ -360,7 +360,7 @@ router.get("/price", async (req, res) => {
       interval: price.recurring && price.recurring.interval,
     };
     // Dacă e configurat un cod de promoție introductivă, îl expunem pe
-    // pagina de abonament (ex: "prima lună: 99 lei, apoi 170 lei/lună").
+    // pagina de abonament (ex: "prima lună: 99 lei, apoi 200 lei/lună").
     // Afișăm mereu oferta aici, indiferent dacă UN client anume mai e
     // eligibil pentru ea — eligibilitatea reală se verifică abia la
     // checkout (mai sus); dacă nu mai e eligibil, plătește direct prețul

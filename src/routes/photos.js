@@ -13,6 +13,25 @@ const UPLOAD_ROOT = path.join(__dirname, "..", "..", "uploads");
 // e suficient și simplu de întreținut.
 // Pozele se salvează în folderul contului principal (owner), ca membrii de
 // echipă să vadă/gestioneze aceleași poze, nu unele separate.
+// Extensia fișierului stocat se decide DOAR din mimetype-ul validat mai jos,
+// NICIODATĂ din numele original trimis de client (file.originalname) — acela
+// e complet controlat de atacator și nu are nicio legătură garantată cu
+// conținutul/mimetype-ul real verificat de fileFilter. Dacă am fi luat
+// extensia din originalname (cum se făcea înainte), cineva putea trimite un
+// fișier cu Content-Type: image/png dar numit "evil.svg": fileFilter l-ar fi
+// acceptat (mimetype valid), dar fișierul salvat s-ar fi numit "*.svg" — iar
+// express.static (vezi src/index.js, /uploads) servește fișierele cu
+// Content-Type dedus din EXTENSIE, nu din mimetype-ul original — deci un SVG
+// cu <script> ar fi fost servit ca image/svg+xml și executat la deschidere
+// directă în browser (exact XSS-ul stocat pe care comentariul de mai jos
+// spune că-l blocăm). Maparea explicită de mai jos închide această portiță.
+const MIME_TO_EXT = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(UPLOAD_ROOT, effectiveDataOwnerId(req.user));
@@ -20,7 +39,7 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    const ext = (path.extname(file.originalname) || ".jpg").toLowerCase();
+    const ext = MIME_TO_EXT[file.mimetype] || ".jpg";
     cb(null, crypto.randomUUID() + ext);
   },
 });

@@ -24,7 +24,7 @@ const netopia = require("../netopia");
 
 const router = express.Router();
 
-const SUBSCRIPTION_PRICE_RON = 130;
+const SUBSCRIPTION_PRICE_RON = 200;
 const RENEWAL_PERIOD_DAYS = 30;
 
 // Aceeași schemă de generare ca în src/routes/billing.js (ensurePaymentCode) —

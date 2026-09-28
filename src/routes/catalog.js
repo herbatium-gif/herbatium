@@ -13,6 +13,101 @@ function esc(s) {
   }[c]));
 }
 
+// Traducere RO/EN pentru paginile publice de catalog (server-side — randate
+// direct ca HTML, fără JS client). Limba se ține într-un cookie
+// ("herbatium_catalog_lang"), setat când vizitatorul apasă butonul RO/EN
+// (?lang=ro sau ?lang=en) sau citit din cookie la vizitele următoare;
+// implicit "ro". Complet independentă de i18n.js (aplicația SPA) — acolo
+// limba se ține în localStorage, aici (pagini server-side, fără cont) într-un
+// cookie simplu, nelegat de un utilizator autentificat.
+const CATALOG_LANG_COOKIE = "herbatium_catalog_lang";
+const STRINGS = {
+  ro: {
+    pageNotFoundTitle: "Pagină negăsită",
+    pageNotFoundBody: "Această pagină nu există sau nu mai e activă.",
+    errorTitle: "Eroare",
+    errorLoadPage: "Ceva nu a mers bine la încărcarea acestei pagini.",
+    errorLoadList: "Ceva nu a mers bine la încărcarea listei.",
+    allProducers: "← Toți producătorii",
+    defaultProducerName: "Producător",
+    noContactLinks: "Niciun link de contact adăugat încă.",
+    productsN: "Produse ({n})",
+    noPublicProducts: "Niciun produs afișat public momentan.",
+    noName: "(fără nume)",
+    orderHint: "Pentru comandă, folosește unul dintre linkurile de mai sus — această pagină nu procesează plăți sau comenzi direct.",
+    defaultCatalogTitle: "Catalog produse",
+    directoryTitle: "Producători de cosmetice naturale",
+    directoryDesc: "Catalog de producători care își prezintă produsele folosind Herbatium. Fiecare pagină duce mai departe la canalul de vânzare al producătorului (Instagram, Breslo, Etsy, site propriu).",
+    noPublicProducers: "Niciun producător public momentan.",
+    viewCatalog: "Vezi catalogul →",
+    directoryPageTitle: "Producători — Herbatium",
+    footer: 'Pagină generată cu <a href="/">Herbatium</a> — unealta pentru producători mici de cosmetice naturale.',
+    instagram: "Instagram",
+    bresloShop: "Magazin Breslo",
+    etsyShop: "Magazin Etsy",
+    ownWebsite: "Site propriu",
+    facebook: "Facebook",
+  },
+  en: {
+    pageNotFoundTitle: "Page not found",
+    pageNotFoundBody: "This page doesn't exist or is no longer active.",
+    errorTitle: "Error",
+    errorLoadPage: "Something went wrong loading this page.",
+    errorLoadList: "Something went wrong loading the list.",
+    allProducers: "← All producers",
+    defaultProducerName: "Producer",
+    noContactLinks: "No contact link added yet.",
+    productsN: "Products ({n})",
+    noPublicProducts: "No products shown publicly at the moment.",
+    noName: "(no name)",
+    orderHint: "To order, use one of the links above — this page does not process payments or orders directly.",
+    defaultCatalogTitle: "Product catalog",
+    directoryTitle: "Natural cosmetics producers",
+    directoryDesc: "A directory of producers presenting their products with Herbatium. Each page links onward to the producer's sales channel (Instagram, Breslo, Etsy, their own website).",
+    noPublicProducers: "No public producers at the moment.",
+    viewCatalog: "View catalog →",
+    directoryPageTitle: "Producers — Herbatium",
+    footer: 'Page generated with <a href="/">Herbatium</a> — the tool for small natural cosmetics producers.',
+    instagram: "Instagram",
+    bresloShop: "Breslo shop",
+    etsyShop: "Etsy shop",
+    ownWebsite: "Own website",
+    facebook: "Facebook",
+  },
+};
+function tr(lang, key, vars) {
+  let str = (STRINGS[lang] && STRINGS[lang][key]) != null ? STRINGS[lang][key] : STRINGS.ro[key];
+  if (str == null) return key;
+  if (vars) Object.keys(vars).forEach((k) => { str = str.split("{" + k + "}").join(vars[k]); });
+  return str;
+}
+// Determină limba curentă din ?lang=, apoi din cookie, altfel "ro"; dacă
+// ?lang= e prezent și valid, actualizează și cookie-ul (persistă alegerea).
+function resolveLang(req, res) {
+  const q = req.query && req.query.lang;
+  if (q === "ro" || q === "en") {
+    if (res) {
+      try { res.cookie(CATALOG_LANG_COOKIE, q, { maxAge: 1000 * 60 * 60 * 24 * 365, sameSite: "lax" }); } catch (e) { /* ignorăm — limba tot funcționează pentru cererea curentă */ }
+    }
+    return q;
+  }
+  const c = req.cookies && req.cookies[CATALOG_LANG_COOKIE];
+  return c === "en" ? "en" : "ro";
+}
+// Construiește linkul pentru celălalt buton de limbă, păstrând path-ul curent
+// și restul query string-ului (înlocuind doar `lang`).
+function langSwitchUrl(req, targetLang) {
+  const params = new URLSearchParams(req.query || {});
+  params.set("lang", targetLang);
+  return req.path + "?" + params.toString();
+}
+function langToggleHtml(req, lang) {
+  return `<div class="langToggle">
+    <a href="${esc(langSwitchUrl(req, "ro"))}" class="langBtn${lang === "ro" ? " active" : ""}">RO</a>
+    <a href="${esc(langSwitchUrl(req, "en"))}" class="langBtn${lang === "en" ? " active" : ""}">EN</a>
+  </div>`;
+}
+
 // Modele vizuale pentru pagina publică de catalog. Fiecare utilizator alege unul
 // din tab-ul "Pagina publică" — id-ul e salvat pe User.catalogTemplate.
 // IMPORTANT: id-urile și swatch-urile de aici trebuie să rămână sincronizate cu
@@ -57,10 +152,12 @@ const TEMPLATES = {
 };
 const DEFAULT_TEMPLATE = "natural";
 
-function pageShell(title, body, templateId) {
+function pageShell(title, body, templateId, opts) {
   const t = TEMPLATES[templateId] || TEMPLATES[DEFAULT_TEMPLATE];
+  const lang = (opts && opts.lang) || "ro";
+  const langToggle = (opts && opts.req) ? langToggleHtml(opts.req, lang) : "";
   return `<!doctype html>
-<html lang="ro">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -76,8 +173,12 @@ function pageShell(title, body, templateId) {
 body{background:var(--bg);color:var(--ink);font-family:${t.bodyFont};margin:0;padding:0 16px 60px}
 h1,h2{font-family:${t.headingFont};font-weight:600;${t.uppercaseH ? "text-transform:uppercase;letter-spacing:.06em;" : ""}}
 .wrap{max-width:900px;margin:0 auto}
-.top{padding:24px 0 8px}
+.top{padding:24px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .top a{color:var(--ink-soft);font-size:13px;text-decoration:none}
+.langToggle{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:none}
+.langToggle .langBtn{padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--ink-soft);text-decoration:none;opacity:.7}
+.langToggle .langBtn.active{opacity:1;background:var(--accent);color:var(--accent-ink)}
+.langToggle .langBtn:not(.active):hover{opacity:1}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
 .photo{aspect-ratio:1/1;background:var(--surface-2);border-radius:calc(var(--radius) - 2px);overflow:hidden;margin-bottom:8px}
@@ -93,8 +194,9 @@ h1,h2{font-family:${t.headingFont};font-weight:600;${t.uppercaseH ? "text-transf
 </head>
 <body>
 <div class="wrap">
+${langToggle ? `<div class="top" style="justify-content:flex-end">${langToggle}</div>` : ""}
 ${body}
-<div class="footer">Pagină generată cu <a href="/">Herbatium</a> — unealta pentru producători mici de cosmetice naturale.</div>
+<div class="footer">${tr(lang, "footer")}</div>
 </div>
 </body>
 </html>`;
@@ -104,57 +206,60 @@ ${body}
 // reală (cu date din baza de date), cât și pentru previzualizarea din tab-ul
 // "Pagina publică" (cu date nesalvate încă din formular).
 function renderProducerBody(profile, products, opts) {
-  const backLink = (opts && opts.noBackLink) ? "" : `<div class="top"><a href="/catalog">← Toți producătorii</a></div>`;
+  const lang = (opts && opts.lang) || "ro";
+  const backLink = (opts && opts.noBackLink) ? "" : `<div class="top"><a href="/catalog">${tr(lang, "allProducers")}</a>${opts && opts.req ? langToggleHtml(opts.req, lang) : ""}</div>`;
   const links = [
-    profile.instagramUrl && `<a href="${esc(profile.instagramUrl)}" target="_blank" rel="noopener">Instagram</a>`,
-    profile.bresloUrl && `<a href="${esc(profile.bresloUrl)}" target="_blank" rel="noopener">Magazin Breslo</a>`,
-    profile.etsyUrl && `<a href="${esc(profile.etsyUrl)}" target="_blank" rel="noopener">Magazin Etsy</a>`,
-    profile.websiteUrl && `<a href="${esc(profile.websiteUrl)}" target="_blank" rel="noopener">Site propriu</a>`,
-    profile.facebookUrl && `<a href="${esc(profile.facebookUrl)}" target="_blank" rel="noopener">Facebook</a>`,
+    profile.instagramUrl && `<a href="${esc(profile.instagramUrl)}" target="_blank" rel="noopener">${tr(lang, "instagram")}</a>`,
+    profile.bresloUrl && `<a href="${esc(profile.bresloUrl)}" target="_blank" rel="noopener">${tr(lang, "bresloShop")}</a>`,
+    profile.etsyUrl && `<a href="${esc(profile.etsyUrl)}" target="_blank" rel="noopener">${tr(lang, "etsyShop")}</a>`,
+    profile.websiteUrl && `<a href="${esc(profile.websiteUrl)}" target="_blank" rel="noopener">${tr(lang, "ownWebsite")}</a>`,
+    profile.facebookUrl && `<a href="${esc(profile.facebookUrl)}" target="_blank" rel="noopener">${tr(lang, "facebook")}</a>`,
   ].filter(Boolean).join("");
 
   return `
     ${backLink}
     <div class="card">
-      <h1>${esc(profile.businessName || "Producător")}</h1>
+      <h1>${esc(profile.businessName || tr(lang, "defaultProducerName"))}</h1>
       ${profile.bio ? `<p>${esc(profile.bio)}</p>` : ""}
-      ${links ? `<div class="links">${links}</div>` : `<p class="hint">Niciun link de contact adăugat încă.</p>`}
+      ${links ? `<div class="links">${links}</div>` : `<p class="hint">${tr(lang, "noContactLinks")}</p>`}
     </div>
     <div class="card">
-      <h2 style="font-size:16px;margin-bottom:10px">Produse (${products.length})</h2>
-      ${products.length === 0 ? `<p class="hint">Niciun produs afișat public momentan.</p>` : `
+      <h2 style="font-size:16px;margin-bottom:10px">${tr(lang, "productsN", { n: products.length })}</h2>
+      ${products.length === 0 ? `<p class="hint">${tr(lang, "noPublicProducts")}</p>` : `
       <div class="grid">
         ${products.map((p) => `
           <div>
             <div class="photo">${p.photos && p.photos[0] ? `<img src="${esc(p.photos[0].url)}" alt="${esc(p.name)}">` : ""}</div>
-            <div class="name">${esc(p.name || "(fără nume)")}</div>
+            <div class="name">${esc(p.name || tr(lang, "noName"))}</div>
             ${p.price ? `<div class="price">${esc(Number(p.price).toFixed(2))} lei</div>` : ""}
           </div>`).join("")}
       </div>`}
-      <p class="hint" style="margin-top:14px">Pentru comandă, folosește unul dintre linkurile de mai sus — această pagină nu procesează plăți sau comenzi direct.</p>
+      <p class="hint" style="margin-top:14px">${tr(lang, "orderHint")}</p>
     </div>
   `;
 }
 
 // Pagina publică de catalog a unui producător
 router.get("/:slug", async (req, res) => {
+  const lang = resolveLang(req, res);
   try {
     const user = await prisma.user.findFirst({
       where: { slug: req.params.slug, publicPageEnabled: true },
     });
-    if (!user) return res.status(404).send(pageShell("Pagină negăsită", `<div class="top"><a href="/catalog">← Toți producătorii</a></div><div class="card">Această pagină nu există sau nu mai e activă.</div>`, DEFAULT_TEMPLATE));
+    if (!user) return res.status(404).send(pageShell(tr(lang, "pageNotFoundTitle"), `<div class="top"><a href="/catalog">${tr(lang, "allProducers")}</a>${langToggleHtml(req, lang)}</div><div class="card">${tr(lang, "pageNotFoundBody")}</div>`, DEFAULT_TEMPLATE, { lang }));
 
     const data = await prisma.userData.findUnique({ where: { userId: user.id } });
     const products = ((data && data.products) || []).filter((p) => p && p.publicVisible && p.name && p.name.trim());
-    const body = renderProducerBody(user, products);
-    res.send(pageShell(user.businessName || "Catalog produse", body, user.catalogTemplate));
+    const body = renderProducerBody(user, products, { lang, req });
+    res.send(pageShell(user.businessName || tr(lang, "defaultCatalogTitle"), body, user.catalogTemplate, { lang, req }));
   } catch (e) {
-    res.status(500).send(pageShell("Eroare", `<div class="card">Ceva nu a mers bine la încărcarea acestei pagini.</div>`, DEFAULT_TEMPLATE));
+    res.status(500).send(pageShell(tr(lang, "errorTitle"), `<div class="card">${tr(lang, "errorLoadPage")}</div>`, DEFAULT_TEMPLATE, { lang, req }));
   }
 });
 
 // Director public cu toți producătorii care au activat pagina
 router.get("/", async (req, res) => {
+  const lang = resolveLang(req, res);
   try {
     const users = await prisma.user.findMany({
       where: { publicPageEnabled: true, slug: { not: null } },
@@ -162,21 +267,20 @@ router.get("/", async (req, res) => {
       select: { slug: true, businessName: true, bio: true },
     });
     const body = `
-      <div class="top"></div>
       <div class="card">
-        <h1>Producători de cosmetice naturale</h1>
-        <p class="hint">Catalog de producători care își prezintă produsele folosind Herbatium. Fiecare pagină duce mai departe la canalul de vânzare al producătorului (Instagram, Breslo, Etsy, site propriu).</p>
+        <h1>${tr(lang, "directoryTitle")}</h1>
+        <p class="hint">${tr(lang, "directoryDesc")}</p>
       </div>
-      ${users.length === 0 ? `<div class="card hint">Niciun producător public momentan.</div>` : users.map((u) => `
+      ${users.length === 0 ? `<div class="card hint">${tr(lang, "noPublicProducers")}</div>` : users.map((u) => `
         <div class="card">
           <h2 style="font-size:16px;margin-bottom:4px"><a href="/catalog/${esc(u.slug)}" style="color:inherit;text-decoration:none">${esc(u.businessName || u.slug)}</a></h2>
           ${u.bio ? `<p class="hint">${esc(u.bio)}</p>` : ""}
-          <a href="/catalog/${esc(u.slug)}" style="font-size:13px;color:var(--accent)">Vezi catalogul →</a>
+          <a href="/catalog/${esc(u.slug)}" style="font-size:13px;color:var(--accent)">${tr(lang, "viewCatalog")}</a>
         </div>`).join("")}
     `;
-    res.send(pageShell("Producători — Herbatium", body, DEFAULT_TEMPLATE));
+    res.send(pageShell(tr(lang, "directoryPageTitle"), body, DEFAULT_TEMPLATE, { lang, req }));
   } catch (e) {
-    res.status(500).send(pageShell("Eroare", `<div class="card">Ceva nu a mers bine la încărcarea listei.</div>`, DEFAULT_TEMPLATE));
+    res.status(500).send(pageShell(tr(lang, "errorTitle"), `<div class="card">${tr(lang, "errorLoadList")}</div>`, DEFAULT_TEMPLATE, { lang, req }));
   }
 });
 
@@ -185,3 +289,5 @@ module.exports.TEMPLATES = TEMPLATES;
 module.exports.DEFAULT_TEMPLATE = DEFAULT_TEMPLATE;
 module.exports.pageShell = pageShell;
 module.exports.renderProducerBody = renderProducerBody;
+module.exports.resolveLang = resolveLang;
+module.exports.tr = tr;

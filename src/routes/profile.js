@@ -123,8 +123,9 @@ router.post("/preview", requireAuth, requireActiveSubscription, async (req, res)
     draft.facebookUrl = safePublicUrl(draft.facebookUrl);
     const data = await prisma.userData.findUnique({ where: { userId: effectiveDataOwnerId(req.user) } });
     const products = ((data && data.products) || []).filter((p) => p && p.publicVisible);
-    const body = renderProducerBody(draft, products, { noBackLink: true });
-    const html = pageShell(draft.businessName || "Previzualizare", body, draft.catalogTemplate);
+    const lang = req.body && req.body.lang === "en" ? "en" : "ro";
+    const body = renderProducerBody(draft, products, { noBackLink: true, lang });
+    const html = pageShell(draft.businessName || (lang === "en" ? "Preview" : "Previzualizare"), body, draft.catalogTemplate, { lang });
     res.json({ html });
   } catch (e) {
     res.status(500).json({ error: "preview_failed" });
