@@ -6,6 +6,7 @@
 <title>Alătură-te echipei — Herbatium</title>
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js"></script>
 <style>
 .consentRow{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:13px;line-height:1.45;color:var(--ink-soft)}
 .consentRow input[type=checkbox]{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
@@ -14,21 +15,61 @@
 </head>
 <body>
 <div class="authCard">
-  <h1>Alătură-te echipei</h1>
-  <div class="sub">Ai fost invitat(ă) să te alături unui cont Herbatium. Alege o parolă ca să-ți activezi accesul — nu ai nevoie de abonament propriu.</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px" id="langSlot"></div>
+  <h1 data-i18n="invite.title">Alătură-te echipei</h1>
+  <div class="sub" data-i18n="invite.subtitle">Ai fost invitat(ă) să te alături unui cont Herbatium. Alege o parolă ca să-ți activezi accesul — nu ai nevoie de abonament propriu.</div>
   <form id="acceptForm">
-    <label for="password">Parolă (minim 8 caractere)</label>
+    <label for="password" data-i18n="invite.password">Parolă (minim 8 caractere)</label>
     <input type="password" id="password" required minlength="8" autocomplete="new-password">
     <label class="consentRow" for="acceptTerms">
       <input type="checkbox" id="acceptTerms" required>
-      <span>Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
+      <span data-i18n-html="invite.termsConsent">Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
     </label>
-    <button class="btn" type="submit" id="submitBtn">Activează accesul</button>
+    <button class="btn" type="submit" id="submitBtn" data-i18n="invite.submit">Activează accesul</button>
   </form>
   <div class="err" id="errBox"></div>
-  <div class="foot">Ai deja cont? <a href="/login.html">Conectează-te</a></div>
+  <div class="foot"><span data-i18n="invite.haveAccount">Ai deja cont?</span> <a href="/login.html" data-i18n="invite.signIn">Conectează-te</a></div>
 </div>
 <script>
+I18N.register("ro", {
+  "invite.title": "Alătură-te echipei",
+  "invite.subtitle": "Ai fost invitat(ă) să te alături unui cont Herbatium. Alege o parolă ca să-ți activezi accesul — nu ai nevoie de abonament propriu.",
+  "invite.password": "Parolă (minim 8 caractere)",
+  "invite.termsConsent": 'Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.',
+  "invite.submit": "Activează accesul",
+  "invite.submitBusy": "Se activează…",
+  "invite.haveAccount": "Ai deja cont?",
+  "invite.signIn": "Conectează-te",
+  "invite.missingToken": "Link de invitație lipsă sau incomplet.",
+  "invite.err.password_too_short": "Parola trebuie să aibă minim 8 caractere.",
+  "invite.err.terms_not_accepted": "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
+  "invite.err.invite_invalid_or_expired": "Linkul de invitație nu mai e valabil — cere unul nou de la contul principal.",
+  "invite.err.owner_not_found": "Contul care te-a invitat nu mai există.",
+  "invite.err.email_taken": "Există deja un cont cu acest email — încearcă să te conectezi.",
+  "invite.err.generic": "A apărut o eroare. Încearcă din nou.",
+  "invite.err.serverUnreachable": "Nu am putut contacta serverul.",
+});
+I18N.register("en", {
+  "invite.title": "Join the team",
+  "invite.subtitle": "You've been invited to join a Herbatium account. Choose a password to activate your access — you don't need your own subscription.",
+  "invite.password": "Password (min. 8 characters)",
+  "invite.termsConsent": 'I agree to the <a href="/legal/termeni" target="_blank" rel="noopener">Terms and Conditions</a> and I acknowledge the <a href="/legal/confidentialitate" target="_blank" rel="noopener">Privacy Policy</a>.',
+  "invite.submit": "Activate access",
+  "invite.submitBusy": "Activating…",
+  "invite.haveAccount": "Already have an account?",
+  "invite.signIn": "Sign in",
+  "invite.missingToken": "Missing or incomplete invitation link.",
+  "invite.err.password_too_short": "Password must be at least 8 characters.",
+  "invite.err.terms_not_accepted": "You must accept the Terms and acknowledge the Privacy Policy.",
+  "invite.err.invite_invalid_or_expired": "This invitation link is no longer valid — ask the main account for a new one.",
+  "invite.err.owner_not_found": "The account that invited you no longer exists.",
+  "invite.err.email_taken": "An account with this email already exists — try signing in.",
+  "invite.err.generic": "Something went wrong. Please try again.",
+  "invite.err.serverUnreachable": "Could not reach the server.",
+});
+document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
+I18N.applyStaticI18n();
+
 const params = new URLSearchParams(window.location.search);
 const token = params.get("token") || "";
 const form = document.getElementById("acceptForm");
@@ -36,7 +77,7 @@ const errBox = document.getElementById("errBox");
 const submitBtn = document.getElementById("submitBtn");
 
 if (!token){
-  errBox.textContent = "Link de invitație lipsă sau incomplet.";
+  errBox.textContent = I18N.t("invite.missingToken");
   errBox.style.display = "block";
   form.style.display = "none";
 }
@@ -44,7 +85,7 @@ if (!token){
 form.onsubmit = async (e)=>{
   e.preventDefault();
   errBox.style.display = "none";
-  submitBtn.disabled = true; submitBtn.textContent = "Se activează…";
+  submitBtn.disabled = true; submitBtn.textContent = I18N.t("invite.submitBusy");
   try{
     const res = await fetch("/api/auth/accept-invite", {
       method:"POST",
@@ -53,23 +94,18 @@ form.onsubmit = async (e)=>{
     });
     if (!res.ok){
       const d = await res.json().catch(()=>({}));
-      const msgs = {
-        password_too_short: "Parola trebuie să aibă minim 8 caractere.",
-        terms_not_accepted: "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
-        invite_invalid_or_expired: "Linkul de invitație nu mai e valabil — cere unul nou de la contul principal.",
-        owner_not_found: "Contul care te-a invitat nu mai există.",
-        email_taken: "Există deja un cont cu acest email — încearcă să te conectezi.",
-      };
-      errBox.textContent = msgs[d.error] || "A apărut o eroare. Încearcă din nou.";
+      const key = "invite.err." + d.error;
+      const translated = I18N.t(key);
+      errBox.textContent = translated !== key ? translated : I18N.t("invite.err.generic");
       errBox.style.display = "block";
-      submitBtn.disabled = false; submitBtn.textContent = "Activează accesul";
+      submitBtn.disabled = false; submitBtn.textContent = I18N.t("invite.submit");
       return;
     }
     window.location.href = "/app.html";
   }catch(e){
-    errBox.textContent = "Nu am putut contacta serverul.";
+    errBox.textContent = I18N.t("invite.err.serverUnreachable");
     errBox.style.display = "block";
-    submitBtn.disabled = false; submitBtn.textContent = "Activează accesul";
+    submitBtn.disabled = false; submitBtn.textContent = I18N.t("invite.submit");
   }
 };
 </script>

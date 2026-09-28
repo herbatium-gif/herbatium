@@ -9,9 +9,10 @@
 <meta name="theme-color" content="#1f9d5a">
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js"></script>
 <style>
   .adminWrap{max-width:960px;margin:40px auto;padding:0 20px}
-  .adminHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .adminHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
   .statsRow{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px}
   .statCard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;min-width:140px}
   .statCard .num{font-size:28px;font-weight:700;color:var(--accent,#1f9d5a)}
@@ -31,28 +32,31 @@
 <body>
 <div class="adminWrap">
   <div class="adminHead">
-    <h1 style="margin:0">Panou de administrare</h1>
-    <a class="backLink" href="/app.html">← Înapoi la aplicație</a>
+    <h1 style="margin:0" data-i18n="admin.title">Panou de administrare</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="langSlot"></span>
+      <a class="backLink" href="/app.html" data-i18n="admin.backToApp">← Înapoi la aplicație</a>
+    </div>
   </div>
   <div class="statsRow" id="statsRow"></div>
   <div class="statCard" id="changelogCard" style="margin-bottom:20px;min-width:auto">
-    <div class="lbl" style="margin-bottom:6px">Ultima noutate din aplicație</div>
-    <div id="changelogPreview" style="font-size:14px;margin-bottom:10px">Se încarcă…</div>
-    <button class="btn sm" id="sendChangelogBtn">Trimite email de noutăți tuturor utilizatorilor</button>
+    <div class="lbl" style="margin-bottom:6px" data-i18n="admin.lastChangelog">Ultima noutate din aplicație</div>
+    <div id="changelogPreview" style="font-size:14px;margin-bottom:10px" data-i18n="common.loading">Se încarcă…</div>
+    <button class="btn sm" id="sendChangelogBtn" data-i18n="admin.sendChangelogEmail">Trimite email de noutăți tuturor utilizatorilor</button>
     <span id="sendChangelogStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
   </div>
   <div class="statCard" id="securityCard" style="margin-bottom:20px;min-width:auto">
-    <div class="lbl" style="margin-bottom:6px">Securitate cont administrator — autentificare în doi factori (2FA)</div>
-    <div id="twofaStatus" style="font-size:14px;margin-bottom:10px">Se încarcă…</div>
-    <button class="btn sm" id="twofaEnableBtn" style="display:none">Activează 2FA</button>
-    <button class="btn sm" id="twofaDisableBtn" style="display:none;background:#dc2626;border-color:#dc2626">Dezactivează 2FA</button>
+    <div class="lbl" style="margin-bottom:6px" data-i18n="admin.twofaTitle">Securitate cont administrator — autentificare în doi factori (2FA)</div>
+    <div id="twofaStatus" style="font-size:14px;margin-bottom:10px" data-i18n="common.loading">Se încarcă…</div>
+    <button class="btn sm" id="twofaEnableBtn" style="display:none" data-i18n="admin.twofaEnable">Activează 2FA</button>
+    <button class="btn sm" id="twofaDisableBtn" style="display:none;background:#dc2626;border-color:#dc2626" data-i18n="admin.twofaDisable">Dezactivează 2FA</button>
     <div id="twofaSetupBox" style="display:none;margin-top:12px">
       <img id="twofaQr" alt="Cod QR 2FA" style="display:block;margin-bottom:8px;border:1px solid #e5e7eb;border-radius:8px" width="200" height="200">
-      <div style="font-size:13px;color:#6b7280;margin-bottom:8px;max-width:480px">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:8px;max-width:480px" data-i18n="admin.twofaScanHint">
         Scanează codul de mai sus cu o aplicație de autentificare (Google Authenticator, Authy, 1Password etc.), apoi introdu codul de 6 cifre afișat acolo, ca să confirmi:
       </div>
       <input id="twofaConfirmCode" type="text" inputmode="numeric" placeholder="123456" style="padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;width:140px;margin-right:8px">
-      <button class="btn sm" id="twofaConfirmBtn">Confirmă și activează</button>
+      <button class="btn sm" id="twofaConfirmBtn" data-i18n="admin.twofaConfirmBtn">Confirmă și activează</button>
     </div>
     <div id="twofaBackupBox" style="display:none;margin-top:12px;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;font-size:13.5px;line-height:1.6"></div>
     <div id="twofaMsg" style="font-size:13px;color:#6b7280;margin-top:8px"></div>
@@ -60,52 +64,280 @@
   <div id="errBox" class="errBox" style="display:none"></div>
   <div id="legalStatusBanner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13.5px; line-height:1.5"></div>
 
-  <h2 style="margin:32px 0 12px">Panou de activări licențe</h2>
-  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280">
+  <h2 style="margin:32px 0 12px" data-i18n="admin.licensesTitle">Panou de activări licențe</h2>
+  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280" data-i18n="admin.licensesDesc">
     Plăți declarate (transfer bancar, cod de plată) care așteaptă confirmare în extrasul de cont. Caută după cod, email sau CUI, verifică suma în bancă, apoi activează — durata se calculează automat din câte luni a ales clientul.
   </div>
-  <input id="paymentSearch" type="text" placeholder="Caută după cod, email, CUI sau denumire firmă…"
+  <input id="paymentSearch" type="text" data-i18n-placeholder="admin.searchPlaceholder" placeholder="Caută după cod, email, CUI sau denumire firmă…"
     style="width:100%;max-width:420px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:12px">
   <table id="paymentsTable" style="display:none;margin-bottom:32px">
     <thead>
-      <tr><th>Cod plată</th><th>Client</th><th>CUI</th><th>Tip client</th><th>Luni declarate</th><th>Sumă</th><th>Declarat la</th><th>Abonament curent</th><th>Acțiune</th></tr>
+      <tr>
+        <th data-i18n="admin.colPaymentCode">Cod plată</th>
+        <th data-i18n="admin.colClient">Client</th>
+        <th>CUI</th>
+        <th data-i18n="admin.colClientType">Tip client</th>
+        <th data-i18n="admin.colMonthsDeclared">Luni declarate</th>
+        <th data-i18n="admin.colAmount">Sumă</th>
+        <th data-i18n="admin.colDeclaredAt">Declarat la</th>
+        <th data-i18n="admin.colCurrentSub">Abonament curent</th>
+        <th data-i18n="admin.colAction">Acțiune</th>
+      </tr>
     </thead>
     <tbody id="paymentsBody"></tbody>
   </table>
-  <div id="paymentsEmpty" style="display:none;color:#6b7280;font-size:14px;margin-bottom:32px">Nicio plată declarată în așteptare.</div>
+  <div id="paymentsEmpty" style="display:none;color:#6b7280;font-size:14px;margin-bottom:32px" data-i18n="admin.noPendingPayments">Nicio plată declarată în așteptare.</div>
 
-  <h2 style="margin:32px 0 12px">Cerere scrisă de ștergere a datelor (Art. 17 GDPR)</h2>
-  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280">
+  <h2 style="margin:32px 0 12px" data-i18n="admin.gdprEraseTitle">Cerere scrisă de ștergere a datelor (Art. 17 GDPR)</h2>
+  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280" data-i18n="admin.gdprEraseDesc">
     Folosește DOAR după ce ai confirmat identitatea solicitantului (de regulă, cererea vine pe adresa de GDPR din e-mail). Șterge definitiv evidența anti-abuz (CUI/e-mail — prețul introductiv) și, dacă mai există, contul propriu-zis. Funcționează și dacă persoana nu mai are cont.
   </div>
   <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; max-width:600px">
-    <input id="gdprEraseCui" type="text" placeholder="CUI (opțional dacă știi e-mailul)" style="flex:1; min-width:160px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
-    <input id="gdprEraseEmail" type="text" placeholder="E-mail (opțional dacă știi CUI-ul)" style="flex:1; min-width:200px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
-    <button class="btn sm" id="gdprEraseBtn">Șterge definitiv</button>
+    <input id="gdprEraseCui" type="text" data-i18n-placeholder="admin.gdprCuiPlaceholder" placeholder="CUI (opțional dacă știi e-mailul)" style="flex:1; min-width:160px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
+    <input id="gdprEraseEmail" type="text" data-i18n-placeholder="admin.gdprEmailPlaceholder" placeholder="E-mail (opțional dacă știi CUI-ul)" style="flex:1; min-width:200px; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px">
+    <button class="btn sm" id="gdprEraseBtn" data-i18n="admin.gdprEraseBtn">Șterge definitiv</button>
   </div>
   <div id="gdprEraseStatus" style="font-size:13px; color:#6b7280; margin-bottom:32px"></div>
 
   <table id="usersTable" style="display:none">
     <thead>
-      <tr><th>Email</th><th>Creat</th><th>Abonament</th><th>Rol</th><th>Pagină publică</th><th>Transfer bancar</th></tr>
+      <tr>
+        <th>Email</th>
+        <th data-i18n="admin.colCreated">Creat</th>
+        <th data-i18n="admin.colSubscription">Abonament</th>
+        <th data-i18n="admin.colRole">Rol</th>
+        <th data-i18n="admin.colPublicPage">Pagină publică</th>
+        <th data-i18n="admin.colBankTransfer">Transfer bancar</th>
+      </tr>
     </thead>
     <tbody id="usersBody"></tbody>
   </table>
 
-  <h2 style="margin:32px 0 12px">Feedback de la utilizatori</h2>
+  <h2 style="margin:32px 0 12px" data-i18n="admin.feedbackTitle">Feedback de la utilizatori</h2>
   <table id="feedbackTable" style="display:none">
     <thead>
-      <tr><th>Data</th><th>Email</th><th>Tip</th><th>Mesaj</th><th>Pagină</th><th>Stare</th></tr>
+      <tr>
+        <th data-i18n="admin.colDate">Data</th>
+        <th>Email</th>
+        <th data-i18n="admin.colType">Tip</th>
+        <th data-i18n="admin.colMessage">Mesaj</th>
+        <th data-i18n="admin.colPage">Pagină</th>
+        <th data-i18n="admin.colStatus">Stare</th>
+      </tr>
     </thead>
     <tbody id="feedbackBody"></tbody>
   </table>
-  <div id="feedbackEmpty" style="display:none;color:#6b7280;font-size:14px">Niciun mesaj de feedback încă.</div>
+  <div id="feedbackEmpty" style="display:none;color:#6b7280;font-size:14px" data-i18n="admin.noFeedbackYet">Niciun mesaj de feedback încă.</div>
 </div>
 <script>
+I18N.register("ro", {
+  "common.loading": "Se încarcă…",
+  "admin.title": "Panou de administrare",
+  "admin.backToApp": "← Înapoi la aplicație",
+  "admin.lastChangelog": "Ultima noutate din aplicație",
+  "admin.sendChangelogEmail": "Trimite email de noutăți tuturor utilizatorilor",
+  "admin.twofaTitle": "Securitate cont administrator — autentificare în doi factori (2FA)",
+  "admin.twofaEnable": "Activează 2FA",
+  "admin.twofaDisable": "Dezactivează 2FA",
+  "admin.twofaScanHint": "Scanează codul de mai sus cu o aplicație de autentificare (Google Authenticator, Authy, 1Password etc.), apoi introdu codul de 6 cifre afișat acolo, ca să confirmi:",
+  "admin.twofaConfirmBtn": "Confirmă și activează",
+  "admin.licensesTitle": "Panou de activări licențe",
+  "admin.licensesDesc": "Plăți declarate (transfer bancar, cod de plată) care așteaptă confirmare în extrasul de cont. Caută după cod, email sau CUI, verifică suma în bancă, apoi activează — durata se calculează automat din câte luni a ales clientul.",
+  "admin.searchPlaceholder": "Caută după cod, email, CUI sau denumire firmă…",
+  "admin.colPaymentCode": "Cod plată",
+  "admin.colClient": "Client",
+  "admin.colClientType": "Tip client",
+  "admin.colMonthsDeclared": "Luni declarate",
+  "admin.colAmount": "Sumă",
+  "admin.colDeclaredAt": "Declarat la",
+  "admin.colCurrentSub": "Abonament curent",
+  "admin.colAction": "Acțiune",
+  "admin.noPendingPayments": "Nicio plată declarată în așteptare.",
+  "admin.gdprEraseTitle": "Cerere scrisă de ștergere a datelor (Art. 17 GDPR)",
+  "admin.gdprEraseDesc": "Folosește DOAR după ce ai confirmat identitatea solicitantului (de regulă, cererea vine pe adresa de GDPR din e-mail). Șterge definitiv evidența anti-abuz (CUI/e-mail — prețul introductiv) și, dacă mai există, contul propriu-zis. Funcționează și dacă persoana nu mai are cont.",
+  "admin.gdprCuiPlaceholder": "CUI (opțional dacă știi e-mailul)",
+  "admin.gdprEmailPlaceholder": "E-mail (opțional dacă știi CUI-ul)",
+  "admin.gdprEraseBtn": "Șterge definitiv",
+  "admin.colCreated": "Creat",
+  "admin.colSubscription": "Abonament",
+  "admin.colRole": "Rol",
+  "admin.colPublicPage": "Pagină publică",
+  "admin.colBankTransfer": "Transfer bancar",
+  "admin.feedbackTitle": "Feedback de la utilizatori",
+  "admin.colDate": "Data",
+  "admin.colType": "Tip",
+  "admin.colMessage": "Mesaj",
+  "admin.colPage": "Pagină",
+  "admin.colStatus": "Stare",
+  "admin.noFeedbackYet": "Niciun mesaj de feedback încă.",
+  "admin.noChangelogYet": "Nu există nicio noutate încă.",
+  "admin.confirmSendChangelog": "Trimiți acum, pe e-mail, ultima noutate tuturor utilizatorilor? Fă asta doar după ce ai confirmat că actualizarea e live și funcționează.",
+  "admin.sending": "Se trimite…",
+  "admin.sentToNOfN": "Trimis la {sent}/{total} utilizatori.",
+  "admin.sendFailed": "Trimiterea a eșuat.",
+  "admin.catBug": "Bug",
+  "admin.catIdea": "Idee",
+  "admin.catOther": "Altceva",
+  "admin.statusNew": "Nou",
+  "admin.statusRead": "Citit",
+  "admin.statusResolved": "Rezolvat",
+  "admin.noResultsSearch": "Niciun rezultat pentru căutarea curentă.",
+  "admin.existing": "existent",
+  "admin.newIntroPrice": "nou — 99 lei/luna 1",
+  "admin.new": "nou",
+  "admin.month1": "lună",
+  "admin.monthsN": "luni",
+  "admin.until": "până la",
+  "admin.activateBtn": "Activează",
+  "admin.activateNMonths": "Activează ({n} luni)",
+  "admin.durationDeclared": "durata declarată",
+  "admin.confirmActivatePayment": "Ai confirmat în extrasul de cont plata cu codul de mai sus pentru {email}? Se activează accesul pentru {label}.",
+  "admin.activating": "Se activează…",
+  "admin.noDeclarationPrompt": "Acest client nu are o declarație de luni. Introdu manual câte zile de acces acorzi:",
+  "admin.activationFailed": "Activarea a eșuat. Încearcă din nou.",
+  "admin.fillCuiOrEmail": "Completează cel puțin CUI-ul sau e-mailul.",
+  "admin.confirmGdprErase": "Confirmi cererea de ștergere GDPR pentru {who}? Operația e definitivă și ireversibilă.",
+  "admin.processing": "Se procesează…",
+  "admin.gdprEraseDone": "Gata. Evidență anti-abuz ștearsă — CUI: {cui}, e-mail: {email}. Cont șters: {account}.",
+  "admin.noneExisted": "nu exista niciunul",
+  "admin.gdprEraseFailed": "Cererea a eșuat. Încearcă din nou.",
+  "admin.legalDataIncomplete": "⚠️ <strong>Datele firmei nu sunt complete</strong> — paginile publice de Termeni și Confidențialitate (/legal/...) afișează acum text „[completează: ...]” pentru: {missing}. Completează {keys} în variabilele de mediu din Railway înainte să trimiți linkul ăsta unui client real.",
+  "admin.twofaEnabledBadge": "activat",
+  "admin.twofaProtected": "Contul tău de administrator e protejat cu 2FA.",
+  "admin.twofaDisabledBadge": "dezactivat",
+  "admin.twofaRecommend": "Recomandăm activarea — protejează accesul chiar dacă cineva ar afla parola.",
+  "admin.couldNotLoadTwofa": "Nu am putut încărca starea 2FA.",
+  "admin.couldNotStartTwofaSetup": "Nu am putut porni configurarea 2FA. Încearcă din nou.",
+  "admin.enterAuthCode": "Introdu codul din aplicația de autentificare.",
+  "admin.verifying": "Se verifică…",
+  "admin.twofaEnabledSaveCodes": "<strong>2FA activat.</strong> Salvează ACUM aceste coduri de rezervă (le vezi o singură dată) — folosește unul dacă pierzi telefonul cu aplicația de autentificare:",
+  "admin.wrongOrExpiredCode": "Cod incorect sau expirat. Încearcă din nou.",
+  "admin.twofaDisablePasswordPrompt": "Pentru a dezactiva 2FA, confirmă parola contului tău de administrator:",
+  "admin.twofaDisabled": "2FA dezactivat.",
+  "admin.wrongPasswordTwofa": "Parolă incorectă sau eroare — 2FA rămâne activat.",
+  "admin.noAdminAccess": "Acest cont nu are acces la panoul de administrare.",
+  "admin.totalAccounts": "Conturi totale",
+  "admin.activeSubscriptions": "Abonamente active",
+  "admin.teamMembers": "Membri de echipă",
+  "admin.administrators": "Administratori",
+  "admin.extend30days": "Extinde cu 30 zile",
+  "admin.activate30days": "Activează 30 zile",
+  "admin.teamMemberRole": "membru echipă",
+  "admin.clientRole": "client",
+  "admin.yes": "da",
+  "admin.confirmExtend": "{email} are deja acces activ. Ai confirmat în extrasul de cont un transfer bancar NOU? Se adaugă 30 de zile suplimentare, peste perioada rămasă (nu se pierde nimic din ce are deja).",
+  "admin.confirmActivate30": "Ai confirmat în extrasul de cont că {email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.",
+  "admin.operationFailed": "Operația a eșuat. Încearcă din nou.",
+  "admin.couldNotLoadAdminData": "Nu am putut încărca datele de administrare.",
+});
+I18N.register("en", {
+  "common.loading": "Loading…",
+  "admin.title": "Admin panel",
+  "admin.backToApp": "← Back to the app",
+  "admin.lastChangelog": "Latest app news",
+  "admin.sendChangelogEmail": "Send news email to all users",
+  "admin.twofaTitle": "Admin account security — two-factor authentication (2FA)",
+  "admin.twofaEnable": "Enable 2FA",
+  "admin.twofaDisable": "Disable 2FA",
+  "admin.twofaScanHint": "Scan the code above with an authenticator app (Google Authenticator, Authy, 1Password, etc.), then enter the 6-digit code it shows to confirm:",
+  "admin.twofaConfirmBtn": "Confirm and enable",
+  "admin.licensesTitle": "License activation panel",
+  "admin.licensesDesc": "Declared payments (bank transfer, payment code) awaiting confirmation on the bank statement. Search by code, email, or tax ID, verify the amount in the bank, then activate — the duration is calculated automatically from how many months the client chose.",
+  "admin.searchPlaceholder": "Search by code, email, tax ID, or company name…",
+  "admin.colPaymentCode": "Payment code",
+  "admin.colClient": "Client",
+  "admin.colClientType": "Client type",
+  "admin.colMonthsDeclared": "Months declared",
+  "admin.colAmount": "Amount",
+  "admin.colDeclaredAt": "Declared at",
+  "admin.colCurrentSub": "Current subscription",
+  "admin.colAction": "Action",
+  "admin.noPendingPayments": "No declared payments pending.",
+  "admin.gdprEraseTitle": "Written data erasure request (GDPR Art. 17)",
+  "admin.gdprEraseDesc": "Use ONLY after confirming the requester's identity (usually the request comes to the GDPR email address). Permanently erases the anti-abuse record (tax ID/email — intro price) and, if it still exists, the account itself. Works even if the person no longer has an account.",
+  "admin.gdprCuiPlaceholder": "Tax ID (optional if you know the email)",
+  "admin.gdprEmailPlaceholder": "Email (optional if you know the tax ID)",
+  "admin.gdprEraseBtn": "Permanently erase",
+  "admin.colCreated": "Created",
+  "admin.colSubscription": "Subscription",
+  "admin.colRole": "Role",
+  "admin.colPublicPage": "Public page",
+  "admin.colBankTransfer": "Bank transfer",
+  "admin.feedbackTitle": "User feedback",
+  "admin.colDate": "Date",
+  "admin.colType": "Type",
+  "admin.colMessage": "Message",
+  "admin.colPage": "Page",
+  "admin.colStatus": "Status",
+  "admin.noFeedbackYet": "No feedback messages yet.",
+  "admin.noChangelogYet": "No news yet.",
+  "admin.confirmSendChangelog": "Send an email with the latest news to all users now? Only do this after confirming the update is live and working.",
+  "admin.sending": "Sending…",
+  "admin.sentToNOfN": "Sent to {sent}/{total} users.",
+  "admin.sendFailed": "Sending failed.",
+  "admin.catBug": "Bug",
+  "admin.catIdea": "Idea",
+  "admin.catOther": "Other",
+  "admin.statusNew": "New",
+  "admin.statusRead": "Read",
+  "admin.statusResolved": "Resolved",
+  "admin.noResultsSearch": "No results for the current search.",
+  "admin.existing": "existing",
+  "admin.newIntroPrice": "new — 99 RON/month 1",
+  "admin.new": "new",
+  "admin.month1": "month",
+  "admin.monthsN": "months",
+  "admin.until": "until",
+  "admin.activateBtn": "Activate",
+  "admin.activateNMonths": "Activate ({n} months)",
+  "admin.durationDeclared": "the declared duration",
+  "admin.confirmActivatePayment": "Did you confirm the payment with the above code for {email} on the bank statement? Access will be activated for {label}.",
+  "admin.activating": "Activating…",
+  "admin.noDeclarationPrompt": "This client has no months declared. Manually enter how many days of access to grant:",
+  "admin.activationFailed": "Activation failed. Please try again.",
+  "admin.fillCuiOrEmail": "Fill in at least the tax ID or the email.",
+  "admin.confirmGdprErase": "Confirm the GDPR erasure request for {who}? This operation is permanent and irreversible.",
+  "admin.processing": "Processing…",
+  "admin.gdprEraseDone": "Done. Anti-abuse record erased — tax ID: {cui}, email: {email}. Account deleted: {account}.",
+  "admin.noneExisted": "none existed",
+  "admin.gdprEraseFailed": "The request failed. Please try again.",
+  "admin.legalDataIncomplete": "⚠️ <strong>Company data is incomplete</strong> — the public Terms and Privacy pages (/legal/...) currently show \"[fill in: ...]\" text for: {missing}. Fill in {keys} in the Railway environment variables before sending this link to a real client.",
+  "admin.twofaEnabledBadge": "enabled",
+  "admin.twofaProtected": "Your admin account is protected with 2FA.",
+  "admin.twofaDisabledBadge": "disabled",
+  "admin.twofaRecommend": "We recommend enabling this — it protects access even if someone learns the password.",
+  "admin.couldNotLoadTwofa": "Could not load the 2FA status.",
+  "admin.couldNotStartTwofaSetup": "Could not start the 2FA setup. Please try again.",
+  "admin.enterAuthCode": "Enter the code from your authenticator app.",
+  "admin.verifying": "Verifying…",
+  "admin.twofaEnabledSaveCodes": "<strong>2FA enabled.</strong> Save these backup codes NOW (you'll only see them once) — use one if you lose the phone with your authenticator app:",
+  "admin.wrongOrExpiredCode": "Incorrect or expired code. Please try again.",
+  "admin.twofaDisablePasswordPrompt": "To disable 2FA, confirm your admin account password:",
+  "admin.twofaDisabled": "2FA disabled.",
+  "admin.wrongPasswordTwofa": "Incorrect password or error — 2FA remains enabled.",
+  "admin.noAdminAccess": "This account does not have access to the admin panel.",
+  "admin.totalAccounts": "Total accounts",
+  "admin.activeSubscriptions": "Active subscriptions",
+  "admin.teamMembers": "Team members",
+  "admin.administrators": "Administrators",
+  "admin.extend30days": "Extend by 30 days",
+  "admin.activate30days": "Activate 30 days",
+  "admin.teamMemberRole": "team member",
+  "admin.clientRole": "client",
+  "admin.yes": "yes",
+  "admin.confirmExtend": "{email} already has active access. Did you confirm a NEW bank transfer on the bank statement? 30 extra days will be added on top of the remaining period (nothing already there is lost).",
+  "admin.confirmActivate30": "Did you confirm on the bank statement that {email} paid by bank transfer? 30 days of access will be granted.",
+  "admin.operationFailed": "The operation failed. Please try again.",
+  "admin.couldNotLoadAdminData": "Could not load the admin data.",
+});
+document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
+I18N.applyStaticI18n();
+const t = I18N.t;
+
 function fmtDate(s){
   if(!s) return "—";
   const d = new Date(s);
-  return d.toLocaleDateString("ro-RO");
+  return d.toLocaleDateString(I18N.getLang()==="en"?"en-GB":"ro-RO");
 }
 // Escapare HTML — OBLIGATORIE pentru orice dată introdusă de utilizator
 // (email, denumire firmă, CUI, mesaj de feedback) înainte de a fi pusă în
@@ -122,29 +354,29 @@ async function loadChangelogPreview(){
     if (!res.ok) return;
     const d = await res.json();
     const el = document.getElementById("changelogPreview");
-    if (!d.latest){ el.textContent = "Nu există nicio noutate încă."; return; }
+    if (!d.latest){ el.textContent = t("admin.noChangelogYet"); return; }
     el.innerHTML = `<strong>${d.latest.title}</strong> (${fmtDate(d.latest.date)})<br><span style="color:#6b7280">${d.latest.message}</span>`;
   }catch(e){}
 }
 document.getElementById("sendChangelogBtn").onclick = async ()=>{
-  if (!confirm("Trimiți acum, pe e-mail, ultima noutate tuturor utilizatorilor? Fă asta doar după ce ai confirmat că actualizarea e live și funcționează.")) return;
+  if (!confirm(t("admin.confirmSendChangelog"))) return;
   const btn = document.getElementById("sendChangelogBtn");
   const status = document.getElementById("sendChangelogStatus");
   btn.disabled = true;
-  status.textContent = "Se trimite…";
+  status.textContent = t("admin.sending");
   try{
     const res = await fetch("/api/admin/send-changelog-email", { method:"POST", credentials:"include" });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || "eroare");
-    status.textContent = `Trimis la ${d.sent}/${d.total} utilizatori.`;
+    status.textContent = t("admin.sentToNOfN",{sent:d.sent, total:d.total});
   }catch(e){
-    status.textContent = "Trimiterea a eșuat.";
+    status.textContent = t("admin.sendFailed");
   }
   btn.disabled = false;
 };
 
-const CATEGORY_LABEL = { bug: "Bug", idee: "Idee", altceva: "Altceva" };
-const STATUS_LABEL = { nou: "Nou", citit: "Citit", rezolvat: "Rezolvat" };
+const CATEGORY_LABEL = { get bug(){return t("admin.catBug");}, get idee(){return t("admin.catIdea");}, get altceva(){return t("admin.catOther");} };
+const STATUS_LABEL = { get nou(){return t("admin.statusNew");}, get citit(){return t("admin.statusRead");}, get rezolvat(){return t("admin.statusResolved");} };
 
 async function loadFeedback(){
   try{
@@ -206,7 +438,7 @@ function renderPayments(list){
 
   if (!list.length){
     // Există plăți, dar căutarea curentă nu găsește niciuna.
-    body.innerHTML = `<tr><td colspan="9" style="color:#9ca3af">Niciun rezultat pentru căutarea curentă.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="9" style="color:#9ca3af">${t("admin.noResultsSearch")}</td></tr>`;
     return;
   }
   body.innerHTML = list.map(u => `
@@ -215,24 +447,24 @@ function renderPayments(list){
       <td>${esc(u.email)}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${esc(u.businessName)}</span>` : ""}</td>
       <td>${esc(u.cui) || "—"}</td>
       <td>${u.hasEverSubscribed
-          ? `<span class="badge none">existent</span>`
+          ? `<span class="badge none">${t("admin.existing")}</span>`
           : (INTRO_PROMO_ACTIVE
-              ? `<span class="badge active">nou — 99 lei/luna 1</span>`
-              : `<span class="badge active">nou</span>`)}</td>
-      <td>${u.declaredMonths ? `${u.declaredMonths} ${u.declaredMonths===1?"lună":"luni"}` : "—"}</td>
+              ? `<span class="badge active">${t("admin.newIntroPrice")}</span>`
+              : `<span class="badge active">${t("admin.new")}</span>`)}</td>
+      <td>${u.declaredMonths ? `${u.declaredMonths} ${u.declaredMonths===1?t("admin.month1"):t("admin.monthsN")}` : "—"}</td>
       <td>${u.declaredAmountRon ? `${u.declaredAmountRon} RON` : "—"}</td>
       <td>${fmtDate(u.declaredAt)}</td>
-      <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
-      <td><button class="btn sm activatePaymentBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}" data-months="${esc(u.declaredMonths || "")}">Activează${u.declaredMonths ? ` (${esc(u.declaredMonths)} luni)` : ""}</button></td>
+      <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">${t("admin.until")} ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
+      <td><button class="btn sm activatePaymentBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}" data-months="${esc(u.declaredMonths || "")}">${u.declaredMonths ? t("admin.activateNMonths",{n:esc(u.declaredMonths)}) : t("admin.activateBtn")}</button></td>
     </tr>
   `).join("");
   document.querySelectorAll(".activatePaymentBtn").forEach(btn => {
     btn.onclick = async () => {
       const months = btn.dataset.months;
-      const label = months ? `${months} luni` : "durata declarată";
-      if (!confirm(`Ai confirmat în extrasul de cont plata cu codul de mai sus pentru ${btn.dataset.email}? Se activează accesul pentru ${label}.`)) return;
+      const label = months ? `${months} ${t("admin.monthsN")}` : t("admin.durationDeclared");
+      if (!confirm(t("admin.confirmActivatePayment",{email:btn.dataset.email, label}))) return;
       btn.disabled = true;
-      btn.textContent = "Se activează…";
+      btn.textContent = t("admin.activating");
       try{
         const res = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
           method: "POST",
@@ -243,7 +475,7 @@ function renderPayments(list){
         if (!res.ok){
           const d = await res.json().catch(()=>({}));
           if (d.error === "days_required_no_declaration"){
-            const custom = prompt("Acest client nu are o declarație de luni. Introdu manual câte zile de acces acorzi:");
+            const custom = prompt(t("admin.noDeclarationPrompt"));
             const days = Number(custom);
             if (!Number.isFinite(days) || days <= 0) throw new Error("cancelled");
             const res2 = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
@@ -261,10 +493,10 @@ function renderPayments(list){
         await load();
       }catch(e){
         if (e.message !== "cancelled"){
-          alert("Activarea a eșuat. Încearcă din nou.");
+          alert(t("admin.activationFailed"));
         }
         btn.disabled = false;
-        btn.textContent = `Activează${months ? ` (${months} luni)` : ""}`;
+        btn.textContent = months ? t("admin.activateNMonths",{n:months}) : t("admin.activateBtn");
       }
     };
   });
@@ -298,13 +530,13 @@ document.getElementById("gdprEraseBtn").onclick = async ()=>{
   const email = document.getElementById("gdprEraseEmail").value.trim();
   const status = document.getElementById("gdprEraseStatus");
   if (!cui && !email){
-    status.textContent = "Completează cel puțin CUI-ul sau e-mailul.";
+    status.textContent = t("admin.fillCuiOrEmail");
     return;
   }
-  if (!confirm(`Confirmi cererea de ștergere GDPR pentru ${cui || ""}${cui && email ? " / " : ""}${email || ""}? Operația e definitivă și ireversibilă.`)) return;
+  if (!confirm(t("admin.confirmGdprErase",{who: cui || "" + (cui && email ? " / " : "") + (email || "")}))) return;
   const btn = document.getElementById("gdprEraseBtn");
   btn.disabled = true;
-  status.textContent = "Se procesează…";
+  status.textContent = t("admin.processing");
   try{
     const res = await fetch("/api/admin/gdpr-erase", {
       method: "POST",
@@ -314,12 +546,12 @@ document.getElementById("gdprEraseBtn").onclick = async ()=>{
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || "eroare");
-    status.textContent = `Gata. Evidență anti-abuz ștearsă — CUI: ${d.historyResult.cuiDeleted}, e-mail: ${d.historyResult.emailDeleted}. Cont șters: ${d.accountDeleted || "nu exista niciunul"}.`;
+    status.textContent = t("admin.gdprEraseDone",{cui:d.historyResult.cuiDeleted, email:d.historyResult.emailDeleted, account:d.accountDeleted || t("admin.noneExisted")});
     document.getElementById("gdprEraseCui").value = "";
     document.getElementById("gdprEraseEmail").value = "";
     await loadPaymentDeclarations();
   }catch(e){
-    status.textContent = "Cererea a eșuat. Încearcă din nou.";
+    status.textContent = t("admin.gdprEraseFailed");
   }
   btn.disabled = false;
 };
@@ -331,7 +563,7 @@ async function loadLegalStatus(){
     const { missing } = await res.json();
     const banner = document.getElementById("legalStatusBanner");
     if (missing && missing.length){
-      banner.innerHTML = `⚠️ <strong>Datele firmei nu sunt complete</strong> — paginile publice de Termeni și Confidențialitate (/legal/...) afișează acum text „[completează: ...]” pentru: ${missing.map(m => esc(m.label)).join(", ")}. Completează ${missing.map(m => `<code>${esc(m.key)}</code>`).join(", ")} în variabilele de mediu din Railway înainte să trimiți linkul ăsta unui client real.`;
+      banner.innerHTML = t("admin.legalDataIncomplete",{missing: missing.map(m => esc(m.label)).join(", "), keys: missing.map(m => `<code>${esc(m.key)}</code>`).join(", ")});
       banner.style.display = "block";
     } else {
       banner.style.display = "none";
@@ -349,16 +581,16 @@ async function loadTwofaStatus(){
     if (!res.ok) throw new Error("eroare");
     const { enabled } = await res.json();
     if (enabled){
-      statusEl.innerHTML = `<span class="badge active">activat</span> Contul tău de administrator e protejat cu 2FA.`;
+      statusEl.innerHTML = `<span class="badge active">${t("admin.twofaEnabledBadge")}</span> ${t("admin.twofaProtected")}`;
       enableBtn.style.display = "none";
       disableBtn.style.display = "inline-block";
     } else {
-      statusEl.innerHTML = `<span class="badge none">dezactivat</span> Recomandăm activarea — protejează accesul chiar dacă cineva ar afla parola.`;
+      statusEl.innerHTML = `<span class="badge none">${t("admin.twofaDisabledBadge")}</span> ${t("admin.twofaRecommend")}`;
       enableBtn.style.display = "inline-block";
       disableBtn.style.display = "none";
     }
   }catch(e){
-    statusEl.textContent = "Nu am putut încărca starea 2FA.";
+    statusEl.textContent = t("admin.couldNotLoadTwofa");
   }
 }
 
@@ -374,7 +606,7 @@ document.getElementById("twofaEnableBtn").onclick = async ()=>{
     document.getElementById("twofaQr").src = d.qrDataUrl;
     document.getElementById("twofaSetupBox").style.display = "block";
   }catch(e){
-    msg.textContent = "Nu am putut porni configurarea 2FA. Încearcă din nou.";
+    msg.textContent = t("admin.couldNotStartTwofaSetup");
   }
   btn.disabled = false;
 };
@@ -383,9 +615,9 @@ document.getElementById("twofaConfirmBtn").onclick = async ()=>{
   const btn = document.getElementById("twofaConfirmBtn");
   const msg = document.getElementById("twofaMsg");
   const code = document.getElementById("twofaConfirmCode").value.trim();
-  if (!code){ msg.textContent = "Introdu codul din aplicația de autentificare."; return; }
+  if (!code){ msg.textContent = t("admin.enterAuthCode"); return; }
   btn.disabled = true;
-  msg.textContent = "Se verifică…";
+  msg.textContent = t("admin.verifying");
   try{
     const res = await fetch("/api/2fa/confirm", {
       method: "POST",
@@ -398,21 +630,20 @@ document.getElementById("twofaConfirmBtn").onclick = async ()=>{
     document.getElementById("twofaSetupBox").style.display = "none";
     const backupBox = document.getElementById("twofaBackupBox");
     backupBox.innerHTML = `
-      <strong>2FA activat.</strong> Salvează ACUM aceste coduri de rezervă (le vezi o singură dată) —
-      folosește unul dacă pierzi telefonul cu aplicația de autentificare:<br><br>
+      ${t("admin.twofaEnabledSaveCodes")}<br><br>
       <div style="font-family:monospace;font-size:15px;line-height:1.8">${d.backupCodes.map(esc).join("<br>")}</div>
     `;
     backupBox.style.display = "block";
     msg.textContent = "";
     await loadTwofaStatus();
   }catch(e){
-    msg.textContent = "Cod incorect sau expirat. Încearcă din nou.";
+    msg.textContent = t("admin.wrongOrExpiredCode");
   }
   btn.disabled = false;
 };
 
 document.getElementById("twofaDisableBtn").onclick = async ()=>{
-  const password = prompt("Pentru a dezactiva 2FA, confirmă parola contului tău de administrator:");
+  const password = prompt(t("admin.twofaDisablePasswordPrompt"));
   if (!password) return;
   const btn = document.getElementById("twofaDisableBtn");
   const msg = document.getElementById("twofaMsg");
@@ -427,10 +658,10 @@ document.getElementById("twofaDisableBtn").onclick = async ()=>{
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || "eroare");
     document.getElementById("twofaBackupBox").style.display = "none";
-    msg.textContent = "2FA dezactivat.";
+    msg.textContent = t("admin.twofaDisabled");
     await loadTwofaStatus();
   }catch(e){
-    msg.textContent = "Parolă incorectă sau eroare — 2FA rămâne activat.";
+    msg.textContent = t("admin.wrongPasswordTwofa");
   }
   btn.disabled = false;
 };
@@ -452,7 +683,7 @@ async function load(){
       return;
     }
     if (statsRes.status === 403 || usersRes.status === 403){
-      errBox.textContent = "Acest cont nu are acces la panoul de administrare.";
+      errBox.textContent = t("admin.noAdminAccess");
       errBox.style.display = "block";
       return;
     }
@@ -462,10 +693,10 @@ async function load(){
     const { users } = await usersRes.json();
 
     document.getElementById("statsRow").innerHTML = `
-      <div class="statCard"><div class="num">${stats.total}</div><div class="lbl">Conturi totale</div></div>
-      <div class="statCard"><div class="num">${stats.active}</div><div class="lbl">Abonamente active</div></div>
-      <div class="statCard"><div class="num">${stats.teamMembers}</div><div class="lbl">Membri de echipă</div></div>
-      <div class="statCard"><div class="num">${stats.admins}</div><div class="lbl">Administratori</div></div>
+      <div class="statCard"><div class="num">${stats.total}</div><div class="lbl">${t("admin.totalAccounts")}</div></div>
+      <div class="statCard"><div class="num">${stats.active}</div><div class="lbl">${t("admin.activeSubscriptions")}</div></div>
+      <div class="statCard"><div class="num">${stats.teamMembers}</div><div class="lbl">${t("admin.teamMembers")}</div></div>
+      <div class="statCard"><div class="num">${stats.admins}</div><div class="lbl">${t("admin.administrators")}</div></div>
     `;
 
     const body = document.getElementById("usersBody");
@@ -478,14 +709,14 @@ async function load(){
       // resetează). Doar eticheta se schimbă, ca să fie clar că e o
       // EXTINDERE, nu o (re)activare de la zero.
       const hasActiveAccess = u.subscriptionStatus === "active" && u.currentPeriodEnd && new Date(u.currentPeriodEnd) > new Date();
-      const btnLabel = hasActiveAccess ? "Extinde cu 30 zile" : "Activează 30 zile";
+      const btnLabel = hasActiveAccess ? t("admin.extend30days") : t("admin.activate30days");
       return `
       <tr data-id="${esc(u.id)}">
         <td>${esc(u.email)}${u.businessName ? `<br><span style="color:#9ca3af;font-size:12px">${esc(u.businessName)}</span>` : ""}</td>
         <td>${fmtDate(u.createdAt)}</td>
-        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">până la ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
-        <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? "membru echipă" : "client")}</td>
-        <td>${u.publicPageEnabled ? "da" : "—"}</td>
+        <td><span class="badge ${u.subscriptionStatus === "active" ? "active" : "none"}">${esc(u.subscriptionStatus)}</span>${u.currentPeriodEnd ? `<br><span style="color:#9ca3af;font-size:12px">${t("admin.until")} ${fmtDate(u.currentPeriodEnd)}</span>` : ""}</td>
+        <td>${u.isAdmin ? '<span class="badge admin">admin</span>' : (u.teamOwnerId ? t("admin.teamMemberRole") : t("admin.clientRole"))}</td>
+        <td>${u.publicPageEnabled ? t("admin.yes") : "—"}</td>
         <td>${u.isAdmin || u.teamOwnerId ? "—" : `<button class="btn sm activateBtn" data-id="${esc(u.id)}" data-email="${esc(u.email)}" data-active="${hasActiveAccess ? "1" : "0"}" data-label="${esc(btnLabel)}">${esc(btnLabel)}</button>`}</td>
       </tr>
     `;
@@ -496,11 +727,11 @@ async function load(){
       btn.onclick = async () => {
         const isExtend = btn.dataset.active === "1";
         const confirmMsg = isExtend
-          ? `${btn.dataset.email} are deja acces activ. Ai confirmat în extrasul de cont un transfer bancar NOU? Se adaugă 30 de zile suplimentare, peste perioada rămasă (nu se pierde nimic din ce are deja).`
-          : `Ai confirmat în extrasul de cont că ${btn.dataset.email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.`;
+          ? t("admin.confirmExtend",{email:btn.dataset.email})
+          : t("admin.confirmActivate30",{email:btn.dataset.email});
         if (!confirm(confirmMsg)) return;
         btn.disabled = true;
-        btn.textContent = "Se procesează…";
+        btn.textContent = t("admin.activating");
         try {
           const res = await fetch(`/api/admin/users/${btn.dataset.id}/activate-manual`, {
             method: "POST",
@@ -511,14 +742,14 @@ async function load(){
           if (!res.ok) throw new Error("eroare");
           await load();
         } catch (e) {
-          alert("Operația a eșuat. Încearcă din nou.");
+          alert(t("admin.operationFailed"));
           btn.disabled = false;
-          btn.textContent = btn.dataset.label || "Activează 30 zile";
+          btn.textContent = btn.dataset.label || t("admin.activate30days");
         }
       };
     });
   }catch(e){
-    errBox.textContent = "Nu am putut încărca datele de administrare.";
+    errBox.textContent = t("admin.couldNotLoadAdminData");
     errBox.style.display = "block";
   }
 }

@@ -6,6 +6,7 @@
 <title>Cont nou — Herbatium</title>
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js"></script>
 <style>
 .consentRow{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:13px;line-height:1.45;color:var(--ink-soft)}
 .consentRow input[type=checkbox]{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
@@ -14,30 +15,82 @@
 </head>
 <body>
 <div class="authCard">
-  <h1>Cont nou</h1>
-  <div class="sub">Creează-ți contul — apoi alegi abonamentul.</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px" id="langSlot"></div>
+  <h1 data-i18n="register.title">Cont nou</h1>
+  <div class="sub" data-i18n="register.subtitle">Creează-ți contul — apoi alegi abonamentul.</div>
   <form id="registerForm">
-    <label for="email">Email</label>
+    <label for="email" data-i18n="register.email">Email</label>
     <input type="email" id="email" required autocomplete="email">
-    <label for="password">Parolă (minim 8 caractere)</label>
+    <label for="password" data-i18n="register.password">Parolă (minim 8 caractere)</label>
     <input type="password" id="password" required minlength="8" autocomplete="new-password">
-    <label for="cui">CUI firmă/PFA</label>
-    <input type="text" id="cui" required autocomplete="off" placeholder="ex: 49969146 sau RO49969146" inputmode="numeric">
-    <div class="sub" style="margin-top:-8px; margin-bottom:14px">Necesar pentru facturare și pentru a confirma o singură înregistrare per firmă/PFA.</div>
+    <label for="cui" data-i18n="register.cui">CUI firmă/PFA</label>
+    <input type="text" id="cui" required autocomplete="off" data-i18n-placeholder="register.cuiPlaceholder" placeholder="ex: 49969146 sau RO49969146" inputmode="numeric">
+    <div class="sub" style="margin-top:-8px; margin-bottom:14px" data-i18n="register.cuiHint">Necesar pentru facturare și pentru a confirma o singură înregistrare per firmă/PFA.</div>
     <label class="consentRow" for="acceptTerms">
       <input type="checkbox" id="acceptTerms" required>
-      <span>Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
+      <span data-i18n-html="register.termsConsent">Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.</span>
     </label>
     <label class="consentRow" for="marketing">
       <input type="checkbox" id="marketing">
-      <span>Vreau să primesc ocazional email-uri despre noutăți și oferte Herbatium (opțional, poți renunța oricând).</span>
+      <span data-i18n="register.marketingConsent">Vreau să primesc ocazional email-uri despre noutăți și oferte Herbatium (opțional, poți renunța oricând).</span>
     </label>
-    <button class="btn" type="submit" id="submitBtn">Creează cont</button>
+    <button class="btn" type="submit" id="submitBtn" data-i18n="register.submit">Creează cont</button>
   </form>
   <div class="err" id="errBox"></div>
-  <div class="foot">Ai deja cont? <a href="/login.html">Conectează-te</a></div>
+  <div class="foot"><span data-i18n="register.haveAccount">Ai deja cont?</span> <a href="/login.html" data-i18n="register.signIn">Conectează-te</a></div>
 </div>
 <script>
+I18N.register("ro", {
+  "register.title": "Cont nou",
+  "register.subtitle": "Creează-ți contul — apoi alegi abonamentul.",
+  "register.email": "Email",
+  "register.password": "Parolă (minim 8 caractere)",
+  "register.cui": "CUI firmă/PFA",
+  "register.cuiPlaceholder": "ex: 49969146 sau RO49969146",
+  "register.cuiHint": "Necesar pentru facturare și pentru a confirma o singură înregistrare per firmă/PFA.",
+  "register.termsConsent": 'Sunt de acord cu <a href="/legal/termeni" target="_blank" rel="noopener">Termenii și condițiile</a> și am luat la cunoștință <a href="/legal/confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate</a>.',
+  "register.marketingConsent": "Vreau să primesc ocazional email-uri despre noutăți și oferte Herbatium (opțional, poți renunța oricând).",
+  "register.submit": "Creează cont",
+  "register.submitBusy": "Se creează…",
+  "register.haveAccount": "Ai deja cont?",
+  "register.signIn": "Conectează-te",
+  "register.err.email_invalid": "Adresa de email nu pare validă.",
+  "register.err.password_too_short": "Parola trebuie să aibă minim 8 caractere.",
+  "register.err.email_taken": "Există deja un cont cu acest email — încearcă să te conectezi.",
+  "register.err.cui_required": "Te rugăm să completezi CUI-ul firmei/PFA.",
+  "register.err.cui_invalid": "CUI-ul nu pare valid — verifică-l (fără spații, cu sau fără prefixul RO).",
+  "register.err.cui_taken": "Există deja un cont înregistrat cu acest CUI — încearcă să te conectezi, sau scrie-ne dacă ai nevoie de ajutor cu contul.",
+  "register.err.terms_not_accepted": "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
+  "register.err.generic": "A apărut o eroare. Încearcă din nou.",
+  "register.err.serverUnreachable": "Nu am putut contacta serverul.",
+});
+I18N.register("en", {
+  "register.title": "New account",
+  "register.subtitle": "Create your account — then choose a plan.",
+  "register.email": "Email",
+  "register.password": "Password (min. 8 characters)",
+  "register.cui": "Company/sole-trader tax ID (CUI)",
+  "register.cuiPlaceholder": "e.g. 49969146 or RO49969146",
+  "register.cuiHint": "Needed for invoicing and to confirm a single registration per company.",
+  "register.termsConsent": 'I agree to the <a href="/legal/termeni" target="_blank" rel="noopener">Terms and Conditions</a> and I acknowledge the <a href="/legal/confidentialitate" target="_blank" rel="noopener">Privacy Policy</a>.',
+  "register.marketingConsent": "I'd like to occasionally receive emails about Herbatium news and offers (optional, you can opt out anytime).",
+  "register.submit": "Create account",
+  "register.submitBusy": "Creating…",
+  "register.haveAccount": "Already have an account?",
+  "register.signIn": "Sign in",
+  "register.err.email_invalid": "That email address doesn't look valid.",
+  "register.err.password_too_short": "Password must be at least 8 characters.",
+  "register.err.email_taken": "An account with this email already exists — try signing in.",
+  "register.err.cui_required": "Please fill in your company/sole-trader tax ID (CUI).",
+  "register.err.cui_invalid": "That tax ID (CUI) doesn't look valid — check it (no spaces, with or without the RO prefix).",
+  "register.err.cui_taken": "An account is already registered with this tax ID — try signing in, or contact us if you need help with the account.",
+  "register.err.terms_not_accepted": "You must accept the Terms and acknowledge the Privacy Policy.",
+  "register.err.generic": "Something went wrong. Please try again.",
+  "register.err.serverUnreachable": "Could not reach the server.",
+});
+document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
+I18N.applyStaticI18n();
+
 const form = document.getElementById("registerForm");
 const errBox = document.getElementById("errBox");
 const submitBtn = document.getElementById("submitBtn");
@@ -45,7 +98,7 @@ const submitBtn = document.getElementById("submitBtn");
 form.onsubmit = async (e)=>{
   e.preventDefault();
   errBox.style.display = "none";
-  submitBtn.disabled = true; submitBtn.textContent = "Se creează…";
+  submitBtn.disabled = true; submitBtn.textContent = I18N.t("register.submitBusy");
   try{
     const res = await fetch("/api/auth/register", {
       method:"POST",
@@ -60,25 +113,18 @@ form.onsubmit = async (e)=>{
     });
     if (!res.ok){
       const d = await res.json().catch(()=>({}));
-      const msgs = {
-        email_invalid: "Adresa de email nu pare validă.",
-        password_too_short: "Parola trebuie să aibă minim 8 caractere.",
-        email_taken: "Există deja un cont cu acest email — încearcă să te conectezi.",
-        cui_required: "Te rugăm să completezi CUI-ul firmei/PFA.",
-        cui_invalid: "CUI-ul nu pare valid — verifică-l (fără spații, cu sau fără prefixul RO).",
-        cui_taken: "Există deja un cont înregistrat cu acest CUI — încearcă să te conectezi, sau scrie-ne dacă ai nevoie de ajutor cu contul.",
-        terms_not_accepted: "Trebuie să accepți Termenii și să iei la cunoștință Politica de confidențialitate.",
-      };
-      errBox.textContent = msgs[d.error] || "A apărut o eroare. Încearcă din nou.";
+      const key = "register.err." + d.error;
+      const translated = I18N.t(key);
+      errBox.textContent = translated !== key ? translated : I18N.t("register.err.generic");
       errBox.style.display = "block";
-      submitBtn.disabled = false; submitBtn.textContent = "Creează cont";
+      submitBtn.disabled = false; submitBtn.textContent = I18N.t("register.submit");
       return;
     }
     window.location.href = "/abonament.html";
   }catch(e){
-    errBox.textContent = "Nu am putut contacta serverul.";
+    errBox.textContent = I18N.t("register.err.serverUnreachable");
     errBox.style.display = "block";
-    submitBtn.disabled = false; submitBtn.textContent = "Creează cont";
+    submitBtn.disabled = false; submitBtn.textContent = I18N.t("register.submit");
   }
 };
 </script>

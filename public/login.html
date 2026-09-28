@@ -9,28 +9,77 @@
 <meta name="theme-color" content="#1f9d5a">
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js"></script>
 </head>
 <body>
 <div class="authCard">
-  <h1>Autentificare</h1>
-  <div class="sub">Intră în contul tău Herbatium.</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px" id="langSlot"></div>
+  <h1 data-i18n="login.title">Autentificare</h1>
+  <div class="sub" data-i18n="login.subtitle">Intră în contul tău Herbatium.</div>
   <form id="loginForm">
-    <label for="email">Email</label>
+    <label for="email" data-i18n="login.email">Email</label>
     <input type="email" id="email" required autocomplete="email">
-    <label for="password">Parolă</label>
+    <label for="password" data-i18n="login.password">Parolă</label>
     <input type="password" id="password" required autocomplete="current-password">
-    <button class="btn" type="submit" id="submitBtn">Conectare</button>
+    <button class="btn" type="submit" id="submitBtn" data-i18n="login.submit">Conectare</button>
   </form>
   <form id="twofaForm" style="display:none">
-    <label for="twofaCode">Cod de autentificare în doi factori</label>
-    <input type="text" id="twofaCode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456 (sau un cod de rezervă)" required>
-    <div class="sub" style="margin:6px 0 0">Deschide aplicația de autentificare (Google Authenticator, Authy etc.) sau folosește unul dintre codurile de rezervă.</div>
-    <button class="btn" type="submit" id="twofaSubmitBtn" style="margin-top:12px">Confirmă</button>
+    <label for="twofaCode" data-i18n="login.2faLabel">Cod de autentificare în doi factori</label>
+    <input type="text" id="twofaCode" inputmode="numeric" autocomplete="one-time-code" data-i18n-placeholder="login.2faPlaceholder" placeholder="123456 (sau un cod de rezervă)" required>
+    <div class="sub" style="margin:6px 0 0" data-i18n="login.2faHint">Deschide aplicația de autentificare (Google Authenticator, Authy etc.) sau folosește unul dintre codurile de rezervă.</div>
+    <button class="btn" type="submit" id="twofaSubmitBtn" style="margin-top:12px" data-i18n="login.2faSubmit">Confirmă</button>
   </form>
   <div class="err" id="errBox"></div>
-  <div class="foot">Nu ai cont încă? <a href="/register.html">Creează unul</a></div>
+  <div class="foot"><span data-i18n="login.noAccount">Nu ai cont încă?</span> <a href="/register.html" data-i18n="login.createOne">Creează unul</a></div>
 </div>
 <script>
+I18N.register("ro", {
+  "login.title": "Autentificare",
+  "login.subtitle": "Intră în contul tău Herbatium.",
+  "login.email": "Email",
+  "login.password": "Parolă",
+  "login.submit": "Conectare",
+  "login.submitBusy": "Se conectează…",
+  "login.2faLabel": "Cod de autentificare în doi factori",
+  "login.2faPlaceholder": "123456 (sau un cod de rezervă)",
+  "login.2faHint": "Deschide aplicația de autentificare (Google Authenticator, Authy etc.) sau folosește unul dintre codurile de rezervă.",
+  "login.2faSubmit": "Confirmă",
+  "login.2faSubmitBusy": "Se verifică…",
+  "login.noAccount": "Nu ai cont încă?",
+  "login.createOne": "Creează unul",
+  "login.err.invalid_credentials": "Email sau parolă greșită.",
+  "login.err.too_many_attempts": "Prea multe încercări. Așteaptă câteva minute și încearcă din nou.",
+  "login.err.generic": "A apărut o eroare. Încearcă din nou.",
+  "login.err.serverUnreachable": "Nu am putut contacta serverul.",
+  "login.err.locked": "Cont blocat temporar din cauza prea multor parole greșite. Încearcă din nou în aproximativ {min} minute.",
+  "login.err.code_invalid": "Cod incorect. Încearcă din nou.",
+  "login.err.session_expired": "Sesiunea de verificare a expirat — reia autentificarea.",
+});
+I18N.register("en", {
+  "login.title": "Sign in",
+  "login.subtitle": "Sign in to your Herbatium account.",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.submit": "Sign in",
+  "login.submitBusy": "Signing in…",
+  "login.2faLabel": "Two-factor authentication code",
+  "login.2faPlaceholder": "123456 (or a backup code)",
+  "login.2faHint": "Open your authenticator app (Google Authenticator, Authy, etc.) or use one of your backup codes.",
+  "login.2faSubmit": "Confirm",
+  "login.2faSubmitBusy": "Verifying…",
+  "login.noAccount": "Don't have an account yet?",
+  "login.createOne": "Create one",
+  "login.err.invalid_credentials": "Wrong email or password.",
+  "login.err.too_many_attempts": "Too many attempts. Wait a few minutes and try again.",
+  "login.err.generic": "Something went wrong. Please try again.",
+  "login.err.serverUnreachable": "Could not reach the server.",
+  "login.err.locked": "Account temporarily locked after too many wrong passwords. Try again in about {min} minutes.",
+  "login.err.code_invalid": "Incorrect code. Please try again.",
+  "login.err.session_expired": "The verification session expired — sign in again.",
+});
+document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
+I18N.applyStaticI18n();
+
 const form = document.getElementById("loginForm");
 const twofaForm = document.getElementById("twofaForm");
 const errBox = document.getElementById("errBox");
@@ -43,15 +92,10 @@ function showError(msg){
   errBox.style.display = "block";
 }
 
-const LOGIN_ERRORS = {
-  invalid_credentials: "Email sau parolă greșită.",
-  too_many_attempts: "Prea multe încercări. Așteaptă câteva minute și încearcă din nou.",
-};
-
 form.onsubmit = async (e)=>{
   e.preventDefault();
   errBox.style.display = "none";
-  submitBtn.disabled = true; submitBtn.textContent = "Se conectează…";
+  submitBtn.disabled = true; submitBtn.textContent = I18N.t("login.submitBusy");
   try{
     const res = await fetch("/api/auth/login", {
       method:"POST",
@@ -64,11 +108,11 @@ form.onsubmit = async (e)=>{
     const d = await res.json().catch(()=>({}));
     if (!res.ok){
       if (res.status === 423){
-        showError(`Cont blocat temporar din cauza prea multor parole greșite. Încearcă din nou în aproximativ ${d.minutesLeft || 15} minute.`);
+        showError(I18N.t("login.err.locked", {min: d.minutesLeft || 15}));
       } else {
-        showError(LOGIN_ERRORS[d.error] || "A apărut o eroare. Încearcă din nou.");
+        showError(I18N.t("login.err." + d.error) !== d.error ? I18N.t("login.err." + d.error) : I18N.t("login.err.generic"));
       }
-      submitBtn.disabled = false; submitBtn.textContent = "Conectare";
+      submitBtn.disabled = false; submitBtn.textContent = I18N.t("login.submit");
       return;
     }
     if (d.twoFactorRequired){
@@ -76,20 +120,20 @@ form.onsubmit = async (e)=>{
       form.style.display = "none";
       twofaForm.style.display = "block";
       document.getElementById("twofaCode").focus();
-      submitBtn.disabled = false; submitBtn.textContent = "Conectare";
+      submitBtn.disabled = false; submitBtn.textContent = I18N.t("login.submit");
       return;
     }
     window.location.href = "/app.html";
   }catch(e){
-    showError("Nu am putut contacta serverul.");
-    submitBtn.disabled = false; submitBtn.textContent = "Conectare";
+    showError(I18N.t("login.err.serverUnreachable"));
+    submitBtn.disabled = false; submitBtn.textContent = I18N.t("login.submit");
   }
 };
 
 twofaForm.onsubmit = async (e)=>{
   e.preventDefault();
   errBox.style.display = "none";
-  twofaSubmitBtn.disabled = true; twofaSubmitBtn.textContent = "Se verifică…";
+  twofaSubmitBtn.disabled = true; twofaSubmitBtn.textContent = I18N.t("login.2faSubmitBusy");
   try{
     const res = await fetch("/api/2fa/login-verify", {
       method:"POST",
@@ -101,8 +145,8 @@ twofaForm.onsubmit = async (e)=>{
     });
     if (!res.ok){
       const d = await res.json().catch(()=>({}));
-      showError(d.error === "code_invalid" ? "Cod incorect. Încearcă din nou." : "Sesiunea de verificare a expirat — reia autentificarea.");
-      twofaSubmitBtn.disabled = false; twofaSubmitBtn.textContent = "Confirmă";
+      showError(d.error === "code_invalid" ? I18N.t("login.err.code_invalid") : I18N.t("login.err.session_expired"));
+      twofaSubmitBtn.disabled = false; twofaSubmitBtn.textContent = I18N.t("login.2faSubmit");
       if (d.error === "pending_token_invalid_or_expired"){
         twofaForm.style.display = "none";
         form.style.display = "block";
@@ -111,8 +155,8 @@ twofaForm.onsubmit = async (e)=>{
     }
     window.location.href = "/app.html";
   }catch(e){
-    showError("Nu am putut contacta serverul.");
-    twofaSubmitBtn.disabled = false; twofaSubmitBtn.textContent = "Confirmă";
+    showError(I18N.t("login.err.serverUnreachable"));
+    twofaSubmitBtn.disabled = false; twofaSubmitBtn.textContent = I18N.t("login.2faSubmit");
   }
 };
 </script>
