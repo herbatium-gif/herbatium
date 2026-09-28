@@ -67,7 +67,7 @@ if (!process.env.NETOPIA_POS_SIGNATURE) {
  *
  * @param {Object} p
  * @param {string} p.orderId     - ID unic al comenzii (ex: `${userId}-${Date.now()}`)
- * @param {number} p.amountRon   - sumă în RON, ex: 130
+ * @param {number} p.amountRon   - sumă în RON, ex: 200
  * @param {string} p.description - ex: "Abonament Herbatium — reînnoire lunară"
  * @param {string} p.notifyUrl   - URL public unde Netopia trimite confirmarea (IPN)
  * @param {string} p.returnUrl   - URL unde revine clientul după plată

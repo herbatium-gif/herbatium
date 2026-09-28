@@ -8,6 +8,8 @@ const path = require("path");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
 const photoRoutes = require("./routes/photos");
+const pifDocsRoutes = require("./routes/pif-docs"); // documente atașate la dosarul PIF
+const packagingDocsRoutes = require("./routes/packaging-docs"); // documente atașate la dosarul de ambalaj (PPWR)
 const profileRoutes = require("./routes/profile");
 const catalogRoutes = require("./routes/catalog");
 const legalRoutes = require("./routes/legal");
@@ -95,6 +97,8 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/photos", photoRoutes);
+app.use("/api/pif-docs", pifDocsRoutes);
+app.use("/api/packaging-docs", packagingDocsRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/account", accountRoutes); // GDPR — export date (art. 15/20) + ștergere cont (art. 17)
