@@ -179,6 +179,25 @@ model UserData {
   costState         Json     @default("{}")
   sales             Json     @default("[]")
   lyeState          Json     @default("{}")
+  // Dosare PIF (Product Information File, Art. 11 Reg. 1223/2009), câte unul
+  // per produs, cheie = id-ul produsului (din câmpul "products" de mai sus).
+  // Structură (client-side, nu impusă de schemă): descriere, fabricatie,
+  // dovadaClaims, testareAnimale — texte libere completate de utilizator;
+  // evaluareSiguranta — text liber, NU generat de aplicație (vezi comentariul
+  // din src/routes/pif-docs.js: concluzia de siguranță cere un evaluator
+  // calificat, aplicația doar oferă loc pentru notițe/atașarea raportului
+  // extern semnat); documente — listă de fișiere atașate (vezi pif-docs.js).
+  pifRecords        Json     @default("{}")
+
+  // Dosare ambalaj (Reg. (UE) 2025/40 — PPWR, aplicabil din 12 august 2026),
+  // câte unul per produs, cheie = id-ul produsului (din câmpul "products").
+  // Structură (client-side, nu impusă de schemă): material/tip ambalaj,
+  // furnizor, stare declarație de conformitate (documente — vezi
+  // packaging-docs.js), checklist restricții de substanțe (metale grele
+  // ≤100 mg/kg, PFAS) completat manual de utilizator — NU verificat automat
+  // de aplicație — și o notă liberă privind reciclabilitatea (Art. 6,
+  // obligatoriu abia din 2030, informativă aici).
+  packagingRecords  Json     @default("{}")
 
   updatedAt         DateTime @updatedAt
 }
