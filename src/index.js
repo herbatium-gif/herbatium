@@ -15,10 +15,11 @@ const catalogRoutes = require("./routes/catalog");
 const legalRoutes = require("./routes/legal");
 const accountRoutes = require("./routes/account");
 const adminRoutes = require("./routes/admin");
+const leadsRoutes = require("./routes/leads"); // prospecți de vânzare — doar panoul de admin
 const changelogRoutes = require("./routes/changelog");
 const feedbackRoutes = require("./routes/feedback");
 const twofactorRoutes = require("./routes/twofactor"); // 2FA — doar contul de admin
-const { router: billingRoutes, webhookHandler } = require("./routes/billing");
+const { router: billingRoutes } = require("./routes/billing");
 const { scheduleDailyDigest } = require("./notify");
 const { scheduleRetentionCleanup } = require("./retention");
 
@@ -85,10 +86,6 @@ app.use(
   })
 );
 
-// Webhook-ul Stripe are nevoie de body-ul brut (nesparsat) ca să verifice
-// semnătura — de-asta ruta asta trebuie declarată ÎNAINTE de express.json().
-app.post("/api/billing/webhook", express.raw({ type: "application/json" }), webhookHandler);
-
 app.use(express.json({ limit: "1mb" })); // limită explicită — datele salvate (rețete/loturi/stoc) sunt un singur JSON
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
@@ -103,6 +100,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/account", accountRoutes); // GDPR — export date (art. 15/20) + ștergere cont (art. 17)
 app.use("/api/admin", adminRoutes); // panou de administrator platformă — doar contul isAdmin
+app.use("/api/admin/leads", leadsRoutes); // prospecți de vânzare — doar contul isAdmin
 app.use("/api/changelog", changelogRoutes); // noutăți aplicație, afișate în tab-ul "Noutăți"
 app.use("/api/feedback", feedbackRoutes); // feedback trimis din aplicație, de la utilizatori
 app.use("/api/2fa", twofactorRoutes); // autentificare în doi factori — doar contul de admin
@@ -111,6 +109,47 @@ app.use("/legal", legalRoutes); // public — Termeni, Confidențialitate, Cooki
 
 app.get("/healthz", (req, res) => res.json({ ok: true }));
 app.get("/", (req, res) => res.redirect("/login.html"));
+
+// Handler global de erori — ultima linie de apărare. Fără el, orice eroare
+// necapturată dintr-o rută (mai ales upload de fișiere cu multer — tip greșit,
+// fișier prea mare) ajunge la handler-ul implicit al Express, care răspunde
+// cu o pagină HTML plină de stack trace tehnic (nume de fișiere, linii de
+// cod) — inofensiv pentru un client obișnuit, dar o scurgere de informații
+// utilă cuiva care caută vulnerabilități. Trebuie să fie ULTIMUL app.use,
+// după toate rutele (Express recunoaște un middleware de erori după cele
+// 4 argumente: err, req, res, next).
+//
+// Rutele /api/admin/leads au deja propriul handler local (vezi
+// src/routes/leads.js) — pentru ele, acesta de aici nu se mai activează
+// niciodată (eroarea e deja tratată mai devreme, în router-ul lor).
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err); // răspunsul a început deja (ex. streaming) — Express știe ce să facă
+
+  // Erorile de validare din multer (fileFilter greșit) sunt aruncate ca
+  // `new Error("cod_scurt")` — un cod tehnic scurt (litere mici + underscore),
+  // fără date sensibile, sigur de trimis direct către client.
+  if (err instanceof Error && /^[a-z_]+$/.test(err.message)) {
+    return res.status(400).json({ error: err.message });
+  }
+  // Erorile native ale multer (ex. fișier peste limita de mărime) au un
+  // câmp .code standard, separat de mesaj.
+  if (err && err.name === "MulterError") {
+    const code = err.code === "LIMIT_FILE_SIZE" ? "fisier_prea_mare" : "eroare_upload";
+    return res.status(400).json({ error: code });
+  }
+  // Body JSON malformat (Content-Type: application/json cu conținut stricat)
+  // — eroare de request al clientului, nu de server, deci 400, nu 500.
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "json_invalid" });
+  }
+
+  // Orice altceva e neașteptat (bug real) — se loghează complet pe server,
+  // pentru depanare, dar clientul primește doar un mesaj generic, fără
+  // detalii interne (nume de fișiere, query-uri, stack trace).
+  console.error("[eroare neasteptata]", err);
+  res.status(500).json({ error: "eroare_server" });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

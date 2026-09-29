@@ -1,11 +1,13 @@
 // Politica de retenție a datelor (art. 5 alin. (1) lit. e) GDPR — limitarea
 // stocării: datele nu se păstrează "cât mai poți", ci doar atât cât e
 // necesar). Regulă: cât timp abonamentul e activ, datele rămân; dacă
-// abonamentul se anulează și nu se reactivează, contul și toate datele
-// (rețete, stoc, loturi, produse, poze) sunt șterse definitiv și automat
-// după RETENTION_DAYS zile — utilizatorul e anunțat pe e-mail chiar din
-// ziua anulării, cu data exactă la care se șterg, ca să aibă timp să le
-// exporte sau să se reaboneze.
+// abonamentul se anulează (sau pur și simplu EXPIRĂ fără reînnoire — vezi
+// markLapsedSubscriptionsCanceled mai jos, relevant mai ales pentru plata
+// prin transfer bancar, care nu se reînnoiește automat) și nu se
+// reactivează, contul și toate datele (rețete, stoc, loturi, produse, poze)
+// sunt șterse definitiv și automat după RETENTION_DAYS zile — utilizatorul e
+// anunțat pe e-mail chiar din ziua anulării/expirării, cu data exactă la
+// care se șterg, ca să aibă timp să le exporte sau să se reaboneze.
 const fs = require("fs");
 const path = require("path");
 const prisma = require("./db");
@@ -31,9 +33,11 @@ function deletionDateFrom(fromDate) {
   return d;
 }
 
-// Trimis o singură dată, sincron cu evenimentul de anulare din Stripe (vezi
-// billing.js, webhook customer.subscription.deleted) — nu așteptăm până
-// aproape de termen, ca utilizatorul să aibă tot intervalul la dispoziție.
+// Trimis o singură dată, sincron cu momentul în care contul e marcat
+// "canceled" — fie prin detectarea zilnică a expirării abonamentului (vezi
+// markLapsedSubscriptionsCanceled mai jos), fie (istoric) de webhook-ul
+// Stripe — nu așteptăm până aproape de termen, ca utilizatorul să aibă tot
+// intervalul la dispoziție.
 async function sendCancellationRetentionNotice(user) {
   if (!user || !user.email) return;
   const delDate = deletionDateFrom(new Date());
@@ -50,6 +54,48 @@ async function sendCancellationRetentionNotice(user) {
     `Datele tale Herbatium vor fi șterse pe ${dataStr}, dacă nu reactivezi abonamentul`,
     html
   );
+}
+
+// Rulează o dată pe zi, ÎNAINTE de runRetentionCleanup: detectează conturile
+// al căror abonament a EXPIRAT (currentPeriodEnd a trecut) fără să fi fost
+// reînnoit, și le marchează formal "canceled" — exact ce făcea înainte
+// webhook-ul Stripe (customer.subscription.deleted), pentru clienți plătind
+// cu cardul. Acum, cu plata prin transfer bancar (fără reînnoire automată),
+// nu există niciun eveniment extern care să anunțe "s-a terminat abonamentul"
+// — trebuie detectat aici, altfel contul rămâne cu subscriptionStatus:
+// "active" la nesfârșit, nu intră niciodată în ciclul de ștergere GDPR de
+// mai jos (runRetentionCleanup caută explicit "canceled") și clientul nu
+// primește niciodată e-mailul de avertizare de retenție.
+// Conturile de echipă (teamOwnerId) și administratorul nu au abonament
+// propriu — nu sunt vizate.
+async function markLapsedSubscriptionsCanceled() {
+  const now = new Date();
+  const lapsed = await prisma.user.findMany({
+    where: {
+      subscriptionStatus: "active",
+      currentPeriodEnd: { not: null, lt: now },
+      canceledAt: null,
+      teamOwnerId: null,
+      isAdmin: false,
+    },
+  });
+
+  for (const user of lapsed) {
+    try {
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: { subscriptionStatus: "canceled", canceledAt: now },
+      });
+      console.log(
+        `Retenție: abonament expirat fără reînnoire, marcat "canceled" (${RETENTION_DAYS} zile până la ștergere automată): ${user.email}`
+      );
+      await sendCancellationRetentionNotice(updated).catch((e) =>
+        console.error(`Retenție: notificarea de expirare pentru ${user.email} a eșuat:`, e.message)
+      );
+    } catch (e) {
+      console.error(`Retenție: marcarea ca "canceled" a contului ${user.email} a eșuat:`, e.message);
+    }
+  }
 }
 
 // Rulează o dată pe zi: șterge definitiv conturile al căror abonament e
@@ -125,7 +171,18 @@ function scheduleRetentionCleanup(hourLocal) {
     if (next <= now) next.setDate(next.getDate() + 1);
     return next - now;
   }
-  function tick() {
+  async function tick() {
+    // Ordine importantă: întâi marcăm abonamentele expirate ca "canceled"
+    // (pornește ceasul de retenție + trimite avertizarea), ABIA APOI ștergem
+    // definitiv ce a trecut deja de RETENTION_DAYS zile de la o marcare
+    // anterioară — altfel un cont proaspăt expirat ar putea fi, teoretic,
+    // marcat și șters în aceeași rulare, fără să beneficieze de fereastra
+    // completă de preaviz.
+    try {
+      await markLapsedSubscriptionsCanceled();
+    } catch (e) {
+      console.error("Detectarea abonamentelor expirate a eșuat:", e.message);
+    }
     runRetentionCleanup().catch((e) => console.error("Curățare retenție eșuată:", e.message));
     purgeIntroPriceHistory().catch((e) => console.error("Curățare istoric preț introductiv eșuată:", e.message));
     setTimeout(tick, 24 * 60 * 60 * 1000);
@@ -136,6 +193,7 @@ function scheduleRetentionCleanup(hourLocal) {
 module.exports = {
   RETENTION_DAYS,
   INTRO_HISTORY_RETENTION_YEARS,
+  markLapsedSubscriptionsCanceled,
   runRetentionCleanup,
   purgeIntroPriceHistory,
   scheduleRetentionCleanup,
