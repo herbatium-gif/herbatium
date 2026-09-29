@@ -4,7 +4,6 @@
 // informații despre conturi, utile pentru administrarea aplicației.
 const express = require("express");
 const prisma = require("../db");
-const stripe = require("../stripe");
 const { requireAuth, requireAdmin } = require("../auth");
 const { sendEmail } = require("../notify");
 const { markClientAsEverSubscribed, eraseIntroPriceHistoryFor, isIntroPricePromoActive } = require("./billing");
@@ -160,13 +159,6 @@ router.post("/gdpr-erase", async (req, res) => {
   if (where.length) {
     const existing = await prisma.user.findFirst({ where: { OR: where } });
     if (existing) {
-      if (existing.stripeSubscriptionId) {
-        try {
-          await stripe.subscriptions.cancel(existing.stripeSubscriptionId);
-        } catch (e) {
-          console.error("[admin] Nu am putut anula abonamentul Stripe la ștergerea GDPR:", e.message);
-        }
-      }
       const teamMembers = !existing.teamOwnerId
         ? await prisma.user.findMany({ where: { teamOwnerId: existing.id }, select: { email: true } })
         : [];

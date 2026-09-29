@@ -136,7 +136,7 @@ function confidentialitate(v) {
     <tr><td>Poze de produs</td><td>fotografiile pe care le încarci pentru produsele tale finite</td><td>de la tine, la încărcare</td></tr>
     <tr><td>Pagina publică de catalog (opțională)</td><td>numele afacerii, o scurtă descriere (bio), linkuri către Instagram/Breslo/Etsy/website/Facebook — dacă o activezi</td><td>de la tine, dacă activezi pagina publică</td></tr>
     <tr><td>Date de echipă (opțional)</td><td>adresa de e-mail a colegului pe care îl inviți în cont</td><td>de la tine, dacă inviți un coleg</td></tr>
-    <tr><td>Date de facturare și plată</td><td>e-mail, identificatorul de client Stripe, starea abonamentului. Datele cardului <strong>nu</strong> ajung la noi, ci doar la Stripe</td><td>de la tine, prin Stripe Checkout</td></tr>
+    <tr><td>Date de facturare și plată</td><td>e-mail, codul unic de plată generat de aplicație, durata și suma declarate pentru transfer bancar, starea abonamentului. Nu colectăm și nu stocăm date de card — plata se face prin transfer bancar direct, nu printr-un procesator de carduri</td><td>de la tine, când declari plata pe pagina de abonament</td></tr>
     <tr><td>Feedback (opțional)</td><td>mesajul pe care alegi să ni-l trimiți din butonul „Feedback” (idee, bug sau altceva), plus tabul din aplicație din care l-ai trimis</td><td>de la tine, dacă alegi să trimiți feedback</td></tr>
     <tr><td>Date tehnice</td><td>adresa IP și date de conexiune în jurnalele serverului, cookie-ul de sesiune</td><td>automat</td></tr>
     <tr><td>Preferință „Noutăți”</td><td>ultima actualizare a aplicației pe care ai văzut-o deja, ca să nu-ți arătăm de mai multe ori același anunț</td><td>automat, când deschizi panoul „Noutăți”</td></tr>
@@ -149,7 +149,7 @@ function confidentialitate(v) {
     <tr><td>Crearea și administrarea contului, autentificarea</td><td>executarea contractului, art. 6 alin. (1) lit. b)</td><td>cât timp ai cont activ</td></tr>
     <tr><td>Salvarea rețetelor, stocului, loturilor, produselor și funcționarea aplicației</td><td>executarea contractului, art. 6 alin. (1) lit. b)</td><td>cât timp abonamentul e activ, plus <strong>30 de zile</strong> după anularea lui — apoi <strong>ștergere definitivă și automată</strong>, dacă nu te reabonezi până atunci (te anunțăm pe e-mail chiar din ziua anulării, cu data exactă). Poți oricând să ștergi contul și mai devreme, manual, din „Cont &amp; confidențialitate”</td></tr>
     <tr><td>Pagina publică de catalog</td><td>consimțământ / interesul tău direct de a promova produsele, art. 6 alin. (1) lit. a)/f)</td><td>până o dezactivezi din cont</td></tr>
-    <tr><td>Încasarea abonamentului</td><td>executarea contractului, art. 6 alin. (1) lit. b)</td><td>cât timp ai abonament activ + evidențele impuse de Stripe ca procesator</td></tr>
+    <tr><td>Încasarea abonamentului (transfer bancar)</td><td>executarea contractului, art. 6 alin. (1) lit. b)</td><td>cât timp ai abonament activ + evidențele contabile impuse de lege</td></tr>
     <tr><td>Notificări e-mail (rezumat zilnic stoc/expirări, dacă e activat)</td><td>executarea contractului, art. 6 alin. (1) lit. b)</td><td>cât timp ai cont</td></tr>
     <tr><td>Securitate, prevenirea abuzurilor, jurnale tehnice</td><td>interes legitim, art. 6 alin. (1) lit. f)</td><td>jurnale server: maximum 30 de zile</td></tr>
     <tr><td>CUI firmă/PFA — facturare și o singură înregistrare per firmă</td><td>executarea contractului (facturare), art. 6 alin. (1) lit. b), și interes legitim (prevenirea creării repetate de conturi pentru aceeași firmă, inclusiv pentru reutilizarea unei oferte introductive), art. 6 alin. (1) lit. f)</td><td>cât timp ai cont activ</td></tr>
@@ -167,11 +167,10 @@ function confidentialitate(v) {
   <table>
     <tr><th>Furnizor</th><th>Ce face</th><th>Unde</th></tr>
     <tr><td>Railway Corporation</td><td>serverul aplicației și baza de date (PostgreSQL)</td><td>UE — europe-west4 (Amsterdam, Olanda)</td></tr>
-    <tr><td>Stripe Payments Europe Ltd.</td><td>procesarea plăților cu cardul / abonamentul</td><td>UE (Irlanda), cu posibile transferuri către Stripe Inc. (SUA) pe bază de garanții adecvate</td></tr>
+    <tr><td>Banca la care ai contul folosit pentru încasare</td><td>primirea transferurilor bancare de la clienți</td><td>România</td></tr>
     <tr><td>Resend</td><td>trimiterea e-mailurilor tranzacționale (rezumat zilnic stoc/expirări, notificare de plată declarată, notificare de anulare/retenție, noutăți aplicație)</td><td>SUA — date stocate integral acolo (conținutul mesajelor, jurnalele de livrare), pe bază de clauze contractuale standard și participarea Resend la EU-U.S. Data Privacy Framework</td></tr>
     <tr><td>Autorități publice (ANAF, instanțe)</td><td>doar când legea ne obligă</td><td>România</td></tr>
   </table>
-  <p>Stripe acționează și ca operator independent pentru datele de plată, conform propriei politici de confidențialitate.</p>
 
   <h2>5. Drepturile tale</h2>
   <ul>
@@ -192,7 +191,7 @@ function confidentialitate(v) {
     <li>parole stocate doar ca amprente criptografice (bcrypt), niciodată în clar;</li>
     <li>sesiuni cu cookie securizat (HttpOnly, SameSite), expirare după 30 de zile;</li>
     <li>acces la server restricționat, copii de siguranță periodice;</li>
-    <li>datele cardului sunt procesate exclusiv de Stripe (certificat PCI DSS).</li>
+    <li>nu colectăm și nu stocăm date de card — plata se face prin transfer bancar direct.</li>
   </ul>
   <p>În cazul unei încălcări a securității datelor care prezintă un risc pentru tine, notificăm ANSPDCP în 72 de ore și te informăm fără întârzieri nejustificate, conform art. 33–34 GDPR.</p>
 
@@ -225,7 +224,7 @@ function confidentialitate_en(v) {
     <tr><td>Product photos</td><td>photos you upload for your finished products</td><td>from you, when uploading</td></tr>
     <tr><td>Public catalog page (optional)</td><td>business name, a short bio, links to Instagram/Breslo/Etsy/website/Facebook — if you enable it</td><td>from you, if you enable the public page</td></tr>
     <tr><td>Team data (optional)</td><td>the email address of a colleague you invite to the account</td><td>from you, if you invite a colleague</td></tr>
-    <tr><td>Billing and payment data</td><td>email, Stripe customer identifier, subscription status. Card data <strong>never</strong> reaches us — only Stripe</td><td>from you, via Stripe Checkout</td></tr>
+    <tr><td>Billing and payment data</td><td>email, the app-generated payment code, the declared bank-transfer duration and amount, subscription status. We do not collect or store card data — payment is by direct bank transfer, not through a card processor</td><td>from you, when you declare payment on the subscription page</td></tr>
     <tr><td>Feedback (optional)</td><td>the message you choose to send via the "Feedback" button (idea, bug, or other), plus the app tab it was sent from</td><td>from you, if you choose to send feedback</td></tr>
     <tr><td>Technical data</td><td>IP address and connection data in server logs, the session cookie</td><td>automatic</td></tr>
     <tr><td>"News" preference</td><td>the latest app update you've already seen, so we don't show you the same announcement repeatedly</td><td>automatic, when you open the "News" panel</td></tr>
@@ -238,7 +237,7 @@ function confidentialitate_en(v) {
     <tr><td>Creating and managing the account, authentication</td><td>performance of the contract, Art. 6(1)(b)</td><td>as long as you have an active account</td></tr>
     <tr><td>Saving recipes, stock, batches, products, and app operation</td><td>performance of the contract, Art. 6(1)(b)</td><td>as long as the subscription is active, plus <strong>30 days</strong> after cancellation — then <strong>permanent, automatic deletion</strong> if you don't resubscribe by then (we notify you by email the same day of cancellation, with the exact date). You can always delete the account sooner, manually, from "Account & Privacy"</td></tr>
     <tr><td>Public catalog page</td><td>consent / your direct interest in promoting your products, Art. 6(1)(a)/(f)</td><td>until you disable it from your account</td></tr>
-    <tr><td>Collecting the subscription payment</td><td>performance of the contract, Art. 6(1)(b)</td><td>as long as you have an active subscription + the records required by Stripe as a processor</td></tr>
+    <tr><td>Collecting the subscription payment (bank transfer)</td><td>performance of the contract, Art. 6(1)(b)</td><td>as long as you have an active subscription + the accounting records required by law</td></tr>
     <tr><td>Email notifications (daily stock/expiry summary, if enabled)</td><td>performance of the contract, Art. 6(1)(b)</td><td>as long as you have an account</td></tr>
     <tr><td>Security, abuse prevention, technical logs</td><td>legitimate interest, Art. 6(1)(f)</td><td>server logs: maximum 30 days</td></tr>
     <tr><td>Company/sole-trader tax ID (CUI) — invoicing and a single registration per company</td><td>performance of the contract (invoicing), Art. 6(1)(b), and legitimate interest (preventing repeated account creation for the same company, including reuse of an intro offer), Art. 6(1)(f)</td><td>as long as you have an active account</td></tr>
@@ -256,11 +255,10 @@ function confidentialitate_en(v) {
   <table>
     <tr><th>Provider</th><th>What it does</th><th>Where</th></tr>
     <tr><td>Railway Corporation</td><td>the app server and database (PostgreSQL)</td><td>EU — europe-west4 (Amsterdam, Netherlands)</td></tr>
-    <tr><td>Stripe Payments Europe Ltd.</td><td>card payment / subscription processing</td><td>EU (Ireland), with possible transfers to Stripe Inc. (USA) under appropriate safeguards</td></tr>
+    <tr><td>The bank holding the account used to receive payments</td><td>receiving bank transfers from customers</td><td>Romania</td></tr>
     <tr><td>Resend</td><td>sending transactional emails (daily stock/expiry summary, declared-payment notification, cancellation/retention notification, app news)</td><td>USA — data stored entirely there (message content, delivery logs), under standard contractual clauses and Resend's participation in the EU-U.S. Data Privacy Framework</td></tr>
     <tr><td>Public authorities (ANAF, courts)</td><td>only when required by law</td><td>Romania</td></tr>
   </table>
-  <p>Stripe also acts as an independent controller for payment data, under its own privacy policy.</p>
 
   <h2>5. Your rights</h2>
   <ul>
@@ -281,7 +279,7 @@ function confidentialitate_en(v) {
     <li>passwords stored only as cryptographic hashes (bcrypt), never in plain text;</li>
     <li>sessions with a secure cookie (HttpOnly, SameSite), expiring after 30 days;</li>
     <li>restricted server access, periodic backups;</li>
-    <li>card data is processed exclusively by Stripe (PCI DSS certified).</li>
+    <li>we do not collect or store card data — payment is by direct bank transfer.</li>
   </ul>
   <p>In the event of a data breach that presents a risk to you, we notify ANSPDCP within 72 hours and inform you without undue delay, under Art. 33–34 GDPR.</p>
 
@@ -319,10 +317,10 @@ function termeni(v) {
   <p>Poți invita colegi în cont („echipă") — aceștia văd și editează aceleași date, fără abonament propriu. Ești responsabil pentru accesul pe care îl acorzi.</p>
 
   <h2>4. Abonamentul și plata</h2>
-  <p>Accesul complet la aplicație necesită un abonament lunar, plătit prin Stripe. Prețul curent al abonamentului este afișat pe pagina de abonare, înainte să introduci datele de plată — de acolo confirmi suma exactă pe care o vei plăti.</p>
-  <p><strong>Reînnoire automată.</strong> Abonamentul se reînnoiește automat, lunar, la aceeași dată din lună la care te-ai abonat inițial, până când îl anulezi din contul tău. Nu retrimitem o confirmare separată la fiecare reînnoire lunară — data primei plăți este data de referință pentru fiecare reînnoire ulterioară.</p>
-  <p><strong>Anulare.</strong> Poți anula oricând, din tab-ul „Cont & confidențialitate" sau din pagina de abonare. Accesul rămâne activ până la sfârșitul perioadei deja plătite; nu facem rambursări proporționale („pro-rata") pentru perioada rămasă, cu excepția dreptului de retragere de la secțiunea 5.</p>
-  <p><strong>Plată eșuată.</strong> Dacă plata lunară eșuează (card expirat, fonduri insuficiente etc.), Stripe reîncearcă automat procesarea conform politicii sale standard; dacă plata tot nu reușește, accesul complet la aplicație se suspendă până la regularizare, fără să-ți ștergem datele — le poți relua imediat ce reactivezi plata.</p>
+  <p>Accesul complet la aplicație necesită un abonament lunar, plătit prin transfer bancar. Prețul curent și planurile disponibile (1, 3, 6 sau 12 luni, cu discount crescător) sunt afișate pe pagina de abonare, unde alegi durata și primești IBAN-ul nostru și un cod unic de plată.</p>
+  <p><strong>Reînnoire.</strong> Abonamentul NU se reînnoiește automat — nu există retragere automată de fonduri din contul tău. La expirarea perioadei plătite, revii pe pagina de abonare, declari din nou durata dorită și faci un nou transfer; accesul se reactivează manual, din partea noastră, după ce confirmăm plata.</p>
+  <p><strong>Anulare.</strong> Nefăcând un nou transfer la expirarea perioadei plătite, abonamentul se încheie de la sine — nu e nevoie de o acțiune separată de „anulare”. Îți poți șterge oricând contul definitiv din tab-ul „Cont & confidențialitate”. Nu facem rambursări proporționale („pro-rata") pentru perioada rămasă, cu excepția dreptului de retragere de la secțiunea 5.</p>
+  <p><strong>Plată nefinalizată.</strong> Dacă declari intenția de plată dar transferul nu ajunge la noi (sau nu-l putem identifica din lipsa codului de plată), abonamentul nu se activează/prelungește; te poți reabona oricând, reluând pașii de mai sus.</p>
   <p><strong>Modificarea prețului.</strong> Dacă schimbăm prețul abonamentului, te anunțăm cu cel puțin 30 de zile înainte ca noul preț să se aplice reînnoirii tale, pe e-mail sau în aplicație; poți anula oricând înainte de reînnoire dacă nu ești de acord.</p>
   <p><strong>Ofertă introductivă (prima lună la preț redus).</strong> E valabilă o singură dată pentru fiecare firmă/PFA (identificată prin CUI) și pentru fiecare adresă de e-mail folosită la înregistrare — nu poți obține din nou acest preț recreând contul, cu alt CUI sau altă adresă de e-mail decât cele deja folosite anterior pentru un abonament. <strong>Oferta este disponibilă doar până la 10.10.2026, inclusiv</strong> — după această dată nu se mai aplică niciunui client, nou sau existent, indiferent de data înregistrării contului. Vezi Politica de confidențialitate, secțiunea 3, pentru cât timp și în ce scop păstrăm, separat de contul propriu-zis, dovada minimă a folosirii anterioare.</p>
   <p><strong>Date după anulare.</strong> După ce abonamentul se încheie, datele tale (rețete, stoc, loturi, produse, poze) rămân salvate timp de <strong>30 de zile</strong>, cu acces restricționat, cât timp nu te reabonezi. Te anunțăm pe e-mail chiar din ziua anulării, cu data exactă la care vor fi șterse — îți recomandăm să îți descarci o copie din „Cont & confidențialitate” → „Descarcă toate datele” dacă vrei să le păstrezi. Dacă nu te reabonezi până la acea dată, contul și toate datele sunt <strong>șterse definitiv și automat</strong>, fără posibilitate de recuperare — vezi și secțiunea 3 din Politica de confidențialitate privind perioada de păstrare. Poți oricând să ștergi contul și mai devreme, manual, din același tab.</p>
@@ -370,10 +368,10 @@ function termeni_en(v) {
   <p>You can invite colleagues to the account ("team") — they see and edit the same data, without their own subscription. You are responsible for the access you grant.</p>
 
   <h2>4. Subscription and payment</h2>
-  <p>Full access to the app requires a monthly subscription, paid via Stripe. The current subscription price is shown on the subscription page, before you enter payment details — that's where you confirm the exact amount you'll pay.</p>
-  <p><strong>Automatic renewal.</strong> The subscription renews automatically, monthly, on the same date of the month you first subscribed, until you cancel it from your account. We do not resend a separate confirmation for each monthly renewal — the date of the first payment is the reference date for every subsequent renewal.</p>
-  <p><strong>Cancellation.</strong> You can cancel at any time, from the "Account & Privacy" tab or the subscription page. Access remains active until the end of the already-paid period; we do not issue pro-rata refunds for the remaining period, except under the right of withdrawal in section 5.</p>
-  <p><strong>Failed payment.</strong> If a monthly payment fails (expired card, insufficient funds, etc.), Stripe automatically retries processing per its standard policy; if the payment still fails, full app access is suspended until resolved, without deleting your data — you can resume it as soon as you reactivate payment.</p>
+  <p>Full access to the app requires a monthly subscription, paid by bank transfer. The current price and available plans (1, 3, 6 or 12 months, with an increasing discount) are shown on the subscription page, where you choose a duration and receive our IBAN and a unique payment code.</p>
+  <p><strong>Renewal.</strong> The subscription does NOT renew automatically — there is no automatic withdrawal from your account. When the paid period ends, you return to the subscription page, declare the duration you want again, and make a new transfer; access is reactivated manually, on our side, once we confirm the payment.</p>
+  <p><strong>Cancellation.</strong> By not making a new transfer when the paid period ends, the subscription simply lapses — no separate "cancel" action is needed. You can permanently delete your account at any time from the "Account & Privacy" tab. We do not issue pro-rata refunds for the remaining period, except under the right of withdrawal in section 5.</p>
+  <p><strong>Unfinished payment.</strong> If you declare an intent to pay but the transfer does not reach us (or we cannot identify it because the payment code was missing), the subscription is not activated/extended; you can re-subscribe at any time by repeating the steps above.</p>
   <p><strong>Price changes.</strong> If we change the subscription price, we notify you at least 30 days before the new price applies to your renewal, by email or in the app; you can cancel anytime before renewal if you disagree.</p>
   <p><strong>Intro offer (first month at a reduced price).</strong> Valid once per company/sole trader (identified by tax ID) and per email address used at registration — you cannot obtain this price again by recreating the account with a different tax ID or email address than those already used for a previous subscription. <strong>The offer is available only through 10 October 2026, inclusive</strong> — after that date it no longer applies to any customer, new or existing, regardless of account registration date. See the Privacy Policy, section 3, for how long and for what purpose we keep, separately from the account itself, the minimal proof of prior use.</p>
   <p><strong>Data after cancellation.</strong> After your subscription ends, your data (recipes, stock, batches, products, photos) remains saved for <strong>30 days</strong>, with restricted access, as long as you don't resubscribe. We notify you by email the same day of cancellation, with the exact date they will be deleted — we recommend downloading a copy from "Account & Privacy" → "Download all data" if you want to keep it. If you don't resubscribe by that date, the account and all data are <strong>permanently and automatically deleted</strong>, with no possibility of recovery — see also section 3 of the Privacy Policy on the retention period. You can always delete the account sooner, manually, from the same tab.</p>
@@ -409,7 +407,6 @@ function cookies(v) {
     <tr><td><code>herbatium_catalog_lang</code> / <code>herbatium_legal_lang</code></td><td>cookie strict necesar (preferință)</td><td>reține limba aleasă (RO/EN) pentru paginile publice de catalog și paginile legale</td><td>1 an</td></tr>
   </table>
   <p>Fonturile („Plus Jakarta Sans", „IBM Plex Mono") sunt găzduite direct de serverul nostru — nu se face nicio cerere către servere externe pentru a le încărca, deci nu se transmite nicio informație către terți prin acest mecanism.</p>
-  <p>La plată ești redirecționat pe pagina securizată Stripe, care își folosește propriile cookie-uri pentru prevenirea fraudei, conform <a href="https://stripe.com/ro/privacy" target="_blank" rel="noopener">politicii Stripe</a>.</p>
   <p>Poți șterge oricând cookie-urile din setările browserului. Dacă ștergi <code>formulator_token</code>, vei fi deconectat.</p>
   `;
 }
@@ -425,7 +422,6 @@ function cookies_en(v) {
     <tr><td><code>herbatium_catalog_lang</code> / <code>herbatium_legal_lang</code></td><td>strictly necessary cookie (preference)</td><td>remembers the chosen language (RO/EN) for the public catalog pages and the legal pages</td><td>1 year</td></tr>
   </table>
   <p>The fonts ("Plus Jakarta Sans", "IBM Plex Mono") are hosted directly on our server — no request is made to external servers to load them, so no information is shared with third parties through this mechanism.</p>
-  <p>At checkout you're redirected to Stripe's secure page, which uses its own cookies for fraud prevention, per <a href="https://stripe.com/en-ro/privacy" target="_blank" rel="noopener">Stripe's policy</a>.</p>
   <p>You can delete cookies at any time from your browser settings. If you delete <code>formulator_token</code>, you'll be signed out.</p>
   `;
 }

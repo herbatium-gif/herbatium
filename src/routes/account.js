@@ -2,7 +2,6 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const prisma = require("../db");
-const stripe = require("../stripe");
 const { requireAuth, verifyPassword, clearAuthCookie, effectiveDataOwnerId } = require("../auth");
 const { eraseIntroPriceHistoryFor } = require("./billing");
 
@@ -114,16 +113,6 @@ router.delete("/", requireAuth, async (req, res) => {
           "Contul are membri de echipă activi. Scoate-i din echipă înainte de a șterge contul principal.",
         membri: teamMembers.map((m) => m.email),
       });
-    }
-  }
-
-  // Anulează abonamentul Stripe activ, dacă există (contul principal poate avea unul).
-  if (u.stripeSubscriptionId) {
-    try {
-      await stripe.subscriptions.cancel(u.stripeSubscriptionId);
-    } catch (e) {
-      console.error("Nu am putut anula abonamentul Stripe la ștergerea contului:", e.message);
-      // continuăm oricum — ștergerea contului nu trebuie blocată de o eroare Stripe
     }
   }
 
