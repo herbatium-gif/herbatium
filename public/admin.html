@@ -128,6 +128,67 @@
     <tbody id="feedbackBody"></tbody>
   </table>
   <div id="feedbackEmpty" style="display:none;color:#6b7280;font-size:14px" data-i18n="admin.noFeedbackYet">Niciun mesaj de feedback încă.</div>
+
+  <h2 style="margin:32px 0 12px" data-i18n="admin.leadsTitle">Leads — prospecți de vânzare</h2>
+  <div class="sub" style="margin-bottom:12px;font-size:13px;color:#6b7280" data-i18n="admin.leadsDesc">
+    Firme potențial interesate de un abonament Herbatium (NU sunt clienți/utilizatori ai aplicației). Ține aici evidența cui ai contactat și cu ce rezultat.
+  </div>
+
+  <details style="margin-bottom:16px">
+    <summary style="cursor:pointer;font-size:13.5px;color:#374151;font-weight:600" data-i18n="admin.leadsImportTitle">Importă / actualizează în masă (lipește CSV)</summary>
+    <div style="margin-top:10px;max-width:720px">
+      <div style="font-size:12.5px;color:#6b7280;margin-bottom:6px" data-i18n="admin.leadsImportHint">
+        Coloane așteptate, în ordine, prima linie fiind antet: Nume, Ce vinde, Oraș, Contact, Tip contact, Sursă, Verificare, Potrivire. Un lead cu același „Nume" ca unul existent e actualizat, nu duplicat (statusul și notițele tale se păstrează).
+      </div>
+      <textarea id="leadsImportCsv" rows="6" style="width:100%;font-family:monospace;font-size:12.5px;padding:8px;border-radius:8px;border:1px solid #d1d5db" placeholder="Nume,Ce vinde,Oraș,Contact,Tip contact,Sursă,Verificare,Potrivire"></textarea>
+      <div style="margin-top:8px">
+        <button class="btn sm" id="leadsImportBtn" data-i18n="admin.leadsImportBtn">Importă</button>
+        <span id="leadsImportStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e5e7eb">
+        <div style="font-size:12.5px;color:#6b7280;margin-bottom:6px" data-i18n="admin.leadsImportExcelHint">
+          Sau încarcă direct un fișier .xlsx cu aceleași coloane, în aceeași ordine (ex. exportul de mai jos, sau fișierul primit de la mine).
+        </div>
+        <input type="file" id="leadsImportExcelFile" accept=".xlsx">
+        <button class="btn sm" id="leadsImportExcelBtn" data-i18n="admin.leadsImportExcelBtn">Importă din Excel</button>
+        <span id="leadsImportExcelStatus" style="font-size:13px;color:#6b7280;margin-left:8px"></span>
+      </div>
+    </div>
+  </details>
+
+  <details style="margin-bottom:16px">
+    <summary style="cursor:pointer;font-size:13.5px;color:#374151;font-weight:600" data-i18n="admin.leadsAddTitle">Adaugă un lead nou, manual</summary>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;max-width:820px">
+      <input id="leadNewNume" type="text" data-i18n-placeholder="admin.leadsColNume" placeholder="Nume" style="flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px">
+      <input id="leadNewCeVinde" type="text" data-i18n-placeholder="admin.leadsColCeVinde" placeholder="Ce vinde" style="flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px">
+      <input id="leadNewOras" type="text" data-i18n-placeholder="admin.leadsColOras" placeholder="Oraș" style="width:140px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px">
+      <input id="leadNewContact" type="text" data-i18n-placeholder="admin.leadsColContact" placeholder="Contact (email/telefon)" style="flex:1;min-width:200px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px">
+      <button class="btn sm" id="leadAddBtn" style="width:auto;margin-top:0;white-space:nowrap" data-i18n="admin.leadsAddBtn">Adaugă</button>
+    </div>
+  </details>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+    <input id="leadsSearch" type="text" data-i18n-placeholder="admin.leadsSearchPlaceholder" placeholder="Caută după nume, oraș, contact…"
+      style="flex:1;min-width:220px;max-width:420px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:14px">
+    <a class="btn sm" id="leadsExportCsvBtn" href="/api/admin/leads/export.csv" data-i18n="admin.leadsExportCsv" style="width:auto;margin-top:0;text-decoration:none;white-space:nowrap;display:inline-block">Exportă CSV</a>
+    <a class="btn sm" id="leadsExportXlsxBtn" href="/api/admin/leads/export.xlsx" data-i18n="admin.leadsExportXlsx" style="width:auto;margin-top:0;text-decoration:none;white-space:nowrap;display:inline-block">Exportă Excel</a>
+  </div>
+  <table id="leadsTable" style="display:none;margin-bottom:12px">
+    <thead>
+      <tr>
+        <th data-i18n="admin.leadsColNume">Nume</th>
+        <th data-i18n="admin.leadsColCeVinde">Ce vinde</th>
+        <th data-i18n="admin.leadsColOras">Oraș</th>
+        <th data-i18n="admin.leadsColContact">Contact</th>
+        <th data-i18n="admin.leadsColPotrivire">Potrivire</th>
+        <th data-i18n="admin.leadsColStare">Stare</th>
+        <th data-i18n="admin.leadsColNotite">Notițe</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="leadsBody"></tbody>
+  </table>
+  <div id="leadsEmpty" style="display:none;color:#6b7280;font-size:14px;margin-bottom:32px" data-i18n="admin.leadsNone">Niciun lead încă — importă lista de mai sus sau adaugă manual.</div>
 </div>
 <script>
 I18N.register("ro", {
@@ -229,6 +290,45 @@ I18N.register("ro", {
   "admin.confirmActivate30": "Ai confirmat în extrasul de cont că {email} a plătit prin transfer bancar? Se acordă 30 de zile de acces.",
   "admin.operationFailed": "Operația a eșuat. Încearcă din nou.",
   "admin.couldNotLoadAdminData": "Nu am putut încărca datele de administrare.",
+  "admin.leadsTitle": "Leads — prospecți de vânzare",
+  "admin.leadsDesc": "Firme potențial interesate de un abonament Herbatium (NU sunt clienți/utilizatori ai aplicației). Ține aici evidența cui ai contactat și cu ce rezultat.",
+  "admin.leadsImportTitle": "Importă / actualizează în masă (lipește CSV)",
+  "admin.leadsImportHint": "Coloane așteptate, în ordine, prima linie fiind antet: Nume, Ce vinde, Oraș, Contact, Tip contact, Sursă, Verificare, Potrivire. Un lead cu același „Nume” ca unul existent e actualizat, nu duplicat (statusul și notițele tale se păstrează).",
+  "admin.leadsImportBtn": "Importă",
+  "admin.leadsAddTitle": "Adaugă un lead nou, manual",
+  "admin.leadsAddBtn": "Adaugă",
+  "admin.leadsSearchPlaceholder": "Caută după nume, oraș, contact…",
+  "admin.leadsColNume": "Nume",
+  "admin.leadsColCeVinde": "Ce vinde",
+  "admin.leadsColOras": "Oraș",
+  "admin.leadsColContact": "Contact",
+  "admin.leadsColPotrivire": "Potrivire",
+  "admin.leadsColStare": "Stare",
+  "admin.leadsColNotite": "Notițe",
+  "admin.leadsNone": "Niciun lead încă — importă lista de mai sus sau adaugă manual.",
+  "admin.leadsStareNou": "Nou",
+  "admin.leadsStareContactat": "Contactat",
+  "admin.leadsStareInteresat": "Interesat",
+  "admin.leadsStareClient": "Client",
+  "admin.leadsStareRefuzat": "Refuzat",
+  "admin.leadsImporting": "Se importă…",
+  "admin.leadsImportDone": "Import terminat: {created} noi, {updated} actualizate.",
+  "admin.leadsImportEmpty": "Lipește cel puțin o linie de date (nu doar antetul).",
+  "admin.leadsImportFailed": "Importul a eșuat. Verifică formatul CSV.",
+  "admin.leadsNumeRequired": "Completează cel puțin numele.",
+  "admin.leadsNumeDuplicat": "Există deja un lead cu numele „{nume}”. Modifică numele sau caută-l în listă — starea și notițele lui existente nu au fost atinse.",
+  "admin.leadsAddFailed": "Adăugarea a eșuat. Încearcă din nou.",
+  "admin.leadsRowUpdateFailed": "Modificarea nu s-a salvat (eroare de server sau lead șters între timp). Lista s-a reîncărcat cu starea reală.",
+  "admin.leadsDeleteConfirm": "Ștergi definitiv lead-ul „{nume}”?",
+  "admin.leadsNoResults": "Niciun rezultat pentru căutarea curentă.",
+  "admin.leadsImportExcelHint": "Sau încarcă direct un fișier .xlsx cu aceleași coloane, în aceeași ordine (ex. exportul de mai jos, sau fișierul primit de la mine).",
+  "admin.leadsImportExcelBtn": "Importă din Excel",
+  "admin.leadsExportCsv": "Exportă CSV",
+  "admin.leadsExportXlsx": "Exportă Excel",
+  "admin.leadsExcelFileRequired": "Alege întâi un fișier .xlsx.",
+  "admin.leadsImportingExcel": "Se importă din Excel…",
+  "admin.leadsImportExcelFailed": "Importul din Excel a eșuat. Verifică formatul fișierului (coloanele trebuie să fie în aceeași ordine).",
+  "admin.leadsWrongFileType": "Alege un fișier .xlsx (Excel), nu {ext}.",
 });
 I18N.register("en", {
   "common.loading": "Loading…",
@@ -329,6 +429,45 @@ I18N.register("en", {
   "admin.confirmActivate30": "Did you confirm on the bank statement that {email} paid by bank transfer? 30 days of access will be granted.",
   "admin.operationFailed": "The operation failed. Please try again.",
   "admin.couldNotLoadAdminData": "Could not load the admin data.",
+  "admin.leadsTitle": "Leads — sales prospects",
+  "admin.leadsDesc": "Businesses potentially interested in a Herbatium subscription (NOT app customers/users). Keep track here of who you contacted and the outcome.",
+  "admin.leadsImportTitle": "Bulk import / update (paste CSV)",
+  "admin.leadsImportHint": "Expected columns, in order, first line as header: Name, What they sell, City, Contact, Contact type, Source, Verification, Fit. A lead with the same \"Name\" as an existing one is updated, not duplicated (your status and notes are kept).",
+  "admin.leadsImportBtn": "Import",
+  "admin.leadsAddTitle": "Add a new lead manually",
+  "admin.leadsAddBtn": "Add",
+  "admin.leadsSearchPlaceholder": "Search by name, city, contact…",
+  "admin.leadsColNume": "Name",
+  "admin.leadsColCeVinde": "What they sell",
+  "admin.leadsColOras": "City",
+  "admin.leadsColContact": "Contact",
+  "admin.leadsColPotrivire": "Fit",
+  "admin.leadsColStare": "Status",
+  "admin.leadsColNotite": "Notes",
+  "admin.leadsNone": "No leads yet — import the list above or add one manually.",
+  "admin.leadsStareNou": "New",
+  "admin.leadsStareContactat": "Contacted",
+  "admin.leadsStareInteresat": "Interested",
+  "admin.leadsStareClient": "Customer",
+  "admin.leadsStareRefuzat": "Declined",
+  "admin.leadsImporting": "Importing…",
+  "admin.leadsImportDone": "Import done: {created} new, {updated} updated.",
+  "admin.leadsImportEmpty": "Paste at least one data row (not just the header).",
+  "admin.leadsImportFailed": "Import failed. Check the CSV format.",
+  "admin.leadsNumeRequired": "Fill in at least the name.",
+  "admin.leadsNumeDuplicat": "A lead named “{nume}” already exists. Change the name, or find it in the list — its existing status and notes were not touched.",
+  "admin.leadsAddFailed": "Adding failed. Please try again.",
+  "admin.leadsRowUpdateFailed": "The change wasn't saved (server error, or the lead was deleted meanwhile). The list was reloaded with the real state.",
+  "admin.leadsDeleteConfirm": "Permanently delete lead \"{nume}\"?",
+  "admin.leadsNoResults": "No results for the current search.",
+  "admin.leadsImportExcelHint": "Or upload an .xlsx file directly with the same columns, in the same order (e.g. the export below, or the file I sent you).",
+  "admin.leadsImportExcelBtn": "Import from Excel",
+  "admin.leadsExportCsv": "Export CSV",
+  "admin.leadsExportXlsx": "Export Excel",
+  "admin.leadsExcelFileRequired": "Choose an .xlsx file first.",
+  "admin.leadsImportingExcel": "Importing from Excel…",
+  "admin.leadsImportExcelFailed": "Excel import failed. Check the file format (columns must be in the same order).",
+  "admin.leadsWrongFileType": "Choose an .xlsx (Excel) file, not {ext}.",
 });
 document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
 I18N.applyStaticI18n();
@@ -666,6 +805,268 @@ document.getElementById("twofaDisableBtn").onclick = async ()=>{
   btn.disabled = false;
 };
 
+// --- Leads (prospecți de vânzare) ---
+const STARE_LABEL_LEAD = {
+  get nou(){return t("admin.leadsStareNou");},
+  get contactat(){return t("admin.leadsStareContactat");},
+  get interesat(){return t("admin.leadsStareInteresat");},
+  get client(){return t("admin.leadsStareClient");},
+  get refuzat(){return t("admin.leadsStareRefuzat");},
+};
+const POTRIVIRE_BADGE_COLOR = (p) => {
+  if (!p) return "#f3f4f6";
+  if (p.startsWith("Bun") || p.startsWith("Good")) return "#dcfce7";
+  if (p.startsWith("Slab") || p.startsWith("Weak") || p.startsWith("Poor")) return "#fee2e2";
+  return "#fef3c7"; // verificare manuală / uncertain
+};
+
+let ALL_LEADS = [];
+
+function renderLeads(list){
+  const body = document.getElementById("leadsBody");
+  const table = document.getElementById("leadsTable");
+  const empty = document.getElementById("leadsEmpty");
+  if (!ALL_LEADS.length){
+    table.style.display = "none";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  table.style.display = "table";
+  if (!list.length){
+    body.innerHTML = `<tr><td colspan="8" style="color:#9ca3af">${t("admin.leadsNoResults")}</td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(l => `
+    <tr data-id="${esc(l.id)}">
+      <td style="font-weight:600">${esc(l.nume)}</td>
+      <td style="max-width:220px">${esc(l.ceVinde) || "—"}</td>
+      <td>${esc(l.oras) || "—"}</td>
+      <td style="max-width:220px">${esc(l.contact) || "—"}${l.sursa ? `<br><span style="color:#9ca3af;font-size:12px">${esc(l.sursa)}</span>` : ""}</td>
+      <td><span class="badge" style="background:${POTRIVIRE_BADGE_COLOR(l.potrivire)};color:#374151;max-width:180px;white-space:normal;display:inline-block">${esc(l.potrivire) || "—"}</span></td>
+      <td>
+        <select class="leadStare" data-id="${esc(l.id)}">
+          ${["nou","contactat","interesat","client","refuzat"].map(s=>`<option value="${s}" ${l.stare===s?"selected":""}>${esc(STARE_LABEL_LEAD[s])}</option>`).join("")}
+        </select>
+      </td>
+      <td><input class="leadNotite" data-id="${esc(l.id)}" type="text" value="${esc(l.notite) || ""}" style="width:160px;padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;font-size:13px"></td>
+      <td><button class="btn sm leadDeleteBtn" data-id="${esc(l.id)}" data-nume="${esc(l.nume)}" style="background:#fee2e2;border-color:#fee2e2;color:#991b1b">×</button></td>
+    </tr>
+  `).join("");
+
+  // Toate cele trei acțiuni de mai jos (schimbare stare, editare notițe,
+  // ștergere) găsite la testare fără nicio verificare a răspunsului — dacă
+  // request-ul eșua (ex. lead șters între timp din alt tab admin → 404, sau
+  // o problemă temporară de rețea/server), interfața nu arăta nimic,
+  // adminul credea că modificarea s-a salvat. Acum orice eșec reîncarcă
+  // lista (ca să arate starea reală din baza de date) și avertizează scurt.
+  document.querySelectorAll(".leadStare").forEach(sel => {
+    sel.onchange = async () => {
+      let res;
+      try {
+        res = await fetch(`/api/admin/leads/${sel.dataset.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ stare: sel.value }),
+        });
+      } catch (e) { res = null; }
+      if (!res || !res.ok) {
+        alert(t("admin.leadsRowUpdateFailed"));
+        await loadLeads();
+        return;
+      }
+      const lead = ALL_LEADS.find(l => l.id === sel.dataset.id);
+      if (lead) lead.stare = sel.value;
+    };
+  });
+  document.querySelectorAll(".leadNotite").forEach(inp => {
+    inp.onblur = async () => {
+      let res;
+      try {
+        res = await fetch(`/api/admin/leads/${inp.dataset.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ notite: inp.value }),
+        });
+      } catch (e) { res = null; }
+      if (!res || !res.ok) {
+        alert(t("admin.leadsRowUpdateFailed"));
+        await loadLeads();
+        return;
+      }
+      const lead = ALL_LEADS.find(l => l.id === inp.dataset.id);
+      if (lead) lead.notite = inp.value;
+    };
+  });
+  document.querySelectorAll(".leadDeleteBtn").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm(t("admin.leadsDeleteConfirm", { nume: btn.dataset.nume }))) return;
+      let res;
+      try {
+        res = await fetch(`/api/admin/leads/${btn.dataset.id}`, { method: "DELETE", credentials: "include" });
+      } catch (e) { res = null; }
+      if (!res || !res.ok) {
+        alert(t("admin.leadsRowUpdateFailed"));
+      }
+      await loadLeads();
+    };
+  });
+}
+
+function filterLeads(){
+  const q = (document.getElementById("leadsSearch").value || "").toLowerCase().trim();
+  if (!q) return renderLeads(ALL_LEADS);
+  renderLeads(ALL_LEADS.filter(l =>
+    (l.nume || "").toLowerCase().includes(q) ||
+    (l.oras || "").toLowerCase().includes(q) ||
+    (l.contact || "").toLowerCase().includes(q) ||
+    (l.ceVinde || "").toLowerCase().includes(q)
+  ));
+}
+document.getElementById("leadsSearch").oninput = filterLeads;
+
+async function loadLeads(){
+  try{
+    const res = await fetch("/api/admin/leads", { credentials: "include" });
+    if (!res.ok) return;
+    const { leads } = await res.json();
+    ALL_LEADS = leads;
+    filterLeads();
+  }catch(e){}
+}
+
+document.getElementById("leadAddBtn").onclick = async () => {
+  const nume = document.getElementById("leadNewNume").value.trim();
+  if (!nume){ alert(t("admin.leadsNumeRequired")); return; }
+  const body = {
+    nume,
+    ceVinde: document.getElementById("leadNewCeVinde").value.trim() || undefined,
+    oras: document.getElementById("leadNewOras").value.trim() || undefined,
+    contact: document.getElementById("leadNewContact").value.trim() || undefined,
+  };
+  // Găsit la testare: răspunsul nu era verificat deloc — dacă adăugarea eșua
+  // (ex. nume deja existent, acum respins cu 409 de server — vezi leads.js),
+  // formularul se golea și lista se reîncărca EXACT ca la succes, fără nicio
+  // avertizare. Adminul credea că lead-ul a fost adăugat, deși nu fusese.
+  let res;
+  try {
+    res = await fetch("/api/admin/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    alert(t("admin.leadsAddFailed"));
+    return;
+  }
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    if (d.error === "nume_deja_existent") {
+      alert(t("admin.leadsNumeDuplicat", { nume }));
+    } else {
+      alert(t("admin.leadsAddFailed"));
+    }
+    return; // formularul rămâne completat, ca adminul să poată corecta numele
+  }
+  document.getElementById("leadNewNume").value = "";
+  document.getElementById("leadNewCeVinde").value = "";
+  document.getElementById("leadNewOras").value = "";
+  document.getElementById("leadNewContact").value = "";
+  await loadLeads();
+};
+
+// Parser CSV minimal — suportă câmpuri între ghilimele (cu virgulă/newline
+// în interior) și ghilimele escapate (""), suficient pentru un export
+// obișnuit din Excel/Sheets. Nu e un parser RFC complet, dar acoperă cazurile
+// reale ale acestui fișier de leads.
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field = ""; }
+      else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === '\r'){ /* ignorat, \n urmează */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ""));
+}
+
+document.getElementById("leadsImportBtn").onclick = async () => {
+  const status = document.getElementById("leadsImportStatus");
+  const raw = document.getElementById("leadsImportCsv").value;
+  const rows = parseCsv(raw);
+  if (rows.length < 2){ status.textContent = t("admin.leadsImportEmpty"); return; }
+  const dataRows = rows.slice(1); // prima linie = antet, o ignorăm (ordinea coloanelor e fixă)
+  const leads = dataRows.map(r => ({
+    nume: (r[0] || "").trim(),
+    ceVinde: (r[1] || "").trim() || undefined,
+    oras: (r[2] || "").trim() || undefined,
+    contact: (r[3] || "").trim() || undefined,
+    tipContact: (r[4] || "").trim() || undefined,
+    sursa: (r[5] || "").trim() || undefined,
+    verificare: (r[6] || "").trim() || undefined,
+    potrivire: (r[7] || "").trim() || undefined,
+  })).filter(l => l.nume);
+  if (!leads.length){ status.textContent = t("admin.leadsImportEmpty"); return; }
+  status.textContent = t("admin.leadsImporting");
+  try{
+    const res = await fetch("/api/admin/leads/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ leads }),
+    });
+    if (!res.ok) throw new Error("eroare");
+    const d = await res.json();
+    status.textContent = t("admin.leadsImportDone", { created: d.created, updated: d.updated });
+    document.getElementById("leadsImportCsv").value = "";
+    await loadLeads();
+  }catch(e){
+    status.textContent = t("admin.leadsImportFailed");
+  }
+};
+
+document.getElementById("leadsImportExcelBtn").onclick = async () => {
+  const status = document.getElementById("leadsImportExcelStatus");
+  const fileInput = document.getElementById("leadsImportExcelFile");
+  const file = fileInput.files && fileInput.files[0];
+  if (!file){ status.textContent = t("admin.leadsExcelFileRequired"); return; }
+  if (!file.name.toLowerCase().endsWith(".xlsx")){
+    status.textContent = t("admin.leadsWrongFileType", { ext: file.name.slice(file.name.lastIndexOf(".")) || "?" });
+    return;
+  }
+  status.textContent = t("admin.leadsImportingExcel");
+  try{
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/admin/leads/import-excel", {
+      method: "POST",
+      credentials: "include",
+      body: formData, // fără Content-Type manual — browserul setează boundary-ul multipart corect
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error || "eroare");
+    status.textContent = t("admin.leadsImportDone", { created: d.created, updated: d.updated });
+    fileInput.value = "";
+    await loadLeads();
+  }catch(e){
+    status.textContent = t("admin.leadsImportExcelFailed");
+  }
+};
+
 async function load(){
   const errBox = document.getElementById("errBox");
   loadTwofaStatus();
@@ -673,6 +1074,7 @@ async function load(){
   loadFeedback();
   loadPaymentDeclarations();
   loadLegalStatus();
+  loadLeads();
   try{
     const [statsRes, usersRes] = await Promise.all([
       fetch("/api/admin/stats", { credentials: "include" }),

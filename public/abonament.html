@@ -26,9 +26,7 @@
     <li data-i18n="sub.feat4">Anulezi oricând, din contul tău</li>
   </ul>
 
-  <button class="btn" id="subscribeBtn" disabled style="opacity:.55; cursor:not-allowed" data-i18n="sub.cardDisabled">Plata cu cardul — temporar indisponibilă</button>
-
-  <button class="btn" id="netopiaBtn" disabled style="opacity:.55; cursor:not-allowed; margin-top:8px" data-i18n="sub.netopiaSoon">Netopia — disponibil în curând</button>
+  <button class="btn" id="netopiaBtn" disabled style="opacity:.55; cursor:not-allowed" data-i18n="sub.netopiaSoon">Plata cu cardul — Netopia, disponibil în curând</button>
 
   <div id="bankTransferBox" style="display:none; margin-top:18px; padding-top:16px; border-top:1px solid #e5e7eb">
     <div class="sub" style="margin-bottom:8px" data-i18n="sub.orBankTransfer">Sau plătește prin transfer bancar:</div>
@@ -65,8 +63,7 @@ I18N.register("ro", {
   "sub.feat2": "Sincronizare pe orice dispozitiv",
   "sub.feat3": "Poze de produs",
   "sub.feat4": "Anulezi oricând, din contul tău",
-  "sub.cardDisabled": "Plata cu cardul — temporar indisponibilă",
-  "sub.netopiaSoon": "Netopia — disponibil în curând",
+  "sub.netopiaSoon": "Plata cu cardul — Netopia, disponibil în curând",
   "sub.orBankTransfer": "Sau plătește prin transfer bancar:",
   "sub.forHowManyMonths": "Pentru câte luni plătești?",
   "sub.holder": "Titular:",
@@ -94,9 +91,6 @@ I18N.register("ro", {
   "sub.sendingNotice": "Se trimite anunțul…",
   "sub.noticeSent": "Anunțat! Activăm accesul de îndată ce confirmăm plata în extrasul de cont (de regulă în aceeași zi).",
   "sub.noticeFailed": "Nu am putut trimite anunțul. Încearcă din nou sau scrie-ne direct.",
-  "sub.preparingPayment": "Se pregătește plata…",
-  "sub.checkoutFailed": "Nu am putut porni plata. Verifică dacă STRIPE_PRICE_ID e configurat corect pe server.",
-  "sub.subscribeNow": "Abonează-te acum",
 });
 I18N.register("en", {
   "sub.title": "Monthly subscription",
@@ -106,8 +100,7 @@ I18N.register("en", {
   "sub.feat2": "Sync across any device",
   "sub.feat3": "Product photos",
   "sub.feat4": "Cancel anytime, from your account",
-  "sub.cardDisabled": "Card payment — temporarily unavailable",
-  "sub.netopiaSoon": "Netopia — coming soon",
+  "sub.netopiaSoon": "Card payment — Netopia, coming soon",
   "sub.orBankTransfer": "Or pay by bank transfer:",
   "sub.forHowManyMonths": "How many months are you paying for?",
   "sub.holder": "Account holder:",
@@ -135,9 +128,6 @@ I18N.register("en", {
   "sub.sendingNotice": "Sending notice…",
   "sub.noticeSent": "Sent! We'll activate your access as soon as we confirm the payment in our bank statement (usually the same day).",
   "sub.noticeFailed": "Could not send the notice. Try again or contact us directly.",
-  "sub.preparingPayment": "Preparing payment…",
-  "sub.checkoutFailed": "Could not start the payment. Check that STRIPE_PRICE_ID is configured correctly on the server.",
-  "sub.subscribeNow": "Subscribe now",
 });
 document.getElementById("langSlot").innerHTML = I18N.langToggleHtml();
 I18N.applyStaticI18n();
@@ -209,6 +199,19 @@ async function api(path, opts){
       document.getElementById("btMonths").onchange = declareMonths;
       declareMonths(); // completează imediat, pentru selecția implicită (1 lună)
 
+      // Prețul afișat sus vine din același endpoint (bank-transfer-info) —
+      // sursă unică cu restul paginii, fără un apel separat către un
+      // procesator de plăți extern.
+      if (bt.introPromoActive){
+        document.getElementById("priceAmt").textContent = bt.introPriceRon + t("sub.perMonthRon");
+        document.getElementById("introNote").style.display = "block";
+        document.getElementById("introNote").textContent = t("sub.introPriceLine", {
+          months: 1, monthWord: t("sub.month"), amt: bt.amountRon, cur: "RON",
+        });
+      } else {
+        document.getElementById("priceAmt").textContent = bt.amountRon + t("sub.perMonthRon");
+      }
+
       document.getElementById("btNotifyPaidBtn").onclick = async ()=>{
         const btn = document.getElementById("btNotifyPaidBtn");
         const status = document.getElementById("btNotifyStatus");
@@ -224,56 +227,13 @@ async function api(path, opts){
         }
       };
     }
-  }catch(e){ /* transfer bancar neconfigurat încă — nu afișăm secțiunea, fără eroare vizibilă */ }
-
-  try{
-    const priceRes = await api("/api/billing/price");
-    if (priceRes.ok){
-      const p = await priceRes.json();
-      const amt = (p.amount/100).toFixed(0);
-      const cur = p.currency.toUpperCase();
-      if (p.intro && (p.intro.amountOff || p.intro.percentOff)){
-        const introAmt = p.intro.amountOff!=null
-          ? ((p.amount - p.intro.amountOff)/100).toFixed(0)
-          : (p.amount/100 * (1 - p.intro.percentOff/100)).toFixed(0);
-        const months = p.intro.durationInMonths || 1;
-        document.getElementById("priceAmt").textContent = introAmt + " " + cur + t("sub.perMonthRon");
-        document.getElementById("introNote").style.display = "block";
-        document.getElementById("introNote").textContent = t("sub.introPriceLine", {
-          months, monthWord: months===1 ? t("sub.month") : t("sub.months"), amt, cur,
-        });
-      } else {
-        document.getElementById("priceAmt").textContent = amt + " " + cur + t("sub.perMonthRon");
-      }
-    } else {
-      document.getElementById("priceAmt").textContent = t("sub.priceSeeAtCheckout");
-    }
   }catch(e){
+    // transfer bancar neconfigurat încă — nu afișăm secțiunea, fără eroare vizibilă;
+    // dar nici prețul de sus n-are de unde să vină în acest caz.
     document.getElementById("priceAmt").textContent = t("sub.priceSeeAtCheckout");
   }
 })();
 
-// Plata cu cardul (Stripe) e dezactivată temporar — butonul e disabled în HTML,
-// deci acest handler nu ar trebui să pornească niciodată, dar îl las ca
-// protecție suplimentară (nu face nimic dacă butonul e dezactivat).
-// Pentru reactivare: scoate `disabled` + stilul de mai sus de pe #subscribeBtn.
-document.getElementById("subscribeBtn").onclick = async ()=>{
-  const btn = document.getElementById("subscribeBtn");
-  if (btn.disabled) return;
-  const errBox = document.getElementById("errBox");
-  errBox.style.display = "none";
-  btn.disabled = true; btn.textContent = t("sub.preparingPayment");
-  try{
-    const res = await api("/api/billing/checkout", {method:"POST"});
-    if (!res.ok) throw new Error("checkout_failed");
-    const {url} = await res.json();
-    window.location.href = url; // redirect către Stripe Checkout
-  }catch(e){
-    errBox.textContent = t("sub.checkoutFailed");
-    errBox.style.display = "block";
-    btn.disabled = false; btn.textContent = t("sub.subscribeNow");
-  }
-};
 document.getElementById("logoutBtn").onclick = async ()=>{
   await api("/api/auth/logout", {method:"POST"});
   window.location.href = "/login.html";
