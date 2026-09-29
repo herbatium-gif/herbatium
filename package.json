@@ -1,7 +1,7 @@
 {
   "name": "formulator-natural-saas",
   "version": "1.0.0",
-  "description": "Herbatium — aplicație SaaS cu cont, parolă și abonament lunar (Stripe)",
+  "description": "Herbatium — aplicație SaaS cu cont, parolă și abonament lunar",
   "private": true,
   "type": "commonjs",
   "main": "src/index.js",
@@ -20,14 +20,14 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.4.0",
     "otplib": "^13.5.0",
-    "qrcode": "^1.5.4",
-    "stripe": "^16.12.0"
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "prisma": "^5.20.0"

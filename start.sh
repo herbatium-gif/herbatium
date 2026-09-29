@@ -15,8 +15,8 @@ if [ ! -f .env ]; then
   cp .env.example .env
   echo "IMPORTANT: deschide fișierul .env și completează cel puțin JWT_SECRET"
   echo "(orice șir lung, aleator) înainte de a continua. Pentru plăți reale,"
-  echo "completează și STRIPE_*  — fără ele, aplicația pornește, dar abonamentul"
-  echo "nu va funcționa."
+  echo "completează și BANK_TRANSFER_* — fără ele, aplicația pornește, dar"
+  echo "secțiunea de transfer bancar nu apare încă."
   echo
   read -p "Apasă Enter când ai terminat de completat .env, ca să continui... " _
 fi

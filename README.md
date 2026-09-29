@@ -1,16 +1,18 @@
 # Herbatium — versiune SaaS (cont, parolă, abonament lunar)
 
 Aceasta e versiunea cu backend propriu a aplicației: utilizatorii își fac cont cu
-email/parolă, plătesc un abonament lunar prin Stripe, iar reînnoirea lunară se
-face automat (Stripe încasează cardul salvat în fiecare lună, fără nicio
-acțiune din partea ta sau a utilizatorului).
+email/parolă și plătesc un abonament lunar prin transfer bancar (clientul
+declară durata aleasă și primește un cod unic de plată; tu confirmi plata în
+extrasul de cont și activezi manual accesul din panoul de admin). Plata cu
+cardul (Netopia) e pregătită ca opțiune viitoare, dar nu e încă activată în
+UI ("disponibil în curând").
 
-**Important, citește înainte de orice:** acest cod NU e conectat la niciun
-cont real — trebuie să completezi tu un cont Stripe și, ca să poți încasa
-bani legal în România, de regulă și o firmă înregistrată (PFA/SRL) +
-facturare. Fără pașii de mai jos, aplicația pornește dar
-înregistrarea/plata nu vor funcționa. Baza de date nu mai trebuie
-configurată separat — pornește automat, împreună cu aplicația (vezi mai jos).
+**Important, citește înainte de orice:** ca să poți încasa bani legal în
+România, ai nevoie de obicei de o firmă înregistrată (PFA/SRL) + facturare.
+Fără IBAN-ul configurat (secțiunea de mai jos), aplicația pornește dar
+secțiunea de transfer bancar nu apare pe pagina de abonament. Baza de date
+nu mai trebuie configurată separat — pornește automat, împreună cu
+aplicația (vezi mai jos).
 
 ## Pornire rapidă (Docker — recomandat, „doar o rulez”)
 
@@ -24,9 +26,9 @@ cd formulator-saas
 cp .env.example .env
 # deschide .env și completează cel puțin JWT_SECRET (orice șir lung, aleator)
 # și ADMIN_PASSWORD (parola contului tău de administrator — vezi secțiunea
-# "Contul tău de administrator" mai jos). Pentru plăți reale, completează și
-# secțiunea STRIPE_* — fără ele, aplicația pornește normal, doar abonamentul
-# nu va funcționa încă.
+# "Contul tău de administrator" mai jos). Pentru plăți reale prin transfer
+# bancar, completează și secțiunea BANK_TRANSFER_* — fără ea, aplicația
+# pornește normal, doar secțiunea de transfer bancar nu apare încă.
 
 ./start.sh
 ```
@@ -106,7 +108,7 @@ apare în `dist/Herbatium-Setup.exe`.
 
 ## 1. Ce e inclus
 
-- `src/` — server Express (autentificare, date utilizator, poze, Stripe)
+- `src/` — server Express (autentificare, date utilizator, poze, plăți prin transfer bancar)
 - `prisma/` — structura bazei de date (PostgreSQL) + migrările deja generate
   (`prisma/migrations/`) — se aplică automat la pornire, nu trebuie rulate manual
 - `public/` — front-end-ul: `login.html`, `register.html`, `abonament.html`
@@ -135,67 +137,49 @@ Cel mai simplu: un serviciu gratuit/ieftin de PostgreSQL — de exemplu
 connection string-ul (arată cam așa:
 `postgresql://user:parola@host:5432/nume_db`).
 
-### c) Cont Stripe
-1. Creează cont pe https://dashboard.stripe.com (gratuit).
-2. **Product catalog → Add product**: nume „Abonament Herbatium",
-   preț recurent, interval **lunar**, valuta pe care o vrei (RON sau EUR).
-   Salvează și copiază **Price ID**-ul (`price_...`).
-3. **Developers → API keys**: copiază **Secret key** (`sk_test_...` pentru
-   test, `sk_live_...` pentru bani reali).
-4. **Developers → Webhooks → Add endpoint**: pune adresa publică
-   `https://domeniul-tau.ro/api/billing/webhook`, selectează evenimentele:
-   `checkout.session.completed`, `invoice.paid`, `invoice.payment_succeeded`,
-   `invoice.payment_failed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`. Copiază **Signing secret** (`whsec_...`).
-5. Cât timp ești pe chei `sk_test_...`, Stripe e în modul de test — plățile
-   nu sunt reale (folosești un card de test, ex. `4242 4242 4242 4242`,
-   orice dată viitoare, orice CVC). Treci pe `sk_live_...` doar după ce ai
-   verificat tot fluxul.
+### c) Cont bancar pentru încasare (transfer bancar)
+Metoda de plată activă acum e transferul bancar manual: clientul vede
+IBAN-ul tău pe pagina de abonament, alege pentru câte luni plătește, face
+transferul, iar tu confirmi plata în extrasul de cont și activezi accesul
+din panoul de admin (`/admin.html`). Nu ai nevoie de niciun cont la un
+procesator extern pentru asta — doar de datele contului bancar în care vrei
+să încasezi (secțiunea `BANK_TRANSFER_*` din `.env`, mai jos).
 
 ### d) Firmă / facturare (pentru bani reali)
 Ca să încasezi bani legal de la clienți în UE, ai nevoie de obicei de o
 firmă înregistrată (PFA sau SRL) și, la un moment dat, de emitere de facturi
-(poți folosi Stripe Invoicing sau un soft românesc de facturare —
-Stripe îți dă oricum chitanțele/facturile de bază către client, dar
-verifică cu un contabil ce ești obligat să emiți suplimentar în România).
-Acesta e un pas legal, nu tehnic — nu-l pot face eu în locul tău.
+(un soft românesc de facturare, sau facturare manuală — verifică cu un
+contabil ce ești obligat să emiți în România). Acesta e un pas legal, nu
+tehnic — nu-l pot face eu în locul tău.
 
 ### e) Configurare locală
 ```bash
 cd formulator-saas
 cp .env.example .env
-# deschide .env și completează DATABASE_URL, JWT_SECRET, STRIPE_SECRET_KEY,
-# STRIPE_PRICE_ID, STRIPE_WEBHOOK_SECRET, APP_URL
+# deschide .env și completează DATABASE_URL, JWT_SECRET, BANK_TRANSFER_IBAN,
+# BANK_TRANSFER_HOLDER, APP_URL
 
 npm install
 npx prisma migrate dev --name init   # creează tabelele în baza de date
 npm run dev                           # pornește serverul local, pe http://localhost:3000
 ```
 
-Pentru testarea webhook-urilor Stripe local, instalează
-[Stripe CLI](https://stripe.com/docs/stripe-cli) și rulează:
-```bash
-stripe listen --forward-to localhost:3000/api/billing/webhook
-```
-(îți dă un `whsec_...` temporar, pentru test local — pune-l în `.env`).
-
 ## 3. Fluxul aplicației
 
 1. `/register.html` — utilizatorul își face cont (email + parolă, stocată
    hash-uită cu bcrypt, niciodată în clar).
-2. E redirecționat la `/abonament.html` — vede prețul lunar și apasă
-   „Abonează-te acum" → e dus la pagina de plată Stripe (Checkout).
-3. După ce plătește, Stripe trimite un webhook către server, contul e marcat
+2. E redirecționat la `/abonament.html` — vede prețul lunar, alege pentru
+   câte luni plătește și primește IBAN-ul tău plus un cod unic de plată.
+3. Face transferul bancar, apasă „Am făcut transferul — anunță" (primești un
+   email cu detaliile) și, după ce confirmi plata în extrasul de cont, îi
+   activezi manual accesul din `/admin.html` — contul e marcat
    `subscriptionStatus: "active"`, iar utilizatorul ajunge pe `/app.html`.
-4. În fiecare lună, Stripe încearcă automat plata pe cardul salvat.
-   - Reușește → webhook `invoice.payment_succeeded` → abonamentul se
-     prelungește automat, fără nicio acțiune manuală.
-   - Eșuează → contul trece pe `past_due`; Stripe reîncearcă automat de
-     câteva ori (poți configura din Dashboard câte reîncercări și ce se
-     întâmplă dacă eșuează definitiv).
-5. Din `/app.html`, butonul „Abonamentul meu" duce la portalul Stripe, de
-   unde utilizatorul își poate schimba cardul sau anula abonamentul oricând
-   — fără să te contacteze pe tine.
+4. Reînnoirea lunară e tot manuală, în același flux — nu există retragere
+   automată din cont. Plata cu cardul (Netopia) e pregătită ca opțiune
+   viitoare, dar încă marcată „disponibil în curând" în UI.
+5. Din `/app.html`, butonul „Abonamentul meu" explică faptul că, pentru
+   plata prin transfer bancar, gestionarea abonamentului (activare,
+   reînnoire) se face direct de tine, nu printr-un portal de auto-servire.
 
 ## 3bis. Pagina publică de catalog (opțională)
 
@@ -263,7 +247,7 @@ Aplicația creează automat, la fiecare pornire, un cont de administrator —
 separat de conturile clienților — cu care doar tu poți intra. Contul de
 administrator:
 
-- **are acces total, mereu**, indiferent de Stripe/abonament (nu i se cere
+- **are acces total, mereu**, indiferent de abonament (nu i se cere
   niciodată să plătească);
 - vede un buton **„Administrare”** lângă emailul tău, sus în aplicație, care
   duce la `/admin.html` — un panou simplu cu numărul de conturi înregistrate,
@@ -313,11 +297,9 @@ Pași generali:
    generat de acolo în variabilele de mediu ale aplicației (nu cele din
    `docker-compose.yml`, care sunt doar pentru rulare locală).
 3. Completează restul variabilelor din `.env.example` direct în panoul
-   platformei (`JWT_SECRET`, `STRIPE_*`, `COMPANY_*`, `LEGAL_VERSION`).
+   platformei (`JWT_SECRET`, `BANK_TRANSFER_*`, `COMPANY_*`, `LEGAL_VERSION`).
 4. Setează `APP_URL` la domeniul public real (ex. `https://herbatium.ro`) și
    `NODE_ENV=production`.
-5. Actualizează endpoint-ul webhook din Stripe Dashboard cu adresa publică
-   finală (`https://domeniul-tau.ro/api/billing/webhook`).
 
 ### Varianta cu control total — VPS propriu (Hetzner, DigitalOcean etc.)
 Pe un VPS cu Docker instalat, `docker-compose.yml` funcționează neschimbat —
@@ -333,8 +315,7 @@ Mai ai nevoie doar de:
   [Caddy](https://caddyserver.com) (2 linii de config: domeniul tău →
   `localhost:3000`, certificatul SSL se reînnoiește singur) sau Nginx +
   Certbot, dacă preferi.
-- Setează `APP_URL` în `.env` la adresa publică finală și actualizează
-  webhook-ul Stripe, ca la punctul de mai sus.
+- Setează `APP_URL` în `.env` la adresa publică finală.
 
 ### Poze de produs — o notă pentru orice variantă de găzduire
 Acest starter salvează pozele pe discul serverului (`uploads/` —
@@ -351,8 +332,6 @@ schimbare izolată, doar în `src/routes/photos.js`.
   România cu un contabil.
 - Nu are resetare de parolă prin email (poate fi adăugată — are nevoie de
   un serviciu de trimis emailuri, ex. Resend/SendGrid).
-- Nu are un flux de „trial gratuit" — abonamentul se cere din prima; se
-  poate adăuga ușor din Stripe (`trial_period_days` la crearea sesiunii de
-  checkout).
+- Nu are un flux de „trial gratuit" — abonamentul se cere din prima.
 - Pozele sunt limitate la 8MB fiecare și stocate pe disc local (vezi mai
   sus pentru varianta de producție).

@@ -25,7 +25,7 @@ if not exist ".env" (
   echo.
   echo IMPORTANT: se deschide acum .env in Notepad. Completeaza cel putin
   echo JWT_SECRET ^(orice sir lung, aleator^). Pentru plati reale, completeaza
-  echo si sectiunea STRIPE_*. Salveaza si inchide Notepad ca sa continui.
+  echo si sectiunea BANK_TRANSFER_*. Salveaza si inchide Notepad ca sa continui.
   echo.
   pause
   notepad ".env"
